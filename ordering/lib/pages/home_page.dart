@@ -25,7 +25,7 @@ class HomePage extends StatelessWidget {
                         onTap: () {},
                         child: Icon(
                           Icons.sort_rounded,
-                          color: Colors.black,
+                          color: Color.fromARGB(255, 0, 0, 0),
                           size: 35,
                         ),
                       ),
@@ -81,9 +81,9 @@ class HomePage extends StatelessWidget {
                     child: TabBarView(
                       children: [
                         ItemWidget(),
-                        ItemWidget(),
-                        ItemWidget(),
-                        ItemWidget(),
+                        // ItemWidget(),
+                        // ItemWidget(),
+                        // ItemWidget(),
                       ],
                     )),
               ],
