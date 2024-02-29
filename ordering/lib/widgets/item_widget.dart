@@ -24,7 +24,8 @@ class _ItemWidgetState extends State<ItemWidget> {
   Future<void> fetchItems() async {
     String url = 'http://192.168.0.104:8080/items';
     if (widget.category != 'ALL') {
-      url += '?category=${Uri.encodeQueryComponent(widget.category)}'; // Use Uri.encodeQueryComponent
+      url +=
+          '?category=${Uri.encodeQueryComponent(widget.category)}'; // Use Uri.encodeQueryComponent
     }
 
     final response = await http.get(Uri.parse(url));
@@ -50,7 +51,9 @@ class _ItemWidgetState extends State<ItemWidget> {
             childAspectRatio: 0.76,
             children: items.map((item) => buildItemCard(item)).toList(),
           )
-        : Center(child: CircularProgressIndicator()); // Show loading indicator while fetching items
+        : Center(
+            child:
+                CircularProgressIndicator()); // Show loading indicator while fetching items
   }
 
   Widget buildItemCard(Item item) {
@@ -90,7 +93,7 @@ class _ItemWidgetState extends State<ItemWidget> {
               child: Text(
                 item.itemName,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: MediaQuery.of(context).size.width * 0.04,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
@@ -102,27 +105,27 @@ class _ItemWidgetState extends State<ItemWidget> {
             child: Text(
               "${item.itemCode}", // Placeholder for item description
               style: TextStyle(
-                fontSize: 16,
+                fontSize: MediaQuery.of(context).size.width * 0.03,
                 color: Colors.black,
               ),
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 10),
+            padding: EdgeInsets.symmetric(vertical: 3),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "\$${item.sellingPrice}",
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: MediaQuery.of(context).size.width * 0.03,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
                 ),
                 Icon(
                   CupertinoIcons.plus,
-                  size: 27,
+                  size: 25,
                 ),
               ],
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class SingleItemNavBar extends StatelessWidget {
+class CartNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -55,7 +55,7 @@ class SingleItemNavBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20))),
             ),
             child: Text(
-              "Buy Now",
+              "Order Now",
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

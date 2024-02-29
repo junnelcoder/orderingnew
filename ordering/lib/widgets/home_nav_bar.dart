@@ -20,17 +20,11 @@ class HomeNavBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          // Icon(
-          //   Icons.mail,
-          //   color: Colors.black,
-          //   size: 35,
-          // ),
-          // Icon(
-          //   Icons.favorite_outlined,
-          //   color: Colors.black,
-          //   size: 35,
-          // ),
-          Container(
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, "cartPage");
+            },
+            child: Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.black,
@@ -47,17 +41,9 @@ class HomeNavBar extends StatelessWidget {
                 CupertinoIcons.plus,
                 color: Colors.white,
                 size: 30,
-              )),
-          // Icon(
-          //   Icons.notifications,
-          //   color: Colors.black,
-          //   size: 35,
-          // ),
-          // Icon(
-          //   Icons.person,
-          //   color: Colors.black,
-          //   size: 35,
-          // ),
+              ),
+            ),
+          ),
         ],
       ),
     );

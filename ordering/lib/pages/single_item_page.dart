@@ -6,7 +6,7 @@ class SingleItemPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(248, 243, 238, 238),
+      backgroundColor: Color.fromARGB(255, 255, 255, 255),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.only(top: 25, left: 15, right: 10),
