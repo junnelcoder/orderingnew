@@ -22,44 +22,54 @@ class CartNavBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Total:",
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                "Total Price:",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 15, // smaller font size
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               SizedBox(
-                width: 15,
-              ),
+                  height:
+                      4), // Adjust the space between "Total Price:" and the price value
               Text(
-                "\$40",
+                "\₱400", // Display the formatted total
                 style: TextStyle(
-                    fontSize: 19,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black),
+                  color: Colors.black,
+                  fontSize: 18, // smaller font size
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
-          ElevatedButton(
-            onPressed: () {},
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.black),
-              padding: MaterialStateProperty.all(
-                EdgeInsets.symmetric(
-                  vertical: 15,
-                  horizontal: 20,
+          InkWell(
+            onTap: () {},
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                  bottomLeft: Radius.circular(20),
                 ),
               ),
-              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20))),
-            ),
-            child: Text(
-              "Order Now",
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white),
+              child: Row(
+                children: [
+                  Text(
+                    "Order Now",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
