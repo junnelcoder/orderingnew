@@ -15,7 +15,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    fetchCategories(); // Fetch categories when the widget initializes
+    fetchCategories();
   }
 
   Future<void> fetchCategories() async {
@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: categories.length,
+      length: categories.length + 1, // Add 1 for the 'ALL' option
       child: Scaffold(
         backgroundColor: Color.fromARGB(248, 243, 238, 238),
         body: SafeArea(
@@ -94,14 +94,20 @@ class _HomePageState extends State<HomePage> {
                 TabBar(
                   isScrollable: true,
                   indicator: BoxDecoration(),
-                  labelStyle: TextStyle(fontSize: 20),
+                  labelStyle: TextStyle(fontSize: 15),
                   labelPadding: EdgeInsets.symmetric(horizontal: 20),
-                  tabs: categories.map<Tab>((category) => Tab(text: category)).toList(),
+                  tabs: [
+                    Tab(text: 'ALL'), // Add the 'ALL' option
+                    ...categories.map<Tab>((category) => Tab(text: category)).toList(),
+                  ],
                 ),
                 Flexible(
                   flex: 1,
                   child: TabBarView(
-                    children: categories.map<Widget>((category) => ItemWidget(category: category)).toList(),
+                    children: [
+                      ItemWidget(category: 'ALL'), // Add 'ALL' category tab
+                      ...categories.map<Widget>((category) => ItemWidget(category: category)).toList(),
+                    ],
                   ),
                 ),
               ],
@@ -113,3 +119,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
