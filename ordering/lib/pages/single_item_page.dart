@@ -6,7 +6,8 @@ import '../widgets/item_widget.dart';
 class SingleItemPage extends StatefulWidget {
   final Item item; // Declare a variable to hold the item data
 
-  const SingleItemPage({required this.item}); // Constructor to receive the item data
+  const SingleItemPage(
+      {required this.item}); // Constructor to receive the item data
 
   @override
   _SingleItemPageState createState() => _SingleItemPageState();
@@ -22,7 +23,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
   }
 
   void decrementQuantity() {
-    if (quantity > 1) { // Check if quantity is greater than 1 before decrementing
+    if (quantity > 1) {
+      // Check if quantity is greater than 1 before decrementing
       setState(() {
         quantity--;
       });
@@ -48,14 +50,6 @@ class _SingleItemPageState extends State<SingleItemPage> {
                     },
                     child: Icon(
                       Icons.arrow_back_ios_new,
-                      color: Colors.black,
-                      size: 32,
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {},
-                    child: Icon(
-                      CupertinoIcons.plus,
                       color: Colors.black,
                       size: 32,
                     ),
@@ -86,8 +80,10 @@ class _SingleItemPageState extends State<SingleItemPage> {
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                             ),
-                            maxLines: 2, // Allow the item name to wrap to the next line if needed
-                            overflow: TextOverflow.ellipsis, // Display ellipsis (...) if the text overflows
+                            maxLines:
+                                2, // Allow the item name to wrap to the next line if needed
+                            overflow: TextOverflow
+                                .ellipsis, // Display ellipsis (...) if the text overflows
                           ),
                         ),
                         SizedBox(width: 8),
@@ -150,7 +146,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
           ),
         ),
       ),
-      bottomNavigationBar: SingleItemNavBar(sellingPrice: widget.item.sellingPrice, quantity: quantity),
+      bottomNavigationBar: SingleItemNavBar(
+          sellingPrice: widget.item.sellingPrice, quantity: quantity),
     );
   }
 }
@@ -164,10 +161,20 @@ class SingleItemNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double total = sellingPrice * quantity;
-    String formattedTotal = total.toStringAsFixed(2); // Format total to display with two decimal places
+    String formattedTotal = total
+        .toStringAsFixed(2); // Format total to display with two decimal places
     return Container(
-      color: Colors.white,
       height: 80,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            spreadRadius: 1,
+            blurRadius: 8,
+          ),
+        ],
+      ),
       padding: EdgeInsets.symmetric(horizontal: 15),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -183,7 +190,9 @@ class SingleItemNavBar extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: 4), // Adjust the space between "Total Price:" and the price value
+              SizedBox(
+                  height:
+                      4), // Adjust the space between "Total Price:" and the price value
               Text(
                 "\₱$formattedTotal", // Display the formatted total
                 style: TextStyle(
