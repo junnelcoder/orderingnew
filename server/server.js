@@ -20,17 +20,46 @@ const item = require('./Routes/itemListingRoutes');
 app.use('/api', item); 
 app.get('/categories', async (req, res) => {
   try {
-      const pool = await sql.connect(config);
-      const result = await pool.request().query(`
-          SELECT DISTINCT [category] FROM [restopos45].[dbo].[items]
-      `);
-      const categories = result.recordset.map(record => record.category);
-      res.json(categories);
+    const pool = await sql.connect(config);
+    const result = await pool.request().query(`
+      SELECT DISTINCT [category] FROM [restopos45].[dbo].[items]
+    `);
+    const categories = result.recordset.map(record => record.category);
+    res.json(categories);
   } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
+    console.error(err.message);
+    res.status(500).send('Server Error');
   }
 });
+
+app.get('/items', async (req, res) => {
+  try {
+    let category = req.query.category;
+
+    let query = 'SELECT itemName, itemCode, sellingPrice FROM [restopos45].[dbo].[items]';
+
+    // If a specific category is selected, filter by that category
+    if (category && category !== 'ALL') {
+      category = decodeURIComponent(category); // Decode the category parameter
+      query += ` WHERE category = '${category}'`;
+    }
+
+    const pool = await sql.connect(config);
+    const result = await pool.request().query(query);
+    
+    // Send the list of items as a JSON response
+    res.json(result.recordset);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+
+
+
+
+
 const config = {
     user: 'sa',
     password: 'zankojt@2024',
