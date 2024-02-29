@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
-
+import '../pages/single_item_page.dart';
 class ItemWidget extends StatefulWidget {
   final String category;
 
@@ -74,10 +74,15 @@ class _ItemWidgetState extends State<ItemWidget> {
       child: Column(
         children: [
           InkWell(
-            onTap: () {
-              Navigator.pushNamed(context, "singleItemPage");
-            },
-            child: Container(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SingleItemPage(item: item), // Pass the selected item's data
+                  ),
+                );
+              },
+                  child: Container(
               margin: EdgeInsets.all(10),
               child: Image.asset(
                 "images/burger.png",

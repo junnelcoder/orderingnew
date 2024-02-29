@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ordering/pages/single_item_page.dart';
+// import 'package:ordering/pages/single_item_page.dart';
 
 import 'pages/cart_page.dart';
 import 'pages/home_page.dart';
@@ -27,7 +27,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       routes: {
         "/": (context) => HomePage(),
-        "singleItemPage": (context) => SingleItemPage(),
+        // "singleItemPage": (context) => SingleItemPage(),
         "cartPage": (context) => CartPage(),
       },
     );
