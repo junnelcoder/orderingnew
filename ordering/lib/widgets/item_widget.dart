@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class ItemWidget extends StatelessWidget {
+  final String category;
+
+  const ItemWidget({required this.category});
+
   @override
   Widget build(BuildContext context) {
     return GridView.count(
@@ -37,7 +40,6 @@ class ItemWidget extends StatelessWidget {
                       "images/burger.png",
                       width: 120,
                       height: 120,
-                      // fit: BoxFit.cover,
                     ),
                   ),
                 ),

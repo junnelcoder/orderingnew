@@ -6,15 +6,35 @@ const PORT = 8080;
 const http = require('http');
 const ip = require('ip');
 
+// Add CORS middleware
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*'); // Allow requests from any origin
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS'); // Allow specific HTTP methods
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow specific headers
+  next();
+});
+
 // const testRoutes = require('./Routes/testing');
 const item = require('./Routes/itemListingRoutes');
 // app.use('/api', testRoutes); 
 app.use('/api', item); 
-
+app.get('/categories', async (req, res) => {
+  try {
+      const pool = await sql.connect(config);
+      const result = await pool.request().query(`
+          SELECT DISTINCT [category] FROM [restopos45].[dbo].[items]
+      `);
+      const categories = result.recordset.map(record => record.category);
+      res.json(categories);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+  }
+});
 const config = {
     user: 'sa',
     password: 'zankojt@2024',
-    server: 'DESKTOP-6S6CLHO\\SQLEXPRESS2014',
+    server: 'DESKTOP-EIR2A8B\\SQLEXPRESS2014',
     database: 'restopos45',
     options: {
         encrypt: false, 
