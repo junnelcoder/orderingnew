@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -21,44 +20,19 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchCategories() async {
-    try {
-      // Fetching device IP address
-      final ipAddress = await getIPAddress();
+    final response =
+        await http.get(Uri.parse('http://192.168.0.104:8080/categories'));
 
-      // Constructing the URL dynamically using the obtained IP address
-      final url = 'http://$ipAddress:8080/categories';
-
-      // Sending the request to the server to fetch categories
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        setState(() {
-          final List<dynamic> data = json.decode(response.body);
-          categories = data.where((category) => category != null).cast<String>().toList();
-        });
-      } else {
-        throw Exception('Failed to fetch categories');
-      }
-    } catch (e) {
-      print('Error fetching categories: $e');
+    if (response.statusCode == 200) {
+      setState(() {
+        final List<dynamic> data = json.decode(response.body);
+        categories =
+            data.where((category) => category != null).cast<String>().toList();
+      });
+    } else {
+      throw Exception('Failed to fetch categories');
     }
   }
-
-  Future<String> getIPAddress() async {
-    try {
-      for (var interface in await NetworkInterface.list()) {
-        for (var addr in interface.addresses) {
-          if (!addr.isLoopback && addr.type == InternetAddressType.IPv4) {
-            return addr.address;
-          }
-        }
-      }
-    } catch (e) {
-      print('Error getting IP address: $e');
-    }
-    return 'Could not determine IP address';
-  }
-
 
   @override
   Widget build(BuildContext context) {
