@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import '../pages/single_item_page.dart';
-
+import '../pages/config.dart';
 class ItemWidget extends StatefulWidget {
   final String category;
 
@@ -23,7 +23,7 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   Future<void> fetchItems() async {
-    String url = 'http://192.168.0.104:8080/items';
+    String url = 'http://${AppConfig.serverIPAddress}:8080/items';
     if (widget.category != 'ALL') {
       url +=
           '?category=${Uri.encodeQueryComponent(widget.category)}';

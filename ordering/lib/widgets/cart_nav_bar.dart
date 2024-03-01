@@ -61,7 +61,7 @@ class CartNavBar extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    "Order Now",
+                    "Save Order",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
