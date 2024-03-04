@@ -22,7 +22,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchCategories() async {
     final response =
         await http.get(Uri.parse('http://${AppConfig.serverIPAddress}:8080/categories'));
-
+    print('haha:${AppConfig.serverIPAddress}');
     if (response.statusCode == 200) {
       setState(() {
         final List<dynamic> data = json.decode(response.body);
