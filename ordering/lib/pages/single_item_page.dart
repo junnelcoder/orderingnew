@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../widgets/item_widget.dart'; // Import your Item model
@@ -27,6 +29,44 @@ class _SingleItemPageState extends State<SingleItemPage> {
       setState(() {
         quantity--;
       });
+    }
+  }
+
+  Future<void> addToCart() async {
+    // Define the URL of your API endpoint
+    var url = Uri.parse('http://192.168.5.100:8080/add-to-cart');
+
+    // Define the item details to be saved
+    var itemDetails = {
+      'pa_id': '1',
+      'machine_id': '0001',
+      'trans_date': DateTime.now().toString(),
+      'itemcode': widget.item.itemcode,
+      'itemname': widget.item.itemname,
+      'category': widget.item.category,
+      'qty': quantity.toString(),
+      'unitprice': widget.item.unitPrice.toString(),
+      'markup': widget.item.markup.toString(),
+      'sellingprice': widget.item.sellingprice.toString(),
+      // Add other item details as needed
+    };
+
+    // Send a POST request to your API endpoint with the item details
+    var response = await http.post(
+      url,
+      body: json.encode(itemDetails),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    // Check if the request was successful (status code 200)
+    if (response.statusCode == 200) {
+      // Parse the response body if needed
+      var responseBody = json.decode(response.body);
+      print('Item added to cart: $responseBody');
+      // Perform any additional actions after adding the item to the cart
+    } else {
+      // Handle the error if the request was not successful
+      print('Failed to add item to cart. Status code: ${response.statusCode}');
     }
   }
 
@@ -74,7 +114,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
                       children: [
                         Expanded(
                           child: Text(
-                            widget.item.itemName, // Use the item's data
+                            widget.item.itemname, // Use the item's data
                             style: TextStyle(
                               color: Colors.black,
                               fontSize: 28,
@@ -134,7 +174,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
                   ),
                   SizedBox(height: 15),
                   Text(
-                    widget.item.itemCode, // Use the item's data
+                    widget.item.itemcode, // Use the item's data
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
@@ -206,8 +246,9 @@ class _SingleItemPageState extends State<SingleItemPage> {
         ),
       ),
       bottomNavigationBar: SingleItemNavBar(
-        sellingPrice: widget.item.sellingPrice,
+        sellingPrice: widget.item.sellingprice,
         quantity: quantity,
+        onAddToCart: addToCart, // Pass the addToCart function
       ),
     );
   }
@@ -228,8 +269,13 @@ class _SingleItemPageState extends State<SingleItemPage> {
 class SingleItemNavBar extends StatelessWidget {
   final double sellingPrice;
   final int quantity;
+  final Function()? onAddToCart;
 
-  const SingleItemNavBar({required this.sellingPrice, required this.quantity});
+  const SingleItemNavBar({
+    required this.sellingPrice,
+    required this.quantity,
+    this.onAddToCart,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -277,7 +323,7 @@ class SingleItemNavBar extends StatelessWidget {
             ],
           ),
           InkWell(
-            onTap: () {},
+            onTap: onAddToCart, // Call the addToCart function when tapped
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               decoration: BoxDecoration(

@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const axios = require('axios');
 const sql = require('mssql');
+const bodyParser = require('body-parser'); // Import bodyParser
 const PORT = 8080;
 const http = require('http');
 const ip = require('ip');
@@ -13,6 +14,9 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Allow specific headers
   next();
 });
+
+// Parse JSON bodies
+app.use(bodyParser.json());
 
 // const testRoutes = require('./Routes/testing');
 const item = require('./Routes/itemListingRoutes');
@@ -35,17 +39,18 @@ app.get('/categories', async (req, res) => {
 app.get('/items', async (req, res) => {
   try {
     let category = req.query.category;
-
-    let query = 'SELECT itemName, itemCode, sellingPrice FROM [order].[dbo].[items]';
+    let query = 'SELECT * FROM [order].[dbo].[items]';
 
     // If a specific category is selected, filter by that category
     if (category && category !== 'ALL') {
       category = decodeURIComponent(category); // Decode the category parameter
-      query += ` WHERE category = '${category}'`;
+      query += ' WHERE category = @category';
     }
 
     const pool = await sql.connect(config);
-    const result = await pool.request().query(query);
+    const result = await pool.request()
+                               .input('category', sql.VarChar, category)
+                               .query(query);
     
     // Send the list of items as a JSON response
     res.json(result.recordset);
@@ -56,9 +61,28 @@ app.get('/items', async (req, res) => {
 });
 
 
+// Endpoint to handle adding items to the cart
+app.post('/add-to-cart', async (req, res) => {
+  try {
+    // Extract item details from the request body
+    const { pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice } = req.body;
 
+    // Connect to the database
+    const pool = await sql.connect(config);
 
+    // Insert the item details into the cart_items table
+    await pool.request().query(`
+      INSERT INTO [order].[dbo].[cart_items] (pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice)
+      VALUES ('${pa_id}', '${machine_id}', '${trans_date}', '${itemcode}', '${itemname}', '${category}', '${qty}', '${unitprice}', '${markup}', '${sellingprice}')
+    `);
 
+    // Send a response indicating success
+    res.status(200).json({ message: 'Item added to cart successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 
 const config = {
     user: 'sa',

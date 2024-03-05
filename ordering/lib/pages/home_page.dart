@@ -21,7 +21,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchCategories() async {
     final response =
-        await http.get(Uri.parse('http://${AppConfig.serverIPAddress}:8080/categories'));
+        await http.get(Uri.parse('http://192.168.5.100:8080/categories'));
     print('haha:${AppConfig.serverIPAddress}');
     if (response.statusCode == 200) {
       setState(() {
@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
                               padding: EdgeInsets.symmetric(horizontal: 15),
                               child: TextFormField(
                                 decoration: InputDecoration(
-                                  hintText: "What would you like to have?",
+                                  hintText: "What would you like to haves?",
                                   border: InputBorder.none,
                                 ),
                               ),

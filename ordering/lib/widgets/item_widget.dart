@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import '../pages/single_item_page.dart';
-import '../pages/config.dart';
+// import '../pages/config.dart';
 class ItemWidget extends StatefulWidget {
   final String category;
 
@@ -23,7 +23,7 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   Future<void> fetchItems() async {
-    String url = 'http://${AppConfig.serverIPAddress}:8080/items';
+    String url = 'http://192.168.5.100:8080/items';
     if (widget.category != 'ALL') {
       url +=
           '?category=${Uri.encodeQueryComponent(widget.category)}';
@@ -107,7 +107,7 @@ class _ItemWidgetState extends State<ItemWidget> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
-                item.itemName,
+                item.itemname,
                 style: TextStyle(
                   fontSize: 16.0,
                   fontWeight: FontWeight.bold,
@@ -120,7 +120,7 @@ class _ItemWidgetState extends State<ItemWidget> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
-                "${item.itemCode}",
+                "${item.itemcode}",
                 style: TextStyle(
                   fontSize: 14.0,
                   color: Colors.black,
@@ -133,7 +133,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "\$${item.sellingPrice}",
+                    "\$${item.sellingprice}",
                     style: TextStyle(
                       fontSize: 14.0,
                       fontWeight: FontWeight.bold,
@@ -155,21 +155,34 @@ class _ItemWidgetState extends State<ItemWidget> {
 }
 
 class Item {
-  final String itemName;
-  final String itemCode;
-  final double sellingPrice;
+  final String itemname;
+  final String itemcode;
+  final double sellingprice;
+
+  // Additional properties with default values
+  final String category;
+  final double unitPrice;
+  final double markup;
 
   Item({
-    required this.itemName,
-    required this.itemCode,
-    required this.sellingPrice,
+    required this.itemname,
+    required this.itemcode,
+    required this.sellingprice,
+    // Additional properties with default values
+    this.category = '',
+    this.unitPrice = 0.0,
+    this.markup = 0.0,
   });
 
   factory Item.fromJson(Map<String, dynamic> json) {
     return Item(
-      itemName: json['itemName'] ?? '',
-      itemCode: json['itemCode'] ?? '',
-      sellingPrice: double.parse(json['sellingPrice'].toString()),
+      itemname: json['itemname'] ?? '',
+      itemcode: json['itemcode'] ?? '',
+      sellingprice: json['sellingprice'] != null ? double.parse(json['sellingprice'].toString()) : 0.0,
+      // Additional properties initialized from JSON
+      category: json['category'] ?? '',
+      unitPrice: json['unitprice'] != null ? double.parse(json['unitprice'].toString()) : 0.0,
+      markup: json['markup'] != null ? double.parse(json['markup'].toString()) : 0.0,
     );
   }
 }
