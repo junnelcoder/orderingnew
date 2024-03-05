@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Color.fromARGB(255, 255, 255, 255),
         body: SafeArea(
           child: Padding(
-            padding: EdgeInsets.only(top: 80),
+            padding: EdgeInsets.only(top: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
                 //     ),
                 //   ),
                 // ),
-                SizedBox(height: 30),
+                SizedBox(height: 5),
                 TabBar(
                   isScrollable: true,
                   indicator: BoxDecoration(),
