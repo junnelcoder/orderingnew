@@ -26,8 +26,7 @@ class _ItemWidgetState extends State<ItemWidget> {
   Future<void> fetchItems() async {
     String url = 'http://192.168.5.100:8080/items';
     if (widget.category != 'ALL') {
-      url +=
-          '?category=${Uri.encodeQueryComponent(widget.category)}';
+      url += '?category=${Uri.encodeQueryComponent(widget.category)}';
     }
 
     final response = await http.get(Uri.parse(url));
@@ -78,6 +77,7 @@ class _ItemWidgetState extends State<ItemWidget> {
 
   Widget buildItemCard(BuildContext context, Item item) {
     return Card(
+      color: Colors.white,
       margin: EdgeInsets.all(8.0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20.0),
@@ -172,7 +172,7 @@ class Item {
   final String picture_path;
   final String division;
   final String brand;
-  
+
   // New properties
   final double total;
   final double subtotal;
@@ -202,22 +202,33 @@ class Item {
     return Item(
       itemname: json['itemname'] ?? '',
       itemcode: json['itemcode'] ?? '',
-      sellingprice: json['sellingprice'] != null ? double.parse(json['sellingprice'].toString()) : 0.0,
+      sellingprice: json['sellingprice'] != null
+          ? double.parse(json['sellingprice'].toString())
+          : 0.0,
       // Additional properties initialized from JSON
       category: json['category'] ?? '',
-      unitPrice: json['unitprice'] != null ? double.parse(json['unitprice'].toString()) : 0.0,
-      markup: json['markup'] != null ? double.parse(json['markup'].toString()) : 0.0,
+      unitPrice: json['unitprice'] != null
+          ? double.parse(json['unitprice'].toString())
+          : 0.0,
+      markup: json['markup'] != null
+          ? double.parse(json['markup'].toString())
+          : 0.0,
       department: json['department'] ?? '',
       uom: json['uom'] ?? '',
       vatable: json['vatable'] ?? '',
       section: json['section'] ?? '',
       division: json['division'] ?? '',
-      close_status: json['close_status'] != null ? int.parse(json['close_status'].toString()) : 0,
+      close_status: json['close_status'] != null
+          ? int.parse(json['close_status'].toString())
+          : 0,
       picture_path: json['picture_path'] ?? '',
       brand: json['brand'] ?? '',
       // New properties initialized from JSON
-      total: json['total'] != null ? double.parse(json['total'].toString()) : 0.0,
-      subtotal: json['subtotal'] != null ? double.parse(json['subtotal'].toString()) : 0.0,
+      total:
+          json['total'] != null ? double.parse(json['total'].toString()) : 0.0,
+      subtotal: json['subtotal'] != null
+          ? double.parse(json['subtotal'].toString())
+          : 0.0,
     );
   }
 }
