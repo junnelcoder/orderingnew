@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginScreen> {
   void fetchUsers() async {
     try {
       final response =
-          await http.get(Uri.parse('http://192.168.5.102:8080/api/getUsers'));
+          await http.get(Uri.parse('http://192.168.5.100:8080/api/getUsers'));
       if (response.statusCode == 200) {
         final List<dynamic> responseData = jsonDecode(response.body);
 

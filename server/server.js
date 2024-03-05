@@ -29,7 +29,7 @@ app.get('/categories', async (req, res) => {
   try {
     const pool = await sql.connect(config);
     const result = await pool.request().query(`
-      SELECT DISTINCT [category] FROM [order].[dbo].[items]
+      SELECT DISTINCT [category] FROM [restopos45].[dbo].[items]
     `);
     const categories = result.recordset.map(record => record.category);
     res.json(categories);
@@ -42,7 +42,7 @@ app.get('/categories', async (req, res) => {
 app.get('/items', async (req, res) => {
   try {
     let category = req.query.category;
-    let query = 'SELECT * FROM [order].[dbo].[items]';
+    let query = 'SELECT * FROM [restopos45].[dbo].[items]';
 
     // If a specific category is selected, filter by that category
     if (category && category !== 'ALL') {
@@ -102,7 +102,7 @@ app.post('/add-to-cart', async (req, res) => {
         .input('total', sql.VarChar, total);
       
     await request.query(`
-      INSERT INTO [order].[dbo].[cart_items] (pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, brand, section, close_status, picture_path, subtotal, total)
+      INSERT INTO [restopos45].[dbo].[cart_items] (pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, brand, section, close_status, picture_path, subtotal, total)
       VALUES (@pa_id, @machine_id, @trans_date, @itemcode, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @department, @uom, @vatable, @tran_time, @division, @brand, @section, @close_status, @picture_path, @subtotal, @total)
     `);
     
@@ -120,8 +120,8 @@ app.post('/add-to-cart', async (req, res) => {
 const config = {
     user: 'sa',
     password: 'zankojt@2024',
-    server: 'DESKTOP-EIR2A8B\\SQLEXPRESS2014',
-    database: 'order',
+    server: 'DESKTOP-6S6CLHO\\SQLEXPRESS2014',
+    database: 'restopos45',
     options: {
         encrypt: false, 
         enableArithAbort: true 
