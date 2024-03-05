@@ -46,20 +46,6 @@ class CartPage extends StatelessWidget {
                     ),
                   ),
 
-                  // // Input Text Box for First Item
-                  // Padding(
-                  //   padding: EdgeInsets.symmetric(horizontal: 15),
-                  //   child: Container(
-                  //     width: double.infinity,
-                  //     child: TextField(
-                  //       decoration: InputDecoration(
-                  //         hintText: 'Add a note...', // Placeholder text for the input box
-                  //         border: OutlineInputBorder(), // Border for the input box
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-
                   //Item
                   Center(
                     child: Padding(
@@ -88,7 +74,7 @@ class CartPage extends StatelessWidget {
                               child: Image.asset(
                                 "images/burger.png",
                                 height: 80,
-                                width: 120,
+                                width: 130,
                               ),
                             ),
                             Container(
@@ -190,7 +176,7 @@ class CartPage extends StatelessWidget {
                               child: Image.asset(
                                 "images/burger.png",
                                 height: 80,
-                                width: 150,
+                                width: 130,
                               ),
                             ),
                             Container(
@@ -263,7 +249,6 @@ class CartPage extends StatelessWidget {
                       ),
                     ),
                   ),
-
 
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),

@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../widgets/home_nav_bar.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
+
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -20,8 +21,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchCategories() async {
-    final response =
-        await http.get(Uri.parse('http://${AppConfig.serverIPAddress}:8080/categories'));
+    final response = await http
+        .get(Uri.parse('http://${AppConfig.serverIPAddress}:8080/categories'));
     print('haha:${AppConfig.serverIPAddress}');
     if (response.statusCode == 200) {
       setState(() {

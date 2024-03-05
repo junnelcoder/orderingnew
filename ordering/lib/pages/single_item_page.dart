@@ -5,7 +5,8 @@ import '../widgets/item_widget.dart'; // Import your Item model
 class SingleItemPage extends StatefulWidget {
   final Item item; // Declare a variable to hold the item data
 
-  const SingleItemPage({required this.item}); // Constructor to receive the item data
+  const SingleItemPage(
+      {required this.item}); // Constructor to receive the item data
 
   @override
   _SingleItemPageState createState() => _SingleItemPageState();
@@ -219,7 +220,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
         setState(() {
           dropdownValue = value;
         });
-        Navigator.pop(context); // Close the bottom sheet when an option is selected
+        Navigator.pop(
+            context); // Close the bottom sheet when an option is selected
       },
     );
   }
@@ -234,8 +236,8 @@ class SingleItemNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double total = sellingPrice * quantity;
-    String formattedTotal =
-        total.toStringAsFixed(2); // Format total to display with two decimal places
+    String formattedTotal = total
+        .toStringAsFixed(2); // Format total to display with two decimal places
     return Container(
       height: 80,
       decoration: BoxDecoration(

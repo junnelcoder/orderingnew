@@ -63,7 +63,7 @@ app.get('/items', async (req, res) => {
 const config = {
     user: 'sa',
     password: 'zankojt@2024',
-    server: 'DESKTOP-U6G6LH1\\SQLEXPRESS2014',
+    server: 'DESKTOP-Q3V7PHJ\\SQLEXPRESS2014',
     database: 'restopos45',
     options: {
         encrypt: false, 

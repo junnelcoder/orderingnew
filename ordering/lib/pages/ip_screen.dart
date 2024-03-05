@@ -1,22 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:ordering/pages/ip_screen.dart';
+import 'package:ordering/pages/home_page.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class IpScreen extends StatefulWidget {
+  const IpScreen({Key? key}) : super(key: key);
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  _IpPageState createState() => _IpPageState();
 }
 
-class _LoginPageState extends State<LoginScreen> {
-  bool _isObscured = true;
-
-  void _togglePasswordVisibility() {
-    setState(() {
-      _isObscured = !_isObscured;
-    });
-  }
-
+class _IpPageState extends State<IpScreen> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -46,7 +38,7 @@ class _LoginPageState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     GlowingText(
-                      text: "Welcome Back",
+                      text: "IP ADDRESS",
                       glowColor: Colors.black,
                       style: TextStyle(
                         color: Colors.white,
@@ -57,7 +49,7 @@ class _LoginPageState extends State<LoginScreen> {
                     ),
                     SizedBox(height: screenHeight * 0.01),
                     GlowingText(
-                      text: "Sign in to continue",
+                      text: "Please Enter a IP address to continue",
                       glowColor: Colors.black,
                       style: TextStyle(
                         color: Colors.white,
@@ -93,30 +85,7 @@ class _LoginPageState extends State<LoginScreen> {
                         TextFormField(
                           style: TextStyle(fontFamily: 'MaanJoy'),
                           decoration: InputDecoration(
-                            hintText: "Username",
-                            prefixIcon: Icon(Icons.person, color: Colors.grey),
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(screenWidth * 0.05),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        TextFormField(
-                          obscureText: _isObscured,
-                          style: TextStyle(fontFamily: 'MaanJoy'),
-                          decoration: InputDecoration(
-                            hintText: "Password",
-                            prefixIcon: Icon(Icons.lock, color: Colors.grey),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isObscured
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                color: Colors.grey,
-                              ),
-                              onPressed: _togglePasswordVisibility,
-                            ),
+                            hintText: "Enter your IP address",
                             border: OutlineInputBorder(
                               borderRadius:
                                   BorderRadius.circular(screenWidth * 0.05),
@@ -132,7 +101,7 @@ class _LoginPageState extends State<LoginScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => IpScreen(),
+                                  builder: (context) => HomePage(),
                                 ),
                               );
                             },
@@ -144,7 +113,7 @@ class _LoginPageState extends State<LoginScreen> {
                               ),
                             ),
                             child: GlowingText(
-                              text: "Sign in",
+                              text: "Confirm",
                               glowColor: Colors.black,
                               style: TextStyle(
                                 fontSize: screenHeight * 0.025,

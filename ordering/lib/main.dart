@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'pages/ip_screen.dart';
 import 'pages/login_screen.dart'; // Import the login screen
 import 'pages/cart_page.dart';
 import 'pages/home_page.dart';
@@ -24,11 +25,12 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      // Set the initial route to the login screen
+      // Set the initial route to the ipScreen after login
       initialRoute: "loginScreenState",
       routes: {
         // Define the routes for each screen
         "loginScreenState": (context) => LoginScreen(),
+        "ipScreenState": (context) => IpScreen(),
         "/": (context) => HomePage(),
         "cartPage": (context) => CartPage(),
       },
