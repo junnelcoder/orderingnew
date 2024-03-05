@@ -22,7 +22,7 @@ app.get('/categories', async (req, res) => {
   try {
     const pool = await sql.connect(config);
     const result = await pool.request().query(`
-      SELECT DISTINCT [category] FROM [restopos45].[dbo].[items]
+      SELECT DISTINCT [category] FROM [order].[dbo].[items]
     `);
     const categories = result.recordset.map(record => record.category);
     res.json(categories);
@@ -36,7 +36,7 @@ app.get('/items', async (req, res) => {
   try {
     let category = req.query.category;
 
-    let query = 'SELECT itemName, itemCode, sellingPrice FROM [restopos45].[dbo].[items]';
+    let query = 'SELECT itemName, itemCode, sellingPrice FROM [order].[dbo].[items]';
 
     // If a specific category is selected, filter by that category
     if (category && category !== 'ALL') {
@@ -64,7 +64,7 @@ const config = {
     user: 'sa',
     password: 'zankojt@2024',
     server: 'DESKTOP-EIR2A8B\\SQLEXPRESS2014',
-    database: 'restopos45',
+    database: 'order',
     options: {
         encrypt: false, 
         enableArithAbort: true 
