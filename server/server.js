@@ -65,17 +65,44 @@ app.get('/items', async (req, res) => {
 app.post('/add-to-cart', async (req, res) => {
   try {
     // Extract item details from the request body
-    const { pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice } = req.body;
-
+    const { pa_id, machine_id, itemcode, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, section, brand, close_status, picture_path,total,subtotal } = req.body;
+    const trans_date = new Date().toISOString().split('T')[0]; // Extract date portion only
+    
+    // Calculate subtotal and total
+    
+    
     // Connect to the database
     const pool = await sql.connect(config);
-
-    // Insert the item details into the cart_items table
-    await pool.request().query(`
-      INSERT INTO [order].[dbo].[cart_items] (pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice)
-      VALUES ('${pa_id}', '${machine_id}', '${trans_date}', '${itemcode}', '${itemname}', '${category}', '${qty}', '${unitprice}', '${markup}', '${sellingprice}')
+    
+    // Insert the item details into the cart_items table using parameterized query
+    const request = pool.request()
+        .input('pa_id', sql.VarChar, pa_id)
+        .input('machine_id', sql.VarChar, machine_id)
+        .input('trans_date', sql.Date, trans_date)
+        .input('itemcode', sql.VarChar, itemcode)
+        .input('itemname', sql.VarChar, itemname)
+        .input('category', sql.VarChar, category)
+        .input('qty', sql.VarChar, qty)
+        .input('unitprice', sql.VarChar, unitprice)
+        .input('markup', sql.VarChar, markup)
+        .input('sellingprice', sql.VarChar, sellingprice)
+        .input('department', sql.VarChar, department)
+        .input('uom', sql.VarChar, uom)
+        .input('vatable', sql.VarChar, vatable)
+        .input('tran_time', sql.VarChar, tran_time)
+        .input('division', sql.VarChar, division)
+        .input('section', sql.VarChar, section)
+        .input('brand', sql.VarChar, brand)
+        .input('close_status', sql.TinyInt, close_status) // Use TinyInt for close_status
+        .input('picture_path', sql.VarChar, picture_path)
+        .input('subtotal', sql.VarChar, subtotal)
+        .input('total', sql.VarChar, total);
+      
+    await request.query(`
+      INSERT INTO [order].[dbo].[cart_items] (pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, brand, section, close_status, picture_path, subtotal, total)
+      VALUES (@pa_id, @machine_id, @trans_date, @itemcode, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @department, @uom, @vatable, @tran_time, @division, @brand, @section, @close_status, @picture_path, @subtotal, @total)
     `);
-
+    
     // Send a response indicating success
     res.status(200).json({ message: 'Item added to cart successfully' });
   } catch (err) {
@@ -83,6 +110,9 @@ app.post('/add-to-cart', async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
+
+
 
 const config = {
     user: 'sa',

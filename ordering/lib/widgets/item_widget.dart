@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import '../pages/single_item_page.dart';
+
 // import '../pages/config.dart';
 class ItemWidget extends StatefulWidget {
   final String category;
@@ -163,6 +164,18 @@ class Item {
   final String category;
   final double unitPrice;
   final double markup;
+  final String department;
+  final String uom;
+  final String vatable;
+  final String section;
+  final int close_status;
+  final String picture_path;
+  final String division;
+  final String brand;
+  
+  // New properties
+  final double total;
+  final double subtotal;
 
   Item({
     required this.itemname,
@@ -172,6 +185,17 @@ class Item {
     this.category = '',
     this.unitPrice = 0.0,
     this.markup = 0.0,
+    this.department = '',
+    this.uom = '',
+    this.vatable = '',
+    this.section = '',
+    this.close_status = 0,
+    this.picture_path = '',
+    this.division = '',
+    this.brand = '',
+    // New properties with default values
+    this.total = 0.0,
+    this.subtotal = 0.0,
   });
 
   factory Item.fromJson(Map<String, dynamic> json) {
@@ -183,6 +207,17 @@ class Item {
       category: json['category'] ?? '',
       unitPrice: json['unitprice'] != null ? double.parse(json['unitprice'].toString()) : 0.0,
       markup: json['markup'] != null ? double.parse(json['markup'].toString()) : 0.0,
+      department: json['department'] ?? '',
+      uom: json['uom'] ?? '',
+      vatable: json['vatable'] ?? '',
+      section: json['section'] ?? '',
+      division: json['division'] ?? '',
+      close_status: json['close_status'] != null ? int.parse(json['close_status'].toString()) : 0,
+      picture_path: json['picture_path'] ?? '',
+      brand: json['brand'] ?? '',
+      // New properties initialized from JSON
+      total: json['total'] != null ? double.parse(json['total'].toString()) : 0.0,
+      subtotal: json['subtotal'] != null ? double.parse(json['subtotal'].toString()) : 0.0,
     );
   }
 }
