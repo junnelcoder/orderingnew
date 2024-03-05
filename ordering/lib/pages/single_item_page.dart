@@ -1,13 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-// import '../widgets/single_item_nav_bar.dart'; // Import your Item model
-import '../widgets/item_widget.dart';
+import '../widgets/item_widget.dart'; // Import your Item model
 
 class SingleItemPage extends StatefulWidget {
   final Item item; // Declare a variable to hold the item data
 
-  const SingleItemPage(
-      {required this.item}); // Constructor to receive the item data
+  const SingleItemPage({required this.item}); // Constructor to receive the item data
 
   @override
   _SingleItemPageState createState() => _SingleItemPageState();
@@ -15,6 +13,7 @@ class SingleItemPage extends StatefulWidget {
 
 class _SingleItemPageState extends State<SingleItemPage> {
   int quantity = 1; // Initialize quantity to 1
+  String dropdownValue = 'Add a note...';
 
   void incrementQuantity() {
     setState(() {
@@ -56,11 +55,12 @@ class _SingleItemPageState extends State<SingleItemPage> {
                   ),
                 ],
               ),
+              SizedBox(height: 20),
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 10),
                 child: Image.asset(
                   "images/burger.png",
-                  height: MediaQuery.of(context).size.height / 1.7,
+                  height: MediaQuery.of(context).size.height / 2.5,
                 ),
               ),
               SizedBox(height: 10),
@@ -140,14 +140,87 @@ class _SingleItemPageState extends State<SingleItemPage> {
                       fontSize: 18,
                     ),
                   ),
+                  SizedBox(height: 15),
+                  // Dropdown for adding a note
+                  GestureDetector(
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Container(
+                            height: MediaQuery.of(context).size.height / 3,
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10),
+                                Text(
+                                  'Select a note',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Expanded(
+                                  child: ListView(
+                                    children: [
+                                      _buildDropdownItem('Note 1'),
+                                      _buildDropdownItem('Note 2'),
+                                      _buildDropdownItem('Note 3'),
+                                      // Add more options as needed
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              dropdownValue,
+                              style: TextStyle(
+                                fontSize: 16,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Icon(Icons.keyboard_arrow_down),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
-              )
+              ),
             ],
           ),
         ),
       ),
       bottomNavigationBar: SingleItemNavBar(
-          sellingPrice: widget.item.sellingPrice, quantity: quantity),
+        sellingPrice: widget.item.sellingPrice,
+        quantity: quantity,
+      ),
+    );
+  }
+
+  Widget _buildDropdownItem(String value) {
+    return ListTile(
+      title: Text(value),
+      onTap: () {
+        setState(() {
+          dropdownValue = value;
+        });
+        Navigator.pop(context); // Close the bottom sheet when an option is selected
+      },
     );
   }
 }
@@ -161,8 +234,8 @@ class SingleItemNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double total = sellingPrice * quantity;
-    String formattedTotal = total
-        .toStringAsFixed(2); // Format total to display with two decimal places
+    String formattedTotal =
+        total.toStringAsFixed(2); // Format total to display with two decimal places
     return Container(
       height: 80,
       decoration: BoxDecoration(
