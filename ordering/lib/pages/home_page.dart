@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../widgets/home_nav_bar.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
+
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();

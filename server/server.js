@@ -19,9 +19,12 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 // const testRoutes = require('./Routes/testing');
-const item = require('./Routes/itemListingRoutes');
 // app.use('/api', testRoutes); 
+const item = require('./Routes/itemListingRoutes');
+const auth = require('./Routes/authenticationRoute');
 app.use('/api', item); 
+app.use('/api', auth); 
+
 app.get('/categories', async (req, res) => {
   try {
     const pool = await sql.connect(config);
