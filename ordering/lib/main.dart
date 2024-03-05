@@ -26,7 +26,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       // Set the initial route to the ipScreen after login
-      initialRoute: "loginScreenState",
+      initialRoute: "ipScreenState",
       routes: {
         // Define the routes for each screen
         "loginScreenState": (context) => LoginScreen(),

@@ -1,19 +1,21 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../widgets/item_widget.dart'; // Import your Item model
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import '../widgets/item_widget.dart';
 
 class SingleItemPage extends StatefulWidget {
-  final Item item; // Declare a variable to hold the item data
+  final Item item;
 
-  const SingleItemPage(
-      {required this.item}); // Constructor to receive the item data
+  const SingleItemPage({required this.item});
 
   @override
   _SingleItemPageState createState() => _SingleItemPageState();
 }
 
 class _SingleItemPageState extends State<SingleItemPage> {
-  int quantity = 1; // Initialize quantity to 1
+  int quantity = 1;
   String dropdownValue = 'Add a note...';
 
   void incrementQuantity() {
@@ -24,20 +26,60 @@ class _SingleItemPageState extends State<SingleItemPage> {
 
   void decrementQuantity() {
     if (quantity > 1) {
-      // Check if quantity is greater than 1 before decrementing
       setState(() {
         quantity--;
       });
     }
   }
 
+  Future<void> addToCart() async {
+    var url = Uri.parse('http://192.168.5.100:8080/add-to-cart');
+
+    var itemDetails = {
+      'pa_id': '1',
+      'machine_id': '0001',
+      'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      'itemcode': widget.item.itemcode,
+      'itemname': widget.item.itemname,
+      'category': widget.item.category,
+      'qty': quantity.toString(),
+      'unitprice': widget.item.unitPrice.toString(),
+      'markup': widget.item.markup.toString(),
+      'sellingprice': widget.item.sellingprice.toString(),
+      'department': widget.item.department,
+      'uom': widget.item.uom,
+      'vatable': widget.item.vatable,
+      'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
+      'division': widget.item.division,
+      'section': widget.item.section,
+      'close_status': widget.item.close_status.toString(),
+      'picture_path': widget.item.picture_path,
+      'brand': widget.item.brand,
+      'subtotal': (widget.item.sellingprice * quantity).toString(),
+      'total': (widget.item.sellingprice * quantity).toString(),
+    };
+    print(itemDetails);
+    var response = await http.post(
+      url,
+      body: json.encode(itemDetails),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      var responseBody = json.decode(response.body);
+      print('Item added to cart: $responseBody');
+    } else {
+      print('Failed to add item to cart. Status code: ${response.statusCode}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.only(top: 25, left: 15, right: 10),
+          padding: const EdgeInsets.all(15.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -57,92 +99,83 @@ class _SingleItemPageState extends State<SingleItemPage> {
                 ],
               ),
               SizedBox(height: 20),
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 10),
-                child: Image.asset(
-                  "images/burger.png",
-                  height: MediaQuery.of(context).size.height / 2.5,
-                ),
+              Image.asset(
+                "images/burger.png",
+                height: MediaQuery.of(context).size.height / 2.5,
               ),
               SizedBox(height: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: EdgeInsets.only(right: 5),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.item.itemName, // Use the item's data
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines:
-                                2, // Allow the item name to wrap to the next line if needed
-                            overflow: TextOverflow
-                                .ellipsis, // Display ellipsis (...) if the text overflows
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: decrementQuantity,
-                          child: Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Icon(
-                              CupertinoIcons.minus,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          "$quantity",
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.item.itemname,
                           style: TextStyle(
                             color: Colors.black,
-                            fontSize: 20,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: incrementQuantity,
-                          child: Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Icon(
-                              CupertinoIcons.plus,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+                      ),
+                      SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: decrementQuantity,
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Icon(
+                            CupertinoIcons.minus,
+                            color: Colors.white,
+                            size: 20,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        "$quantity",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: incrementQuantity,
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Icon(
+                            CupertinoIcons.plus,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 15),
                   Text(
-                    widget.item.itemCode, // Use the item's data
+                    widget.item.itemcode,
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
                     ),
                   ),
                   SizedBox(height: 15),
-                  // Dropdown for adding a note
                   GestureDetector(
                     onTap: () {
                       showModalBottomSheet(
@@ -167,7 +200,6 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                       _buildDropdownItem('Note 1'),
                                       _buildDropdownItem('Note 2'),
                                       _buildDropdownItem('Note 3'),
-                                      // Add more options as needed
                                     ],
                                   ),
                                 ),
@@ -207,8 +239,9 @@ class _SingleItemPageState extends State<SingleItemPage> {
         ),
       ),
       bottomNavigationBar: SingleItemNavBar(
-        sellingPrice: widget.item.sellingPrice,
+        sellingPrice: widget.item.sellingprice,
         quantity: quantity,
+        onAddToCart: addToCart,
       ),
     );
   }
@@ -230,8 +263,13 @@ class _SingleItemPageState extends State<SingleItemPage> {
 class SingleItemNavBar extends StatelessWidget {
   final double sellingPrice;
   final int quantity;
+  final Function()? onAddToCart;
 
-  const SingleItemNavBar({required this.sellingPrice, required this.quantity});
+  const SingleItemNavBar({
+    required this.sellingPrice,
+    required this.quantity,
+    this.onAddToCart,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -261,25 +299,23 @@ class SingleItemNavBar extends StatelessWidget {
                 "Total Price:",
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 15, // smaller font size
+                  fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(
-                  height:
-                      4), // Adjust the space between "Total Price:" and the price value
+              SizedBox(height: 4),
               Text(
-                "\₱$formattedTotal", // Display the formatted total
+                "\₱$formattedTotal",
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 18, // smaller font size
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
           InkWell(
-            onTap: () {},
+            onTap: onAddToCart,
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               decoration: BoxDecoration(

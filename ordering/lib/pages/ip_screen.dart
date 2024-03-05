@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ordering/pages/home_page.dart';
+
+import 'login_screen.dart';
 
 class IpScreen extends StatefulWidget {
   const IpScreen({Key? key}) : super(key: key);
@@ -101,7 +102,7 @@ class _IpPageState extends State<IpScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => HomePage(),
+                                  builder: (context) => LoginScreen(),
                                 ),
                               );
                             },
