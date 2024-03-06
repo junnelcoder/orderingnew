@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:ordering/pages/home_page.dart';
 // import 'package:ordering/pages/ip_screen.dart';
-
+import 'config.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -28,8 +28,10 @@ class _LoginPageState extends State<LoginScreen> {
 
   void fetchUsers() async {
     try {
+      var ipAddress = AppConfig.serverIPAddress; // Get the IP address from AppConfig
       final response =
-          await http.get(Uri.parse('http://192.168.5.100:8080/api/getUsers'));
+       await http.get(Uri.parse('http://$ipAddress:8080/api/getUsers'));
+
       if (response.statusCode == 200) {
         final List<dynamic> responseData = jsonDecode(response.body);
 

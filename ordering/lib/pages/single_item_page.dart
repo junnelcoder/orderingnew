@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../widgets/item_widget.dart';
-
+import 'config.dart';
 class SingleItemPage extends StatefulWidget {
   final Item item;
 
@@ -33,7 +33,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
   }
 
   Future<void> addToCart() async {
-    var url = Uri.parse('http://192.168.5.100:8080/add-to-cart');
+    var ipAddress = AppConfig.serverIPAddress; // Get the IP address from AppConfig
+    var url = Uri.parse('http://$ipAddress:8080/add-to-cart');
 
     var itemDetails = {
       'pa_id': '1',

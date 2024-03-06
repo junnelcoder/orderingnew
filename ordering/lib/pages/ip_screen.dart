@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-
 import 'login_screen.dart';
+import 'config.dart'; // Import the config.dart file
 
 class IpScreen extends StatefulWidget {
   const IpScreen({Key? key}) : super(key: key);
 
   @override
-  _IpPageState createState() => _IpPageState();
+  _IpScreenState createState() => _IpScreenState();
 }
 
-class _IpPageState extends State<IpScreen> {
+class _IpScreenState extends State<IpScreen> {
+  final TextEditingController _ipAddressController = TextEditingController(); // Controller for IP address input
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -50,7 +52,7 @@ class _IpPageState extends State<IpScreen> {
                     ),
                     SizedBox(height: screenHeight * 0.01),
                     GlowingText(
-                      text: "Please Enter a IP address to continue",
+                      text: "Please Enter an IP address to continue",
                       glowColor: Colors.black,
                       style: TextStyle(
                         color: Colors.white,
@@ -84,12 +86,12 @@ class _IpPageState extends State<IpScreen> {
                       children: <Widget>[
                         SizedBox(height: screenHeight * 0.1),
                         TextFormField(
+                          controller: _ipAddressController, // Assign controller
                           style: TextStyle(fontFamily: 'MaanJoy'),
                           decoration: InputDecoration(
                             hintText: "Enter your IP address",
                             border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(screenWidth * 0.05),
+                              borderRadius: BorderRadius.circular(screenWidth * 0.05),
                             ),
                           ),
                         ),
@@ -99,6 +101,11 @@ class _IpPageState extends State<IpScreen> {
                           height: screenHeight * 0.06,
                           child: ElevatedButton(
                             onPressed: () {
+                              // Get IP address from text field
+                              String ipAddress = _ipAddressController.text;
+                              // Set IP address in AppConfig
+                              AppConfig.serverIPAddress = ipAddress;
+                              // Navigate to LoginScreen
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -109,8 +116,7 @@ class _IpPageState extends State<IpScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(screenWidth * 0.05),
+                                borderRadius: BorderRadius.circular(screenWidth * 0.05),
                               ),
                             ),
                             child: GlowingText(

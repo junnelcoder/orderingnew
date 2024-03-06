@@ -1,3 +1,3 @@
 class AppConfig {
-  static const String serverIPAddress = '192.168.5.100';
+  static String serverIPAddress = ''; // Updated to hold the server IP address
 }
