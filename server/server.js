@@ -133,6 +133,7 @@ const server = http.createServer(app);
 server.listen(PORT, () => {
   const ipAddress = ip.address(); 
   console.log(`Server is running at http://${ipAddress}:${PORT}`);
+  console.log(`Your server IP is: ${ipAddress}`);
 });
 
 // // Start the server

@@ -21,9 +21,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchCategories() async {
-    var ipAddress = AppConfig.serverIPAddress; // Get the IP address from AppConfig
+    var ipAddress =
+        AppConfig.serverIPAddress; // Get the IP address from AppConfig
     final response =
-    await http.get(Uri.parse('http://$ipAddress:8080/categories'));
+        await http.get(Uri.parse('http://$ipAddress:8080/categories'));
 
     print('haha:${AppConfig.serverIPAddress}');
     if (response.statusCode == 200) {

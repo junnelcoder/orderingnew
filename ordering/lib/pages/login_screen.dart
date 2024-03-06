@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:ordering/pages/home_page.dart';
 // import 'package:ordering/pages/ip_screen.dart';
 import 'config.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -28,9 +30,10 @@ class _LoginPageState extends State<LoginScreen> {
 
   void fetchUsers() async {
     try {
-      var ipAddress = AppConfig.serverIPAddress; // Get the IP address from AppConfig
+      var ipAddress =
+          AppConfig.serverIPAddress; // Get the IP address from AppConfig
       final response =
-       await http.get(Uri.parse('http://$ipAddress:8080/api/getUsers'));
+          await http.get(Uri.parse('http://$ipAddress:8080/api/getUsers'));
 
       if (response.statusCode == 200) {
         final List<dynamic> responseData = jsonDecode(response.body);
@@ -201,6 +204,17 @@ class _LoginPageState extends State<LoginScreen> {
                                       MaterialPageRoute(
                                         builder: (context) => HomePage(),
                                       ),
+                                    );
+                                  } else {
+                                    Fluttertoast.showToast(
+                                      msg: "Incorrect password",
+                                      toastLength: Toast.LENGTH_SHORT,
+                                      gravity: ToastGravity.BOTTOM,
+                                      timeInSecForIosWeb: 1,
+                                      backgroundColor: Colors.red,
+                                      textColor: Colors.white,
+                                      fontSize: 16.0,
+                                      
                                     );
                                   }
                                 }
