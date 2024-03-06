@@ -21,4 +21,7 @@ router.get('/getUsers', async (req, res) => {
     }
 });
 
+router.get('/ipConn', async (req,res) => {
+    res.send('Hello from server!');
+});
 module.exports = router;

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-import 'config.dart'; // Import the config.dart file
+import 'config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:fluttertoast/fluttertoast.dart';
 
 class IpScreen extends StatefulWidget {
   const IpScreen({Key? key}) : super(key: key);
@@ -10,7 +13,65 @@ class IpScreen extends StatefulWidget {
 }
 
 class _IpScreenState extends State<IpScreen> {
-  final TextEditingController _ipAddressController = TextEditingController(); // Controller for IP address input
+  void getSavedIpAddress() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    if (ipAddress != null) {
+      setState(() {
+        _ipAddressController.text = ipAddress;
+      });
+    }
+  }
+
+  Future<void> fetchCategories() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    if (ipAddress != null) {
+      print('IP Address: $ipAddress');
+      try {
+        final response =
+            // await http.get(Uri.parse('http://192.168.5.102:8080/api/ipConn'));
+            await http.get(Uri.parse('http://$ipAddress:8080/api/ipConn'));
+        if (response.statusCode == 200) {
+          String serverResponse = response.body;
+          print('Server response: $serverResponse');
+          AppConfig.serverIPAddress = ipAddress;
+          // Navigate to LoginScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => LoginScreen(),
+            ),
+          );
+        } else {
+          print('Failed to connect to server');
+        }
+      } catch (e) {
+        print('Error connecting to server: $e');
+        Fluttertoast.showToast(
+          msg: "Local IP Address migth be changed",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 3,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
+    } else {
+      print('IP Address not found in SharedPreferences');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getSavedIpAddress();
+    fetchCategories();
+  }
+
+  final TextEditingController _ipAddressController =
+      TextEditingController(); // Controller for IP address input
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +152,8 @@ class _IpScreenState extends State<IpScreen> {
                           decoration: InputDecoration(
                             hintText: "Enter your IP address",
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                              borderRadius:
+                                  BorderRadius.circular(screenWidth * 0.05),
                             ),
                           ),
                         ),
@@ -100,11 +162,16 @@ class _IpScreenState extends State<IpScreen> {
                           width: double.infinity,
                           height: screenHeight * 0.06,
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               // Get IP address from text field
                               String ipAddress = _ipAddressController.text;
                               // Set IP address in AppConfig
                               AppConfig.serverIPAddress = ipAddress;
+
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setString('ipAddress', ipAddress);
+
                               // Navigate to LoginScreen
                               Navigator.pushReplacement(
                                 context,
@@ -116,7 +183,8 @@ class _IpScreenState extends State<IpScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                                borderRadius:
+                                    BorderRadius.circular(screenWidth * 0.05),
                               ),
                             ),
                             child: GlowingText(

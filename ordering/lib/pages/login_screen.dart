@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:ordering/pages/home_page.dart';
 // import 'package:ordering/pages/ip_screen.dart';
+// import 'dart:async';
 import 'config.dart';
+import 'ip_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,7 +15,6 @@ class LoginScreen extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-final TextEditingController _usernameController = TextEditingController();
 final TextEditingController _passwordController = TextEditingController();
 String? _selectedUsername;
 
@@ -28,13 +29,21 @@ class _LoginPageState extends State<LoginScreen> {
     fetchUsers();
   }
 
+  void navigateToIpScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => IpScreen(),
+      ),
+    );
+  }
+
   void fetchUsers() async {
     try {
-      var ipAddress =
-          AppConfig.serverIPAddress; // Get the IP address from AppConfig
-      final response =
-          await http.get(Uri.parse('http://$ipAddress:8080/api/getUsers'));
-
+      var ipAddress = AppConfig.serverIPAddress;
+      final response = await http
+          .get(Uri.parse('http://$ipAddress:8080/api/getUsers'))
+          .timeout(Duration(seconds: 5));
       if (response.statusCode == 200) {
         final List<dynamic> responseData = jsonDecode(response.body);
 
@@ -46,14 +55,29 @@ class _LoginPageState extends State<LoginScreen> {
         setState(() {
           // No need to redefine users here
           // Printing usernames and passwords for testing purposes
-          print('Users: $users');
-          print('Passwords: $passwords');
+          // print('Users: $users');
+          // print('Passwords: $passwords');
         });
       } else {
         print('Failed to load users');
       }
     } catch (e) {
       print('Error fetching users: $e');
+      Fluttertoast.showToast(
+        msg: "IP is inactive",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 3,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IpScreen(),
+        ),
+      );
     }
   }
 
@@ -214,14 +238,10 @@ class _LoginPageState extends State<LoginScreen> {
                                       backgroundColor: Colors.red,
                                       textColor: Colors.white,
                                       fontSize: 16.0,
-                                      
                                     );
                                   }
                                 }
                               }
-                              print('$users[0]');
-                              print('iUsername: $username');
-                              print('iPass: $password');
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
