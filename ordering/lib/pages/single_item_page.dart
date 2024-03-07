@@ -45,9 +45,23 @@ class _SingleItemPageState extends State<SingleItemPage> {
     );
   }
 
+  Future<List<String>> fetchNoteItems() async {
+    var ipAddress = AppConfig.serverIPAddress;
+    var url = Uri.parse('http://$ipAddress:8080/get-notes');
+    var response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      List<String> notes = data.map<String>((item) => item['itemname'].toString()).toList();
+      print('Note items: $notes');
+      return notes;
+    } else {
+      throw Exception('Failed to fetch note items');
+    }
+  }
+
   Future<void> addToCart() async {
-    var ipAddress =
-        AppConfig.serverIPAddress; // Get the IP address from AppConfig
+    var ipAddress = AppConfig.serverIPAddress;
     var url = Uri.parse('http://$ipAddress:8080/add-to-cart');
 
     var itemDetails = {
@@ -107,8 +121,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
                       'Failed to add item to cart. Status code: ${response.statusCode}');
                 }
                 if (terminator == 1) {
-                  Navigator.pop(context); // Close the dialog
-                  navigateToHomePage(); // Navigate to the home page
+                  Navigator.pop(context); 
+                  navigateToHomePage(); 
                   terminator = 0;
                 }
 
@@ -148,9 +162,11 @@ class _SingleItemPageState extends State<SingleItemPage> {
                 ],
               ),
               SizedBox(height: 20),
-              Image.asset(
-                "images/burger.png",
-                height: MediaQuery.of(context).size.height / 2.5,
+              Center(
+                child: Image.asset(
+                  _getImagePathForItem(widget.item), 
+                  height: MediaQuery.of(context).size.height / 2.5,
+                ),
               ),
               SizedBox(height: 10),
               Column(
@@ -244,12 +260,29 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                 ),
                                 SizedBox(height: 10),
                                 Expanded(
-                                  child: ListView(
-                                    children: [
-                                      _buildDropdownItem('Note 1'),
-                                      _buildDropdownItem('Note 2'),
-                                      _buildDropdownItem('Note 3'),
-                                    ],
+                                  child: FutureBuilder(
+                                    future: fetchNoteItems(),
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<List<String>> snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return Center(
+                                          child: CircularProgressIndicator(),
+                                        );
+                                      } else if (snapshot.hasError) {
+                                        return Text(
+                                            'Error: ${snapshot.error}');
+                                      } else {
+                                        List<String> noteItems = snapshot.data!;
+                                        return ListView.builder(
+                                          itemCount: noteItems.length,
+                                          itemBuilder: (context, index) {
+                                            return _buildDropdownItem(
+                                                noteItems[index]);
+                                          },
+                                        );
+                                      }
+                                    },
                                   ),
                                 ),
                               ],
@@ -302,10 +335,53 @@ class _SingleItemPageState extends State<SingleItemPage> {
         setState(() {
           dropdownValue = value;
         });
-        Navigator.pop(
-            context); // Close the bottom sheet when an option is selected
+        Navigator.pop(context);
       },
     );
+  }
+
+  String _getImagePathForItem(Item item) {
+    if (item.picture_path.trim().isNotEmpty) {
+      return item.picture_path;
+    } else {
+      String itemName = item.itemname.trim().toUpperCase().replaceAll(' ', '_');
+
+      List<String> imageFiles = [
+        '25SL',
+        '50SL',
+        '75SL',
+        '100SL',
+        'BANGSILOG',
+        'BLACKCOFFEE',
+        'CAPPUCCINO',
+        'CHICKSILOG',
+        'CHOCOMT',
+        'COKE1L',
+        'COKEINCAN',
+        'DEFAULT',
+        'ESPRESSO',
+        'HOTCHOCO',
+        'HOTSILOG',
+        'LESSICE',
+        'MATCHAMT',
+        'NOICE',
+        'NOSUGAR',
+        'OREOMT',
+        'REDVELVETMT',
+        'ROYALINCAN',
+        'SISIG',
+        'SPRITEINCAN',
+        'TAPSILOG',
+      ];
+
+      for (String imageFileName in imageFiles) {
+        if (itemName.contains(imageFileName)) {
+          return 'images/${imageFileName.toUpperCase()}.png';
+        }
+      }
+
+      return 'images/DEFAULT.png';
+    }
   }
 }
 
@@ -323,8 +399,8 @@ class SingleItemNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double total = sellingPrice * quantity;
-    String formattedTotal = total
-        .toStringAsFixed(2); // Format total to display with two decimal places
+    String formattedTotal =
+        total.toStringAsFixed(2);
     return Container(
       height: 80,
       decoration: BoxDecoration(
