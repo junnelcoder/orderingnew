@@ -32,12 +32,17 @@ app.get('/categories', async (req, res) => {
       SELECT DISTINCT [category] FROM [restopos45].[dbo].[items]
     `);
     const categories = result.recordset.map(record => record.category);
-    res.json(categories);
+
+    // Filter out categories containing 'notes', 'NOTES', or 'Notes'
+    const filteredCategories = categories.filter(category => !/notes/i.test(category));
+
+    res.json(filteredCategories);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
+
 
 app.get('/items', async (req, res) => {
   try {
@@ -55,13 +60,20 @@ app.get('/items', async (req, res) => {
                                .input('category', sql.VarChar, category)
                                .query(query);
     
-    // Send the list of items as a JSON response
-    res.json(result.recordset);
+    // Filter out items with undesired categories
+    const filteredItems = result.recordset.filter(item => {
+      const itemCategory = item.category ? item.category.trim().toLowerCase() : '';
+      return itemCategory !== '' && !['notes', 'notes', 'notes'].includes(itemCategory);
+    });
+    
+    // Send the list of filtered items as a JSON response
+    res.json(filteredItems);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
+
 
 
 // Endpoint to handle adding items to the cart

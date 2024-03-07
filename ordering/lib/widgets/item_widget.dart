@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
-import 'dart:io';
-import 'package:path/path.dart' as path;
+// import 'dart:io';
+// import 'package:path/path.dart' as path;
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
@@ -136,7 +136,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "\$${item.sellingprice}",
+                      "\₱${item.sellingprice.toStringAsFixed(2)}",
                     style: TextStyle(
                       fontSize: 14.0,
                       fontWeight: FontWeight.bold,

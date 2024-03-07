@@ -26,7 +26,6 @@ class _HomePageState extends State<HomePage> {
     final response =
         await http.get(Uri.parse('http://$ipAddress:8080/categories'));
 
-    print('haha:${AppConfig.serverIPAddress}');
     if (response.statusCode == 200) {
       setState(() {
         final List<dynamic> data = json.decode(response.body);
