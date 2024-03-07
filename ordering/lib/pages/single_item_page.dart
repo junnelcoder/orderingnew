@@ -5,6 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
+import 'package:ordering/pages/home_page.dart';
+
+final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
 class SingleItemPage extends StatefulWidget {
   final Item item;
 
@@ -32,8 +36,18 @@ class _SingleItemPageState extends State<SingleItemPage> {
     }
   }
 
+  void navigateToHomePage() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePage(),
+      ),
+    );
+  }
+
   Future<void> addToCart() async {
-    var ipAddress = AppConfig.serverIPAddress; // Get the IP address from AppConfig
+    var ipAddress =
+        AppConfig.serverIPAddress; // Get the IP address from AppConfig
     var url = Uri.parse('http://$ipAddress:8080/add-to-cart');
 
     var itemDetails = {
@@ -60,23 +74,57 @@ class _SingleItemPageState extends State<SingleItemPage> {
       'total': (widget.item.sellingprice * quantity).toString(),
     };
     print(itemDetails);
-    var response = await http.post(
-      url,
-      body: json.encode(itemDetails),
-      headers: {'Content-Type': 'application/json'},
-    );
 
-    if (response.statusCode == 200) {
-      var responseBody = json.decode(response.body);
-      print('Item added to cart: $responseBody');
-    } else {
-      print('Failed to add item to cart. Status code: ${response.statusCode}');
-    }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        int terminator = 0;
+        return AlertDialog(
+          title: Text('Confirm'),
+          content: Text('Are you sure you want to add this order?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Confirm'),
+              onPressed: () async {
+                var response = await http.post(
+                  url,
+                  body: json.encode(itemDetails),
+                  headers: {'Content-Type': 'application/json'},
+                );
+
+                if (response.statusCode == 200) {
+                  terminator = 1;
+                  var responseBody = json.decode(response.body);
+                  print('Item added to cart: $responseBody');
+                } else {
+                  print(
+                      'Failed to add item to cart. Status code: ${response.statusCode}');
+                }
+                if (terminator == 1) {
+                  Navigator.pop(context); // Close the dialog
+                  navigateToHomePage(); // Navigate to the home page
+                  terminator = 0;
+                }
+
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
