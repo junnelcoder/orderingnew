@@ -137,7 +137,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
       },
     );
   }
-bool? _isChecked = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -245,8 +245,8 @@ bool? _isChecked = false;
                   ),
                   SizedBox(height: 15),
                   GestureDetector(
-                    onTap: () {
-                      showModalBottomSheet(
+                    onTap: () async {
+                      var selected = await showModalBottomSheet<List<String>>(
                         context: context,
                         builder: (BuildContext context) {
                           return Container(
@@ -263,53 +263,57 @@ bool? _isChecked = false;
                                 ),
                                 SizedBox(height: 10),
                                 Expanded(
-                                  child: FutureBuilder(
-                                    future: fetchNoteItems(),
-                                    builder: (BuildContext context,
-                                        AsyncSnapshot<List<String>>
-                                            snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return Center(
-                                          child: CircularProgressIndicator(),
-                                        );
-                                      } else if (snapshot.hasError) {
-                                        return Text(
-                                            'Error: ${snapshot.error}');
-                                      } else {
-                                        List<String> noteItems =
-                                            snapshot.data!;
-                                        return ListView.builder(
-                                          itemCount: noteItems.length,
-                                          itemBuilder: (context, index) {
-                                            return CheckboxListTile(
-                                              title: Text(noteItems[index]),
-                                              value: selectedNotes
-                                                  .contains(noteItems[index]),
-                                              onChanged: (bool? value) {
-                                                setState(() {
-                                                  if (value!) {
-                                                    selectedNotes
-                                                        .add(noteItems[index]);
-                                                  } else {
-                                                    selectedNotes
-                                                        .remove(noteItems[index]);
-                                                  }
-                                                });
-                                              },
-                                              tristate: true,
-                                            );
-                                          },
-                                        );
-                                      }
-                                    },
-                                  ),
+                                  child: FutureBuilder<List<String>>(
+  future: fetchNoteItems(),
+  builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    } else if (snapshot.hasError) {
+      return Text('Error: ${snapshot.error}');
+    } else {
+      List<String> noteItems = snapshot.data!;
+      return ListView.builder(
+        itemCount: noteItems.length,
+        itemBuilder: (context, index) {
+          return StatefulBuilder(
+            builder: (context, setState) { // I-wrap ang CheckboxListTile sa StatefulBuilder
+              return CheckboxListTile(
+                title: Text(noteItems[index]),
+                value: selectedNotes.contains(noteItems[index]),
+                onChanged: (bool? value) {
+                  setState(() { // Gumamit ng setState sa loob ng StatefulBuilder para mapansin ang pagbabago
+                    if (value != null) {
+                      if (value) {
+                        selectedNotes.add(noteItems[index]);
+                      } else {
+                        selectedNotes.remove(noteItems[index]);
+                      }
+                    }
+                  });
+                },
+                tristate: false,
+              );
+            },
+          );
+        },
+      );
+    }
+  },
+),
+
                                 ),
                               ],
                             ),
                           );
                         },
                       );
+                      if (selected != null) {
+                        setState(() {
+                          dropdownValue = selected.join(', ');
+                        });
+                      }
                     },
                     child: Container(
                       padding: EdgeInsets.all(10),
@@ -345,18 +349,6 @@ bool? _isChecked = false;
         quantity: quantity,
         onAddToCart: addToCart,
       ),
-    );
-  }
-
-  Widget _buildDropdownItem(String value) {
-    return ListTile(
-      title: Text(value.toString()),
-      onTap: () {
-        setState(() {
-          dropdownValue = value.toString();
-        });
-        Navigator.pop(context);
-      },
     );
   }
 
