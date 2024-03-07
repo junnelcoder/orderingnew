@@ -20,7 +20,8 @@ class SingleItemPage extends StatefulWidget {
 
 class _SingleItemPageState extends State<SingleItemPage> {
   int quantity = 1;
-  String dropdownValue = 'Add a note...';
+  String dropdownValue = 'select a note...';
+  List<String> selectedNotes = [];
 
   void incrementQuantity() {
     setState(() {
@@ -52,7 +53,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      List<String> notes = data.map<String>((item) => item['itemname'].toString()).toList();
+      List<String> notes =
+          data.map<String>((item) => item.toString()).toList();
       print('Note items: $notes');
       return notes;
     } else {
@@ -86,6 +88,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
       'brand': widget.item.brand,
       'subtotal': (widget.item.sellingprice * quantity).toString(),
       'total': (widget.item.sellingprice * quantity).toString(),
+      'notes': selectedNotes.join(', '), // Join selected notes into a single string
     };
     print(itemDetails);
 
@@ -121,8 +124,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
                       'Failed to add item to cart. Status code: ${response.statusCode}');
                 }
                 if (terminator == 1) {
-                  Navigator.pop(context); 
-                  navigateToHomePage(); 
+                  Navigator.pop(context);
+                  navigateToHomePage();
                   terminator = 0;
                 }
 
@@ -164,7 +167,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
               SizedBox(height: 20),
               Center(
                 child: Image.asset(
-                  _getImagePathForItem(widget.item), 
+                  _getImagePathForItem(widget.item),
                   height: MediaQuery.of(context).size.height / 2.5,
                 ),
               ),
@@ -252,7 +255,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
                               children: [
                                 SizedBox(height: 10),
                                 Text(
-                                  'Select a note',
+                                  'Select note(s)',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -263,7 +266,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                   child: FutureBuilder(
                                     future: fetchNoteItems(),
                                     builder: (BuildContext context,
-                                        AsyncSnapshot<List<String>> snapshot) {
+                                        AsyncSnapshot<List<String>>
+                                            snapshot) {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
                                         return Center(
@@ -273,12 +277,24 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                         return Text(
                                             'Error: ${snapshot.error}');
                                       } else {
-                                        List<String> noteItems = snapshot.data!;
+                                        List<String> noteItems =
+                                            snapshot.data!;
                                         return ListView.builder(
                                           itemCount: noteItems.length,
                                           itemBuilder: (context, index) {
-                                            return _buildDropdownItem(
-                                                noteItems[index]);
+                                            return CheckboxListTile(
+                                              title: Text(noteItems[index]),
+                                              value: true, // Always true to make the checkbox checked
+                                              onChanged: (bool? value) {
+                                                setState(() {
+                                                  if (value!) {
+                                                    selectedNotes.add(noteItems[index]);
+                                                  } else {
+                                                    selectedNotes.remove(noteItems[index]);
+                                                  }
+                                                });
+                                              },
+                                            );
                                           },
                                         );
                                       }
@@ -330,10 +346,10 @@ class _SingleItemPageState extends State<SingleItemPage> {
 
   Widget _buildDropdownItem(String value) {
     return ListTile(
-      title: Text(value),
+      title: Text(value.toString()),
       onTap: () {
         setState(() {
-          dropdownValue = value;
+          dropdownValue = value.toString();
         });
         Navigator.pop(context);
       },
@@ -344,7 +360,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
     if (item.picture_path.trim().isNotEmpty) {
       return item.picture_path;
     } else {
-      String itemName = item.itemname.trim().toUpperCase().replaceAll(' ', '_');
+      String itemName =
+          item.itemname.trim().toUpperCase().replaceAll(' ', '_');
 
       List<String> imageFiles = [
         '25SL',
@@ -399,8 +416,7 @@ class SingleItemNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double total = sellingPrice * quantity;
-    String formattedTotal =
-        total.toStringAsFixed(2);
+    String formattedTotal = total.toStringAsFixed(2);
     return Container(
       height: 80,
       decoration: BoxDecoration(
