@@ -137,7 +137,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
       },
     );
   }
-
+bool? _isChecked = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -284,16 +284,20 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                           itemBuilder: (context, index) {
                                             return CheckboxListTile(
                                               title: Text(noteItems[index]),
-                                              value: true, // Always true to make the checkbox checked
+                                              value: selectedNotes
+                                                  .contains(noteItems[index]),
                                               onChanged: (bool? value) {
                                                 setState(() {
                                                   if (value!) {
-                                                    selectedNotes.add(noteItems[index]);
+                                                    selectedNotes
+                                                        .add(noteItems[index]);
                                                   } else {
-                                                    selectedNotes.remove(noteItems[index]);
+                                                    selectedNotes
+                                                        .remove(noteItems[index]);
                                                   }
                                                 });
                                               },
+                                              tristate: true,
                                             );
                                           },
                                         );
