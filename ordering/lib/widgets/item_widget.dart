@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
+import 'dart:io';
+import 'package:path/path.dart' as path;
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
-// import '../pages/config.dart';
+import 'dart:async';
+
 class ItemWidget extends StatefulWidget {
   final String category;
 
@@ -24,23 +27,21 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   Future<void> fetchItems() async {
-    String ipAddress = AppConfig.serverIPAddress; // Get the IP address from AppConfig
-    String url = 'http://$ipAddress:8080/items'; 
+    String ipAddress = AppConfig.serverIPAddress;
+    String url = 'http://$ipAddress:8080/items';
     if (widget.category != 'ALL') {
       url += '?category=${Uri.encodeQueryComponent(widget.category)}';
     }
 
     final response = await http.get(Uri.parse(url));
 
-    if (mounted) {
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          items = data.map((item) => Item.fromJson(item)).toList();
-        });
-      } else {
-        throw Exception('Failed to fetch items');
-      }
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      setState(() {
+        items = data.map((item) => Item.fromJson(item)).toList();
+      });
+    } else {
+      throw Exception('Failed to fetch items');
     }
   }
 
@@ -52,7 +53,7 @@ class _ItemWidgetState extends State<ItemWidget> {
               crossAxisCount: _calculateCrossAxisCount(context),
               crossAxisSpacing: 8.0,
               mainAxisSpacing: 8.0,
-              childAspectRatio: 0.8, // Adjust aspect ratio for better fitting
+              childAspectRatio: 0.8,
             ),
             shrinkWrap: true,
             itemCount: items.length,
@@ -67,13 +68,7 @@ class _ItemWidgetState extends State<ItemWidget> {
 
   int _calculateCrossAxisCount(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
-    int crossAxisCount = 2; // Default value for smaller screens
-
-    if (screenWidth > 600) {
-      crossAxisCount = 3; // For larger screens, display more items per row
-    }
-
-    return crossAxisCount;
+    return screenWidth > 600 ? 3 : 2;
   }
 
   Widget buildItemCard(BuildContext context, Item item) {
@@ -100,10 +95,16 @@ class _ItemWidgetState extends State<ItemWidget> {
               padding: EdgeInsets.all(8.0),
               alignment: Alignment.center,
               child: Image.asset(
-                "images/pizza.jpg",
+                _getImagePathForItem(item),
                 width: 155,
                 height: 120,
-                // fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(
+                    'images/DEFAULT.png',
+                    width: 155,
+                    height: 120,
+                  );
+                },
               ),
             ),
             Padding(
@@ -115,8 +116,8 @@ class _ItemWidgetState extends State<ItemWidget> {
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
-                maxLines: 2, // Limit the number of lines
-                overflow: TextOverflow.ellipsis, // Handle overflow by ellipsis
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Padding(
@@ -154,6 +155,37 @@ class _ItemWidgetState extends State<ItemWidget> {
       ),
     );
   }
+String _getImagePathForItem(Item item) {
+  if (item.picture_path.trim().isNotEmpty) {
+    return item.picture_path;
+  } else {
+    String itemName = item.itemname.trim().toUpperCase().replaceAll(' ', '_');
+
+    // Listahan ng mga pangalan ng mga file ng larawan
+    List<String> imageFiles = [
+      // Idinagdag ang 'HOTCHOCO.png'
+      // Idagdag ang iba pang mga pangalan ng mga file dito
+    ];
+
+    // Ihanap ng mga kasalukuyang pangalan ng mga file ng larawan
+    for (String imageFileName in imageFiles) {
+      // Kung ang pangalan ng item ay naglalaman ng substring ng filename, gamitin ito
+      if (itemName.contains(imageFileName)) {
+        return 'images/${imageFileName.toUpperCase()}.png';
+      }
+    }
+
+    // Kung walang katugmaang natagpuan, ibalik ang default na larawan
+    return 'images/DEFAULT.png';
+  }
+}
+
+
+
+
+
+
+
 }
 
 class Item {
@@ -161,7 +193,7 @@ class Item {
   final String itemcode;
   final double sellingprice;
 
-  // Additional properties with default values
+  // Additional properties with default valuesr
   final String category;
   final double unitPrice;
   final double markup;
