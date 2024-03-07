@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
-import 'dart:io';
-import 'package:path/path.dart' as path;
+// import 'dart:io';
+// import 'package:path/path.dart' as path;
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
@@ -136,7 +136,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "\$${item.sellingprice}",
+                      "\₱${item.sellingprice.toStringAsFixed(2)}",
                     style: TextStyle(
                       fontSize: 14.0,
                       fontWeight: FontWeight.bold,
@@ -161,21 +161,44 @@ String _getImagePathForItem(Item item) {
   } else {
     String itemName = item.itemname.trim().toUpperCase().replaceAll(' ', '_');
 
-    // Listahan ng mga pangalan ng mga file ng larawan
+
     List<String> imageFiles = [
-      // Idinagdag ang 'HOTCHOCO.png'
-      // Idagdag ang iba pang mga pangalan ng mga file dito
+    '25SL',
+    '50SL',
+    '75SL',
+    '100SL',
+    'BANGSILOG',
+    'BLACKCOFFEE',
+    'CAPPUCCINO',
+    'CHICKSILOG',
+    'CHOCOMT',
+    'COKE1L',
+    'COKEINCAN',
+    'DEFAULT',
+    'ESPRESSO',
+    'HOTCHOCO',
+    'HOTSILOG',
+    'LESSICE',
+    'MATCHAMT',
+    'NOICE',
+    'NOSUGAR',
+    'OREOMT',
+    'REDVELVETMT',
+    'ROYALINCAN',
+    'SISIG',
+    'SPRITEINCAN',
+    'TAPSILOG',
     ];
 
-    // Ihanap ng mga kasalukuyang pangalan ng mga file ng larawan
+
     for (String imageFileName in imageFiles) {
-      // Kung ang pangalan ng item ay naglalaman ng substring ng filename, gamitin ito
+
       if (itemName.contains(imageFileName)) {
         return 'images/${imageFileName.toUpperCase()}.png';
       }
     }
 
-    // Kung walang katugmaang natagpuan, ibalik ang default na larawan
+
     return 'images/DEFAULT.png';
   }
 }
