@@ -75,6 +75,19 @@ app.get('/items', async (req, res) => {
 });
 
 
+app.get('/get-notes', async (req, res) => {
+  try {
+    const pool = await sql.connect(config);
+    const result = await pool.request().query(`
+      SELECT * FROM [restopos45].[dbo].[items] WHERE category LIKE '%NOTES%' AND itemname IS NOT NULL
+    `);
+    const noteItems = result.recordset.map(record => record.itemname);
+    res.json(noteItems);
+  } catch (err) {
+    console.error('Error executing SQL query:', err);
+    res.status(500).json({ error: 'Failed to fetch note items' });
+  }
+});
 
 // Endpoint to handle adding items to the cart
 app.post('/add-to-cart', async (req, res) => {

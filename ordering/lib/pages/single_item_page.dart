@@ -5,6 +5,10 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
+import 'package:ordering/pages/home_page.dart';
+
+final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
 class SingleItemPage extends StatefulWidget {
   final Item item;
 
@@ -16,7 +20,8 @@ class SingleItemPage extends StatefulWidget {
 
 class _SingleItemPageState extends State<SingleItemPage> {
   int quantity = 1;
-  String dropdownValue = 'Add a note...';
+  String dropdownValue = 'select a note...';
+  List<String> selectedNotes = [];
 
   void incrementQuantity() {
     setState(() {
@@ -32,8 +37,33 @@ class _SingleItemPageState extends State<SingleItemPage> {
     }
   }
 
+  void navigateToHomePage() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePage(),
+      ),
+    );
+  }
+
+  Future<List<String>> fetchNoteItems() async {
+    var ipAddress = AppConfig.serverIPAddress;
+    var url = Uri.parse('http://$ipAddress:8080/get-notes');
+    var response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      List<String> notes =
+          data.map<String>((item) => item.toString()).toList();
+      print('Note items: $notes');
+      return notes;
+    } else {
+      throw Exception('Failed to fetch note items');
+    }
+  }
+
   Future<void> addToCart() async {
-    var ipAddress = AppConfig.serverIPAddress; // Get the IP address from AppConfig
+    var ipAddress = AppConfig.serverIPAddress;
     var url = Uri.parse('http://$ipAddress:8080/add-to-cart');
 
     var itemDetails = {
@@ -58,25 +88,60 @@ class _SingleItemPageState extends State<SingleItemPage> {
       'brand': widget.item.brand,
       'subtotal': (widget.item.sellingprice * quantity).toString(),
       'total': (widget.item.sellingprice * quantity).toString(),
+      'notes': selectedNotes.join(', '), // Join selected notes into a single string
     };
     print(itemDetails);
-    var response = await http.post(
-      url,
-      body: json.encode(itemDetails),
-      headers: {'Content-Type': 'application/json'},
-    );
 
-    if (response.statusCode == 200) {
-      var responseBody = json.decode(response.body);
-      print('Item added to cart: $responseBody');
-    } else {
-      print('Failed to add item to cart. Status code: ${response.statusCode}');
-    }
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        int terminator = 0;
+        return AlertDialog(
+          title: Text('Confirm'),
+          content: Text('Are you sure you want to add this order?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Confirm'),
+              onPressed: () async {
+                var response = await http.post(
+                  url,
+                  body: json.encode(itemDetails),
+                  headers: {'Content-Type': 'application/json'},
+                );
+
+                if (response.statusCode == 200) {
+                  terminator = 1;
+                  var responseBody = json.decode(response.body);
+                  print('Item added to cart: $responseBody');
+                } else {
+                  print(
+                      'Failed to add item to cart. Status code: ${response.statusCode}');
+                }
+                if (terminator == 1) {
+                  Navigator.pop(context);
+                  navigateToHomePage();
+                  terminator = 0;
+                }
+
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
@@ -100,9 +165,11 @@ class _SingleItemPageState extends State<SingleItemPage> {
                 ],
               ),
               SizedBox(height: 20),
-              Image.asset(
-                "images/burger.png",
-                height: MediaQuery.of(context).size.height / 2.5,
+              Center(
+                child: Image.asset(
+                  _getImagePathForItem(widget.item),
+                  height: MediaQuery.of(context).size.height / 2.5,
+                ),
               ),
               SizedBox(height: 10),
               Column(
@@ -178,8 +245,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
                   ),
                   SizedBox(height: 15),
                   GestureDetector(
-                    onTap: () {
-                      showModalBottomSheet(
+                    onTap: () async {
+                      var selected = await showModalBottomSheet<List<String>>(
                         context: context,
                         builder: (BuildContext context) {
                           return Container(
@@ -188,7 +255,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
                               children: [
                                 SizedBox(height: 10),
                                 Text(
-                                  'Select a note',
+                                  'Select note(s)',
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -196,19 +263,57 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                 ),
                                 SizedBox(height: 10),
                                 Expanded(
-                                  child: ListView(
-                                    children: [
-                                      _buildDropdownItem('Note 1'),
-                                      _buildDropdownItem('Note 2'),
-                                      _buildDropdownItem('Note 3'),
-                                    ],
-                                  ),
+                                  child: FutureBuilder<List<String>>(
+  future: fetchNoteItems(),
+  builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    } else if (snapshot.hasError) {
+      return Text('Error: ${snapshot.error}');
+    } else {
+      List<String> noteItems = snapshot.data!;
+      return ListView.builder(
+        itemCount: noteItems.length,
+        itemBuilder: (context, index) {
+          return StatefulBuilder(
+            builder: (context, setState) { // I-wrap ang CheckboxListTile sa StatefulBuilder
+              return CheckboxListTile(
+                title: Text(noteItems[index]),
+                value: selectedNotes.contains(noteItems[index]),
+                onChanged: (bool? value) {
+                  setState(() { // Gumamit ng setState sa loob ng StatefulBuilder para mapansin ang pagbabago
+                    if (value != null) {
+                      if (value) {
+                        selectedNotes.add(noteItems[index]);
+                      } else {
+                        selectedNotes.remove(noteItems[index]);
+                      }
+                    }
+                  });
+                },
+                tristate: false,
+              );
+            },
+          );
+        },
+      );
+    }
+  },
+),
+
                                 ),
                               ],
                             ),
                           );
                         },
                       );
+                      if (selected != null) {
+                        setState(() {
+                          dropdownValue = selected.join(', ');
+                        });
+                      }
                     },
                     child: Container(
                       padding: EdgeInsets.all(10),
@@ -247,17 +352,49 @@ class _SingleItemPageState extends State<SingleItemPage> {
     );
   }
 
-  Widget _buildDropdownItem(String value) {
-    return ListTile(
-      title: Text(value),
-      onTap: () {
-        setState(() {
-          dropdownValue = value;
-        });
-        Navigator.pop(
-            context); // Close the bottom sheet when an option is selected
-      },
-    );
+  String _getImagePathForItem(Item item) {
+    if (item.picture_path.trim().isNotEmpty) {
+      return item.picture_path;
+    } else {
+      String itemName =
+          item.itemname.trim().toUpperCase().replaceAll(' ', '_');
+
+      List<String> imageFiles = [
+        '25SL',
+        '50SL',
+        '75SL',
+        '100SL',
+        'BANGSILOG',
+        'BLACKCOFFEE',
+        'CAPPUCCINO',
+        'CHICKSILOG',
+        'CHOCOMT',
+        'COKE1L',
+        'COKEINCAN',
+        'DEFAULT',
+        'ESPRESSO',
+        'HOTCHOCO',
+        'HOTSILOG',
+        'LESSICE',
+        'MATCHAMT',
+        'NOICE',
+        'NOSUGAR',
+        'OREOMT',
+        'REDVELVETMT',
+        'ROYALINCAN',
+        'SISIG',
+        'SPRITEINCAN',
+        'TAPSILOG',
+      ];
+
+      for (String imageFileName in imageFiles) {
+        if (itemName.contains(imageFileName)) {
+          return 'images/${imageFileName.toUpperCase()}.png';
+        }
+      }
+
+      return 'images/DEFAULT.png';
+    }
   }
 }
 
@@ -275,8 +412,7 @@ class SingleItemNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double total = sellingPrice * quantity;
-    String formattedTotal = total
-        .toStringAsFixed(2); // Format total to display with two decimal places
+    String formattedTotal = total.toStringAsFixed(2);
     return Container(
       height: 80,
       decoration: BoxDecoration(

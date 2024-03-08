@@ -287,4 +287,6 @@ class Item {
           : 0.0,
     );
   }
+
+  get notes => null;
 }
