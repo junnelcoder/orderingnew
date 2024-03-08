@@ -120,11 +120,11 @@ class _ItemWidgetState extends State<ItemWidget> {
           ),
           elevation: 4.0,
           child: Shimmer.fromColors(
-            baseColor: Colors.grey[400]!,
-            highlightColor: Colors.grey[200]!,
+            baseColor: Colors.grey[300]!, // Dark base color
+            highlightColor: Colors.grey[200]!, // Dark highlight color
             child: Container(
               decoration: BoxDecoration(
-                color: Color.fromARGB(0, 0, 0, 0),
+                color: Colors.transparent, // Transparent background color
                 borderRadius: BorderRadius.circular(20.0),
               ),
               child: Column(
@@ -134,7 +134,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                     child: Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.grey[900],
+                        color: Colors.grey[900], // Dark background color
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(20.0),
                           topRight: Radius.circular(20.0),
@@ -147,8 +147,9 @@ class _ItemWidgetState extends State<ItemWidget> {
                     child: Container(
                       height: 16.0,
                       decoration: BoxDecoration(
-                        color: Colors.grey[900],
-                        borderRadius: BorderRadius.circular(8.0),
+                        color: Colors.grey[900], // Dark background color
+                        borderRadius: BorderRadius.circular(
+                            8.0), // Circular border radius
                       ),
                     ),
                   ),
@@ -158,8 +159,9 @@ class _ItemWidgetState extends State<ItemWidget> {
                       height: 16.0,
                       width: 100.0,
                       decoration: BoxDecoration(
-                        color: Colors.grey[900],
-                        borderRadius: BorderRadius.circular(8.0),
+                        color: Colors.grey[900], // Dark background color
+                        borderRadius: BorderRadius.circular(
+                            8.0), // Circular border radius
                       ),
                     ),
                   ),
@@ -173,8 +175,9 @@ class _ItemWidgetState extends State<ItemWidget> {
                           height: 16.0,
                           width: 50.0,
                           decoration: BoxDecoration(
-                            color: Colors.grey[900],
-                            borderRadius: BorderRadius.circular(8.0),
+                            color: Colors.grey[900], // Dark background color
+                            borderRadius: BorderRadius.circular(
+                                8.0), // Circular border radius
                           ),
                         ),
                         Icon(
