@@ -11,26 +11,32 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
+
 class _HomePageState extends State<HomePage> {
   List<String> categories = [];
+  late TextEditingController _searchController;
 
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
     fetchCategories();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> fetchCategories() async {
-    var ipAddress =
-        AppConfig.serverIPAddress; // Get the IP address from AppConfig
-    final response =
-        await http.get(Uri.parse('http://$ipAddress:8080/categories'));
+    var ipAddress = AppConfig.serverIPAddress;
+    final response = await http.get(Uri.parse('http://$ipAddress:8080/categories'));
 
     if (response.statusCode == 200) {
       setState(() {
         final List<dynamic> data = json.decode(response.body);
-        categories =
-            data.where((category) => category != null).cast<String>().toList();
+        categories = data.where((category) => category != null).cast<String>().toList();
       });
     } else {
       throw Exception('Failed to fetch categories');
@@ -40,7 +46,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: categories.length + 1, // Add 1 for the 'ALL' option
+      length: categories.length + 1,
       child: Scaffold(
         backgroundColor: Color.fromARGB(255, 255, 255, 255),
         body: SafeArea(
@@ -49,7 +55,6 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Search bar
                 Padding(
                   padding: EdgeInsets.symmetric(
                     vertical: 10,
@@ -82,63 +87,38 @@ class _HomePageState extends State<HomePage> {
                             child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 15),
                               child: TextFormField(
+                                controller: _searchController,
                                 decoration: InputDecoration(
-                                  hintText: "What would you like to haves?",
+                                  hintText: "Search...",
                                   border: InputBorder.none,
                                 ),
+                                onChanged: (value) {
+                                  setState(() {}); // Trigger rebuild
+                                },
                               ),
                             ),
                           ),
-                          // Icon(Icons.filter_list),
                         ],
                       ),
                     ),
                   ),
                 ),
-                // Padding(
-                //   padding: EdgeInsets.symmetric(horizontal: 15),
-                //   child: Text(
-                //     "Have a nice day!",
-                //     style: TextStyle(
-                //       color: Colors.black,
-                //       fontSize: 32,
-                //       fontWeight: FontWeight.bold,
-                //     ),
-                //   ),
-                // ),
-                // SizedBox(height: 5),
-                // Padding(
-                //   padding: EdgeInsets.symmetric(horizontal: 15),
-                //   child: Text(
-                //     "Keep Smiling",
-                //     style: TextStyle(
-                //       color: Colors.grey,
-                //       fontSize: 22,
-                //     ),
-                //   ),
-                // ),
-                SizedBox(height: 5),
                 TabBar(
                   isScrollable: true,
                   indicator: BoxDecoration(),
                   labelStyle: TextStyle(fontSize: 15),
                   labelPadding: EdgeInsets.symmetric(horizontal: 20),
                   tabs: [
-                    Tab(text: 'ALL'), // Add the 'ALL' option
-                    ...categories
-                        .map<Tab>((category) => Tab(text: category))
-                        .toList(),
+                    Tab(text: 'ALL'),
+                    ...categories.map<Tab>((category) => Tab(text: category)).toList(),
                   ],
                 ),
                 Flexible(
                   flex: 1,
                   child: TabBarView(
                     children: [
-                      ItemWidget(category: 'ALL'), // Add 'ALL' category tab
-                      ...categories
-                          .map<Widget>(
-                              (category) => ItemWidget(category: category))
-                          .toList(),
+                      ItemWidget(category: 'ALL', searchQuery: _searchController.text),
+                      ...categories.map<Widget>((category) => ItemWidget(category: category, searchQuery: _searchController.text)).toList(),
                     ],
                   ),
                 ),

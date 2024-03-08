@@ -191,7 +191,7 @@ app.post('/add-to-cart', async (req, res) => {
 const config = {
     user: 'sa',
     password: 'zankojt@2024',
-    server: 'DESKTOP-Q3V7PHJ\\SQLEXPRESS2014',
+    server: 'DESKTOP-EIR2A8B\\SQLEXPRESS2014',
     database: 'restopos45',
     options: {
         encrypt: false, 

@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shimmer/shimmer.dart'; // Import shimmer package
+import 'package:shimmer/shimmer.dart';
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
 
 class ItemWidget extends StatefulWidget {
   final String category;
+  final String searchQuery;
 
-  const ItemWidget({required this.category});
+  const ItemWidget({required this.category, required this.searchQuery});
 
   @override
   _ItemWidgetState createState() => _ItemWidgetState();
@@ -19,13 +20,21 @@ class ItemWidget extends StatefulWidget {
 
 class _ItemWidgetState extends State<ItemWidget> {
   late List<Item> items = [];
-  bool isLoading = true; // Track if data is loading
-  bool isConnected = true; // Track if device is connected to the server
+  bool isLoading = true;
+  bool isConnected = true;
 
   @override
   void initState() {
     super.initState();
     checkConnectivity();
+  }
+  @override
+  void didUpdateWidget(covariant ItemWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Call fetchItems whenever the search query changes
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      fetchItems();
+    }
   }
 
   Future<void> fetchItems() async {
@@ -41,7 +50,10 @@ class _ItemWidgetState extends State<ItemWidget> {
       final List<dynamic> data = json.decode(response.body);
       setState(() {
         items = data.map((item) => Item.fromJson(item)).toList();
-        isLoading = false; // Data fetching complete
+        if (widget.searchQuery.isNotEmpty) {
+          items = items.where((item) => item.itemname.toLowerCase().contains(widget.searchQuery.toLowerCase())).toList();
+        }
+        isLoading = false;
       });
     } else {
       throw Exception('Failed to fetch items');
@@ -53,10 +65,10 @@ class _ItemWidgetState extends State<ItemWidget> {
     if (connectivityResult == ConnectivityResult.none) {
       setState(() {
         isConnected = false;
-        isLoading = false; // Set loading to false to display shimmer effect
+        isLoading = false;
       });
     } else {
-      fetchItems(); // If connected, fetch items
+      fetchItems();
     }
   }
 
@@ -82,7 +94,7 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   Widget _buildNoConnectionWidget() {
-    return _buildLoadingWidget(); // Show shimmer loading when not connected to server
+    return _buildLoadingWidget();
   }
 
   Widget _buildLoadingWidget() {
@@ -93,7 +105,7 @@ class _ItemWidgetState extends State<ItemWidget> {
         mainAxisSpacing: 8.0,
         childAspectRatio: 0.8,
       ),
-      itemCount: 6, // Number of shimmer loading items
+      itemCount: 6,
       itemBuilder: (context, index) {
         return Shimmer.fromColors(
           baseColor: Colors.grey[300]!,
@@ -256,7 +268,6 @@ class Item {
   final String itemcode;
   final double sellingprice;
 
-  // Additional properties with default values
   final String category;
   final double unitPrice;
   final double markup;
@@ -268,8 +279,6 @@ class Item {
   final String picture_path;
   final String division;
   final String brand;
-
-  // New properties
   final double total;
   final double subtotal;
 
@@ -277,7 +286,6 @@ class Item {
     required this.itemname,
     required this.itemcode,
     required this.sellingprice,
-    // Additional properties with default values
     this.category = '',
     this.unitPrice = 0.0,
     this.markup = 0.0,
@@ -289,7 +297,6 @@ class Item {
     this.picture_path = '',
     this.division = '',
     this.brand = '',
-    // New properties with default values
     this.total = 0.0,
     this.subtotal = 0.0,
   });
@@ -301,7 +308,6 @@ class Item {
       sellingprice: json['sellingprice'] != null
           ? double.parse(json['sellingprice'].toString())
           : 0.0,
-      // Additional properties initialized from JSON
       category: json['category'] ?? '',
       unitPrice: json['unitprice'] != null
           ? double.parse(json['unitprice'].toString())
@@ -319,9 +325,7 @@ class Item {
           : 0,
       picture_path: json['picture_path'] ?? '',
       brand: json['brand'] ?? '',
-      // New properties initialized from JSON
-      total:
-          json['total'] != null ? double.parse(json['total'].toString()) : 0.0,
+      total: json['total'] != null ? double.parse(json['total'].toString()) : 0.0,
       subtotal: json['subtotal'] != null
           ? double.parse(json['subtotal'].toString())
           : 0.0,
