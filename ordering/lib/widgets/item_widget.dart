@@ -28,6 +28,7 @@ class _ItemWidgetState extends State<ItemWidget> {
     super.initState();
     checkConnectivity();
   }
+
   @override
   void didUpdateWidget(covariant ItemWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -51,7 +52,11 @@ class _ItemWidgetState extends State<ItemWidget> {
       setState(() {
         items = data.map((item) => Item.fromJson(item)).toList();
         if (widget.searchQuery.isNotEmpty) {
-          items = items.where((item) => item.itemname.toLowerCase().contains(widget.searchQuery.toLowerCase())).toList();
+          items = items
+              .where((item) => item.itemname
+                  .toLowerCase()
+                  .contains(widget.searchQuery.toLowerCase()))
+              .toList();
         }
         isLoading = false;
       });
@@ -107,19 +112,80 @@ class _ItemWidgetState extends State<ItemWidget> {
       ),
       itemCount: 6,
       itemBuilder: (context, index) {
-        return Shimmer.fromColors(
-          baseColor: Colors.grey[300]!,
-          highlightColor: Colors.grey[100]!,
-          child: Card(
-            margin: EdgeInsets.all(8.0),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.0),
-            ),
-            elevation: 4.0,
+        return Card(
+          color: Colors.white,
+          margin: EdgeInsets.all(8.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          elevation: 4.0,
+          child: Shimmer.fromColors(
+            baseColor: Colors.grey[400]!,
+            highlightColor: Colors.grey[200]!,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Color.fromARGB(0, 0, 0, 0),
                 borderRadius: BorderRadius.circular(20.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900],
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20.0),
+                          topRight: Radius.circular(20.0),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Container(
+                      height: 16.0,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900],
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Container(
+                      height: 16.0,
+                      width: 100.0,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[900],
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          height: 16.0,
+                          width: 50.0,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[900],
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        Icon(
+                          CupertinoIcons.plus,
+                          size: 25,
+                          color: Colors.white, // Icon color
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -325,7 +391,8 @@ class Item {
           : 0,
       picture_path: json['picture_path'] ?? '',
       brand: json['brand'] ?? '',
-      total: json['total'] != null ? double.parse(json['total'].toString()) : 0.0,
+      total:
+          json['total'] != null ? double.parse(json['total'].toString()) : 0.0,
       subtotal: json['subtotal'] != null
           ? double.parse(json['subtotal'].toString())
           : 0.0,
