@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:fluttertoast/fluttertoast.dart'; // Import Fluttertoast package
 import '../widgets/item_widget.dart';
 import 'config.dart';
 import 'package:ordering/pages/home_page.dart';
@@ -45,21 +46,27 @@ class _SingleItemPageState extends State<SingleItemPage> {
     );
   }
 
-  Future<List<String>> fetchNoteItems() async {
-    var ipAddress = AppConfig.serverIPAddress;
-    var url = Uri.parse('http://$ipAddress:8080/get-notes');
+ Future<List<String>> fetchNoteItems() async {
+  var ipAddress = AppConfig.serverIPAddress;
+  var url = Uri.parse('http://$ipAddress:8080/get-notes');
+  
+  try {
     var response = await http.get(url);
-
+    
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       List<String> notes = data.map<String>((item) => item.toString()).toList();
+      
       print('Note items: $notes');
       return notes;
     } else {
       throw Exception('Failed to fetch note items');
     }
+  } catch (e) {
+    print('Error fetching note items: $e');
+    throw Exception('Failed to fetch note items');
   }
-
+}
   Future<void> addToCart() async {
     // Show confirmation dialog
     showDialog(
@@ -128,24 +135,24 @@ class _SingleItemPageState extends State<SingleItemPage> {
         'pa_id': '1',
         'machine_id': '0001',
         'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-        'itemcode': note, // Assuming note item has its own unique item code
-        'itemname': note, // Assuming note item name is same as item code for simplicity
-        'category': 'notes', // Assuming category of note items is 'notes'
-        'qty': '1', // Assuming quantity of note item is always 1
-        'unitprice': '0', // Assuming note items are free
-        'markup': '0', // Assuming note items are free
-        'sellingprice': '0', // Assuming note items are free
-        'department': '', // Assuming department of note items is empty
-        'uom': '', // Assuming uom of note items is empty
-        'vatable': '', // Assuming vatable of note items is empty
+        'itemcode': note, 
+        'itemname': note,
+        'category': 'notes', 
+        'qty': '1', 
+        'unitprice': '0', 
+        'markup': '0',
+        'sellingprice': '0',
+        'department': '', 
+        'uom': '', 
+        'vatable': '',
         'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
-        'division': '', // Assuming division of note items is empty
-        'section': '', // Assuming section of note items is empty
-        'close_status': '0', // Assuming close_status of note items is always 0
-        'picture_path': '', // Assuming picture_path of note items is empty
-        'brand': '', // Assuming brand of note items is empty
-        'subtotal': '0', // Assuming subtotal of note items is always 0
-        'total': '0', // Assuming total of note items is always 0
+        'division': '', 
+        'section': '', 
+        'close_status': '0', 
+        'picture_path': '', 
+        'brand': '', 
+        'subtotal': '0', 
+        'total': '0',
       };
       
       // Add note item to cart
@@ -154,6 +161,15 @@ class _SingleItemPageState extends State<SingleItemPage> {
 
     // Navigate to home page
     navigateToHomePage();
+
+    // Show toast notification
+    Fluttertoast.showToast(
+      msg: 'Item successfully added to orders tab',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.greenAccent,
+      textColor: Colors.white,
+    );
   }
 
   Future<void> _addToCart(Map<String, String> itemDetails) async {

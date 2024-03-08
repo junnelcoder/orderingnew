@@ -127,7 +127,11 @@ app.get('/get-notes', async (req, res) => {
     const result = await pool.request().query(`
       SELECT * FROM [restopos45].[dbo].[items] WHERE category LIKE '%NOTES%' AND itemname IS NOT NULL
     `);
-    const noteItems = result.recordset.map(record => record.itemname);
+    const noteItems = result.recordset.map(record => ({
+      itemcode: record.itemcode,
+      itemname: record.itemname,
+      // Include other details as needed
+    }));
     res.json(noteItems);
   } catch (err) {
     console.error('Error executing SQL query:', err);
@@ -185,8 +189,47 @@ app.post('/add-to-cart', async (req, res) => {
   }
 });
 
+app.get('/get-open-cart-items-count', async (req, res) => {
+  try {
+    // Connect to the database
+    const pool = await sql.connect(config);
+    
+    // Execute a query to get the count of open cart items excluding notes
+    const result = await pool.request().query(`
+      SELECT COUNT(*) AS openCartItemCount 
+      FROM [restopos45].[dbo].[cart_items] 
+      WHERE close_status = 0
+      AND category NOT LIKE '%NOTES%'
+    `);
+    
+    // Extract the count from the query result
+    const openCartItemCount = result.recordset[0].openCartItemCount;
+    
+    // Send the count as a response
+    res.status(200).json({ count: openCartItemCount });
+  } catch (err) {
+    console.error('Error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
-
+app.get('/get-all-cart-items', async (req, res) => {
+  try {
+    // Connect to the database
+    const pool = await sql.connect(config);
+    
+    // Execute a query to get all cart items
+    const result = await pool.request().query(`
+      SELECT * FROM [restopos45].[dbo].[cart_items] WHERE close_status = 0
+    `);
+    
+    // Send the cart items as a response
+    res.status(200).json(result.recordset);
+  } catch (err) {
+    console.error('Error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 const config = {
     user: 'sa',
