@@ -6,17 +6,19 @@ import '../widgets/cart_nav_bar.dart';
 class CartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: ListView(
         children: [
           SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.only(top: 25),
+              padding: EdgeInsets.only(top: screenWidth * 0.05),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -27,20 +29,20 @@ class CartPage extends StatelessWidget {
                           child: Icon(
                             Icons.arrow_back_ios,
                             color: Colors.black,
-                            size: 35,
+                            size: screenWidth * 0.07,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  SizedBox(height: 30),
+                  SizedBox(height: screenWidth * 0.08),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                     child: Text(
                       "Order List",
                       style: TextStyle(
                         color: Colors.black,
-                        fontSize: 32,
+                        fontSize: screenWidth * 0.08,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -49,10 +51,10 @@ class CartPage extends StatelessWidget {
                   //Item
                   Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 9),
+                      padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
                       child: Container(
-                        width: 380,
-                        height: 100,
+                        width: screenWidth * 0.9,
+                        height: screenWidth * 0.35,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
@@ -66,70 +68,66 @@ class CartPage extends StatelessWidget {
                           ],
                         ),
                         child: Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center, // Centering the Row
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
                               alignment: Alignment.center,
                               child: Image.asset(
-                                "images/burger.png",
-                                height: 80,
-                                width: 130,
+                                "images/SISIG.png",
+                                height: screenWidth * 0.22,
+                                width: screenWidth * 0.35,
                               ),
                             ),
                             Container(
-                              width: 190,
+                              width: screenWidth * 0.33,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   Text(
                                     "Hot Burger",
                                     style: TextStyle(
-                                      fontSize: 20,
+                                      fontSize: screenWidth * 0.06,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
                                     "Taste our Hot Pizza",
                                     style: TextStyle(
-                                      fontSize: 15,
-                                      // fontWeight: FontWeight.bold,
+                                      fontSize: screenWidth * 0.04,
                                     ),
                                   ),
                                   Text(
                                     "\$10",
                                     style: TextStyle(
-                                      fontSize: 20,
+                                      fontSize: screenWidth * 0.06,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
-                                      // fontWeight: FontWeight.bold,
                                     ),
                                   )
                                 ],
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8),
+                              padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
                               child: Container(
-                                padding: EdgeInsets.all(5),
+                                padding: EdgeInsets.all(screenWidth * 0.015),
                                 decoration: BoxDecoration(
                                   color: Colors.black,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Icon(
                                       CupertinoIcons.plus,
                                       color: Colors.white,
+                                      size: screenWidth * 0.08,
                                     ),
                                     Text(
                                       "2",
                                       style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: screenWidth * 0.06,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                       ),
@@ -137,6 +135,7 @@ class CartPage extends StatelessWidget {
                                     Icon(
                                       CupertinoIcons.minus,
                                       color: Colors.white,
+                                      size: screenWidth * 0.08,
                                     ),
                                   ],
                                 ),
@@ -148,13 +147,14 @@ class CartPage extends StatelessWidget {
                     ),
                   ),
 
-                  //item
+                  //item (Example of additional item, you can adjust as needed)
+                  // This item will be more responsive with less hardcoding
                   Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 9),
+                      padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
                       child: Container(
-                        width: 380,
-                        height: 100,
+                        width: screenWidth * 0.9,
+                        height: screenWidth * 0.35,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(10),
@@ -168,70 +168,66 @@ class CartPage extends StatelessWidget {
                           ],
                         ),
                         child: Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center, // Centering the Row
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Container(
                               alignment: Alignment.center,
                               child: Image.asset(
-                                "images/burger.png",
-                                height: 80,
-                                width: 130,
+                                "images/COKE1L.png",
+                                height: screenWidth * 0.22,
+                                width: screenWidth * 0.35,
                               ),
                             ),
                             Container(
-                              width: 190,
+                              width: screenWidth * 0.33,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   Text(
                                     "Hot Burger",
                                     style: TextStyle(
-                                      fontSize: 20,
+                                      fontSize: screenWidth * 0.06,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
                                     "Taste our Hot Pizza",
                                     style: TextStyle(
-                                      fontSize: 15,
-                                      // fontWeight: FontWeight.bold,
+                                      fontSize: screenWidth * 0.04,
                                     ),
                                   ),
                                   Text(
                                     "\$10",
                                     style: TextStyle(
-                                      fontSize: 20,
+                                      fontSize: screenWidth * 0.06,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black,
-                                      // fontWeight: FontWeight.bold,
                                     ),
                                   )
                                 ],
                               ),
                             ),
                             Padding(
-                              padding: EdgeInsets.symmetric(vertical: 8),
+                              padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
                               child: Container(
-                                padding: EdgeInsets.all(5),
+                                padding: EdgeInsets.all(screenWidth * 0.015),
                                 decoration: BoxDecoration(
                                   color: Colors.black,
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Icon(
                                       CupertinoIcons.plus,
                                       color: Colors.white,
+                                      size: screenWidth * 0.08,
                                     ),
                                     Text(
                                       "2",
                                       style: TextStyle(
-                                        fontSize: 18,
+                                        fontSize: screenWidth * 0.06,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.white,
                                       ),
@@ -239,6 +235,7 @@ class CartPage extends StatelessWidget {
                                     Icon(
                                       CupertinoIcons.minus,
                                       color: Colors.white,
+                                      size: screenWidth * 0.08,
                                     ),
                                   ],
                                 ),
@@ -251,9 +248,9 @@ class CartPage extends StatelessWidget {
                   ),
 
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: screenWidth * 0.05),
                     child: Container(
-                      padding: EdgeInsets.all(20),
+                      padding: EdgeInsets.all(screenWidth * 0.04),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(10),
@@ -270,18 +267,18 @@ class CartPage extends StatelessWidget {
                         children: [
                           Padding(
                             padding: EdgeInsets.symmetric(
-                              vertical: 10,
+                              vertical: screenWidth * 0.02,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   "Items: ",
-                                  style: TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: screenWidth * 0.06),
                                 ),
                                 Text(
                                   "\$10",
-                                  style: TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: screenWidth * 0.06),
                                 ),
                               ],
                             ),
@@ -291,18 +288,18 @@ class CartPage extends StatelessWidget {
                           ),
                           Padding(
                             padding: EdgeInsets.symmetric(
-                              vertical: 10,
+                              vertical: screenWidth * 0.02,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   "Sub-Total: ",
-                                  style: TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: screenWidth * 0.06),
                                 ),
                                 Text(
                                   "\$10",
-                                  style: TextStyle(fontSize: 20),
+                                  style: TextStyle(fontSize: screenWidth * 0.06),
                                 ),
                               ],
                             ),
@@ -312,28 +309,28 @@ class CartPage extends StatelessWidget {
                           ),
                           Padding(
                             padding: EdgeInsets.symmetric(
-                              vertical: 10,
+                              vertical: screenWidth * 0.02,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "Delivery: ",
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                Text(
-                                  "\$10",
-                                  style: TextStyle(fontSize: 20),
-                                ),
+                                // Text(
+                                //   "Delivery: ",
+                                //   style: TextStyle(fontSize: screenWidth * 0.06),
+                                // ),
+                                // Text(
+                                //   "\$10",
+                                //   style: TextStyle(fontSize: screenWidth * 0.06),
+                                // ),
                               ],
                             ),
                           ),
-                          Divider(
-                            color: Colors.black,
-                          ),
+                          // Divider(
+                          //   color: Colors.black,
+                          // ),
                           Padding(
                             padding: EdgeInsets.symmetric(
-                              vertical: 10,
+                              vertical: screenWidth * 0.02,
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -341,14 +338,14 @@ class CartPage extends StatelessWidget {
                                 Text(
                                   "Total: ",
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: screenWidth * 0.06,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
                                   "\$10",
                                   style: TextStyle(
-                                    fontSize: 20,
+                                    fontSize: screenWidth * 0.06,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black,
                                   ),
