@@ -1,9 +1,9 @@
-import 'dart:convert';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
-// import 'dart:io';
-// import 'package:path/path.dart' as path;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shimmer/shimmer.dart'; // Import shimmer package
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
@@ -19,11 +19,13 @@ class ItemWidget extends StatefulWidget {
 
 class _ItemWidgetState extends State<ItemWidget> {
   late List<Item> items = [];
+  bool isLoading = true; // Track if data is loading
+  bool isConnected = true; // Track if device is connected to the server
 
   @override
   void initState() {
     super.initState();
-    fetchItems();
+    checkConnectivity();
   }
 
   Future<void> fetchItems() async {
@@ -39,31 +41,79 @@ class _ItemWidgetState extends State<ItemWidget> {
       final List<dynamic> data = json.decode(response.body);
       setState(() {
         items = data.map((item) => Item.fromJson(item)).toList();
+        isLoading = false; // Data fetching complete
       });
     } else {
       throw Exception('Failed to fetch items');
     }
   }
 
+  Future<void> checkConnectivity() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        isConnected = false;
+        isLoading = false; // Set loading to false to display shimmer effect
+      });
+    } else {
+      fetchItems(); // If connected, fetch items
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return items.isNotEmpty
-        ? GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: _calculateCrossAxisCount(context),
-              crossAxisSpacing: 8.0,
-              mainAxisSpacing: 8.0,
-              childAspectRatio: 0.8,
+    return !isConnected
+        ? _buildNoConnectionWidget()
+        : isLoading
+            ? _buildLoadingWidget()
+            : GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: _calculateCrossAxisCount(context),
+                  crossAxisSpacing: 8.0,
+                  mainAxisSpacing: 8.0,
+                  childAspectRatio: 0.8,
+                ),
+                shrinkWrap: true,
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return buildItemCard(context, items[index]);
+                },
+              );
+  }
+
+  Widget _buildNoConnectionWidget() {
+    return _buildLoadingWidget(); // Show shimmer loading when not connected to server
+  }
+
+  Widget _buildLoadingWidget() {
+    return GridView.builder(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _calculateCrossAxisCount(context),
+        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 8.0,
+        childAspectRatio: 0.8,
+      ),
+      itemCount: 6, // Number of shimmer loading items
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: Card(
+            margin: EdgeInsets.all(8.0),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0),
             ),
-            shrinkWrap: true,
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return buildItemCard(context, items[index]);
-            },
-          )
-        : Center(
-            child: CircularProgressIndicator(),
-          );
+            elevation: 4.0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   int _calculateCrossAxisCount(BuildContext context) {
@@ -136,7 +186,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                      "\₱${item.sellingprice.toStringAsFixed(2)}",
+                    "\₱${item.sellingprice.toStringAsFixed(2)}",
                     style: TextStyle(
                       fontSize: 14.0,
                       fontWeight: FontWeight.bold,
@@ -155,60 +205,50 @@ class _ItemWidgetState extends State<ItemWidget> {
       ),
     );
   }
-String _getImagePathForItem(Item item) {
-  if (item.picture_path.trim().isNotEmpty) {
-    return item.picture_path;
-  } else {
-    String itemName = item.itemname.trim().toUpperCase().replaceAll(' ', '_');
 
+  String _getImagePathForItem(Item item) {
+    if (item.picture_path.trim().isNotEmpty) {
+      return item.picture_path;
+    } else {
+      String itemName = item.itemname.trim().toUpperCase().replaceAll(' ', '_');
 
-    List<String> imageFiles = [
-    '25SL',
-    '50SL',
-    '75SL',
-    '100SL',
-    'BANGSILOG',
-    'BLACKCOFFEE',
-    'CAPPUCCINO',
-    'CHICKSILOG',
-    'CHOCOMT',
-    'COKE1L',
-    'COKEINCAN',
-    'DEFAULT',
-    'ESPRESSO',
-    'HOTCHOCO',
-    'HOTSILOG',
-    'LESSICE',
-    'MATCHAMT',
-    'NOICE',
-    'NOSUGAR',
-    'OREOMT',
-    'REDVELVETMT',
-    'ROYALINCAN',
-    'SISIG',
-    'SPRITEINCAN',
-    'TAPSILOG',
-    ];
+      List<String> imageFiles = [
+        '25SL',
+        '50SL',
+        '75SL',
+        '100SL',
+        'BANGSILOG',
+        'BLACKCOFFEE',
+        'CAPPUCCINO',
+        'CHICKSILOG',
+        'CHOCOMT',
+        'COKE1L',
+        'COKEINCAN',
+        'DEFAULT',
+        'ESPRESSO',
+        'HOTCHOCO',
+        'HOTSILOG',
+        'LESSICE',
+        'MATCHAMT',
+        'NOICE',
+        'NOSUGAR',
+        'OREOMT',
+        'REDVELVETMT',
+        'ROYALINCAN',
+        'SISIG',
+        'SPRITEINCAN',
+        'TAPSILOG',
+      ];
 
-
-    for (String imageFileName in imageFiles) {
-
-      if (itemName.contains(imageFileName)) {
-        return 'images/${imageFileName.toUpperCase()}.png';
+      for (String imageFileName in imageFiles) {
+        if (itemName.contains(imageFileName)) {
+          return 'images/${imageFileName.toUpperCase()}.png';
+        }
       }
+
+      return 'images/DEFAULT.png';
     }
-
-
-    return 'images/DEFAULT.png';
   }
-}
-
-
-
-
-
-
-
 }
 
 class Item {
@@ -216,7 +256,7 @@ class Item {
   final String itemcode;
   final double sellingprice;
 
-  // Additional properties with default valuesr
+  // Additional properties with default values
   final String category;
   final double unitPrice;
   final double markup;
@@ -287,6 +327,4 @@ class Item {
           : 0.0,
     );
   }
-
-  get notes => null;
 }
