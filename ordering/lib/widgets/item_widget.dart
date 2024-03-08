@@ -7,6 +7,8 @@ import 'package:shimmer/shimmer.dart';
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
+import '../pages/login_screen.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class ItemWidget extends StatefulWidget {
   final String category;
@@ -40,7 +42,7 @@ class _ItemWidgetState extends State<ItemWidget> {
 
   Future<void> fetchItems() async {
     String ipAddress = AppConfig.serverIPAddress;
-    String url = 'http://$ipAddress:8080/items';
+    String url = 'http://$ipAddress:8080/api/items';
     if (widget.category != 'ALL') {
       url += '?category=${Uri.encodeQueryComponent(widget.category)}';
     }
@@ -77,8 +79,50 @@ class _ItemWidgetState extends State<ItemWidget> {
     }
   }
 
+  void _myFunction() async {
+    var ipAddress = AppConfig.serverIPAddress;
+    if (ipAddress != "") {
+      print('IP Address: $ipAddress');
+      try {
+        final response = await http
+            .get(
+              Uri.parse('http://$ipAddress:8080/api/ipConn'),
+            )
+            .timeout(Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          String serverResponse = response.body;
+          print('Server response: $serverResponse');
+          AppConfig.serverIPAddress = ipAddress;
+          // Navigate to LoginScreen
+        } else {
+          print('Failed to connect to server');
+        }
+      } catch (e) {
+        print('Errorrrrr connecting to server: $e');
+        Fluttertoast.showToast(
+          msg: "Server problem",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 3,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginScreen(),
+          ),
+        );
+      }
+    } else {
+      print('IP Address not found in SharedPreferences');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    _myFunction();
     return !isConnected
         ? _buildNoConnectionWidget()
         : isLoading

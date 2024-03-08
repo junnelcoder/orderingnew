@@ -8,7 +8,7 @@ import '../pages/config.dart';
 class HomeNavBar extends StatelessWidget {
   Future<int> fetchOpenCartItemsCount() async {
     var ipAddress = AppConfig.serverIPAddress;
-    var url = Uri.parse('http://$ipAddress:8080/get-open-cart-items-count');
+    var url = Uri.parse('http://$ipAddress:8080/api/get-open-cart-items-count');
     var response = await http.get(url);
 
     if (response.statusCode == 200) {

@@ -18,7 +18,7 @@ class _IpScreenState extends State<IpScreen> {
     String? ipAddress = prefs.getString('ipAddress');
     if (ipAddress != null) {
       setState(() {
-        _ipAddressController.text = ipAddress;
+        // _ipAddressController.text = ipAddress;
       });
     }
   }

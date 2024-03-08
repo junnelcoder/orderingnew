@@ -11,7 +11,6 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-
 class _HomePageState extends State<HomePage> {
   List<String> categories = [];
   late TextEditingController _searchController;
@@ -31,12 +30,14 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchCategories() async {
     var ipAddress = AppConfig.serverIPAddress;
-    final response = await http.get(Uri.parse('http://$ipAddress:8080/categories'));
+    final response =
+        await http.get(Uri.parse('http://$ipAddress:8080/api/categories'));
 
     if (response.statusCode == 200) {
       setState(() {
         final List<dynamic> data = json.decode(response.body);
-        categories = data.where((category) => category != null).cast<String>().toList();
+        categories =
+            data.where((category) => category != null).cast<String>().toList();
       });
     } else {
       throw Exception('Failed to fetch categories');
@@ -110,15 +111,22 @@ class _HomePageState extends State<HomePage> {
                   labelPadding: EdgeInsets.symmetric(horizontal: 20),
                   tabs: [
                     Tab(text: 'ALL'),
-                    ...categories.map<Tab>((category) => Tab(text: category)).toList(),
+                    ...categories
+                        .map<Tab>((category) => Tab(text: category))
+                        .toList(),
                   ],
                 ),
                 Flexible(
                   flex: 1,
                   child: TabBarView(
                     children: [
-                      ItemWidget(category: 'ALL', searchQuery: _searchController.text),
-                      ...categories.map<Widget>((category) => ItemWidget(category: category, searchQuery: _searchController.text)).toList(),
+                      ItemWidget(
+                          category: 'ALL', searchQuery: _searchController.text),
+                      ...categories
+                          .map<Widget>((category) => ItemWidget(
+                              category: category,
+                              searchQuery: _searchController.text))
+                          .toList(),
                     ],
                   ),
                 ),

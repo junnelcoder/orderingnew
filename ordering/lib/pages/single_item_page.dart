@@ -46,27 +46,29 @@ class _SingleItemPageState extends State<SingleItemPage> {
     );
   }
 
- Future<List<String>> fetchNoteItems() async {
-  var ipAddress = AppConfig.serverIPAddress;
-  var url = Uri.parse('http://$ipAddress:8080/get-notes');
-  
-  try {
-    var response = await http.get(url);
-    
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      List<String> notes = data.map<String>((item) => item.toString()).toList();
-      
-      print('Note items: $notes');
-      return notes;
-    } else {
+  Future<List<String>> fetchNoteItems() async {
+    var ipAddress = AppConfig.serverIPAddress;
+    var url = Uri.parse('http://$ipAddress:8080/api/get-notes');
+
+    try {
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        List<String> notes =
+            data.map<String>((item) => item.toString()).toList();
+
+        print('Note items: $notes');
+        return notes;
+      } else {
+        throw Exception('Failed to fetch note items');
+      }
+    } catch (e) {
+      print('Error fetching note items: $e');
       throw Exception('Failed to fetch note items');
     }
-  } catch (e) {
-    print('Error fetching note items: $e');
-    throw Exception('Failed to fetch note items');
   }
-}
+
   Future<void> addToCart() async {
     // Show confirmation dialog
     showDialog(
@@ -100,7 +102,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
 
   Future<void> _addItemToCart() async {
     var ipAddress = AppConfig.serverIPAddress;
-    var url = Uri.parse('http://$ipAddress:8080/add-to-cart');
+    var url = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
 
     var mainItemDetails = {
       'pa_id': '1',
@@ -135,26 +137,26 @@ class _SingleItemPageState extends State<SingleItemPage> {
         'pa_id': '1',
         'machine_id': '0001',
         'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-        'itemcode': note, 
+        'itemcode': note,
         'itemname': note,
-        'category': 'notes', 
-        'qty': '1', 
-        'unitprice': '0', 
+        'category': 'notes',
+        'qty': '1',
+        'unitprice': '0',
         'markup': '0',
         'sellingprice': '0',
-        'department': '', 
-        'uom': '', 
+        'department': '',
+        'uom': '',
         'vatable': '',
         'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
-        'division': '', 
-        'section': '', 
-        'close_status': '0', 
-        'picture_path': '', 
-        'brand': '', 
-        'subtotal': '0', 
+        'division': '',
+        'section': '',
+        'close_status': '0',
+        'picture_path': '',
+        'brand': '',
+        'subtotal': '0',
         'total': '0',
       };
-      
+
       // Add note item to cart
       await _addToCart(noteItemDetails);
     }
@@ -174,8 +176,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
 
   Future<void> _addToCart(Map<String, String> itemDetails) async {
     var ipAddress = AppConfig.serverIPAddress;
-    var url = Uri.parse('http://$ipAddress:8080/add-to-cart');
-    
+    var url = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
+
     var response = await http.post(
       url,
       body: json.encode(itemDetails),
@@ -317,8 +319,10 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                 Expanded(
                                   child: FutureBuilder<List<String>>(
                                     future: fetchNoteItems(),
-                                    builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
-                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<List<String>> snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
                                         return Center(
                                           child: CircularProgressIndicator(),
                                         );
@@ -333,14 +337,17 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                               builder: (context, setState) {
                                                 return CheckboxListTile(
                                                   title: Text(noteItems[index]),
-                                                  value: selectedNotes.contains(noteItems[index]),
+                                                  value: selectedNotes.contains(
+                                                      noteItems[index]),
                                                   onChanged: (bool? value) {
                                                     setState(() {
                                                       if (value != null) {
                                                         if (value) {
-                                                          selectedNotes.add(noteItems[index]);
+                                                          selectedNotes.add(
+                                                              noteItems[index]);
                                                         } else {
-                                                          selectedNotes.remove(noteItems[index]);
+                                                          selectedNotes.remove(
+                                                              noteItems[index]);
                                                         }
                                                       }
                                                     });
@@ -377,7 +384,9 @@ class _SingleItemPageState extends State<SingleItemPage> {
                         children: [
                           Expanded(
                             child: Text(
-                              selectedNotes.isEmpty ? 'Select a note...' : selectedNotes.join(', '),
+                              selectedNotes.isEmpty
+                                  ? 'Select a note...'
+                                  : selectedNotes.join(', '),
                               style: TextStyle(
                                 fontSize: 16,
                               ),

@@ -40,7 +40,7 @@ class _LoginPageState extends State<LoginScreen> {
 
   void fetchUsers() async {
     try {
-      var ipAddress = AppConfig.serverIPAddress;
+      var ipAddress = AppConfig.serverIPAddress.trim();
       final response = await http
           .get(Uri.parse('http://$ipAddress:8080/api/getUsers'))
           .timeout(Duration(seconds: 5));
