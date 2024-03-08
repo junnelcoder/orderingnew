@@ -20,7 +20,6 @@ class SingleItemPage extends StatefulWidget {
 
 class _SingleItemPageState extends State<SingleItemPage> {
   int quantity = 1;
-  String dropdownValue = 'select a note...';
   List<String> selectedNotes = [];
 
   void incrementQuantity() {
@@ -53,8 +52,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      List<String> notes =
-          data.map<String>((item) => item.toString()).toList();
+      List<String> notes = data.map<String>((item) => item.toString()).toList();
       print('Note items: $notes');
       return notes;
     } else {
@@ -63,10 +61,41 @@ class _SingleItemPageState extends State<SingleItemPage> {
   }
 
   Future<void> addToCart() async {
+    // Show confirmation dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm'),
+          content: Text('Are you sure you want to add this order?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Confirm'),
+              onPressed: () async {
+                // Close dialog
+                Navigator.of(context).pop();
+
+                // Add item to cart
+                await _addItemToCart();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _addItemToCart() async {
     var ipAddress = AppConfig.serverIPAddress;
     var url = Uri.parse('http://$ipAddress:8080/add-to-cart');
 
-    var itemDetails = {
+    var mainItemDetails = {
       'pa_id': '1',
       'machine_id': '0001',
       'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
@@ -88,54 +117,61 @@ class _SingleItemPageState extends State<SingleItemPage> {
       'brand': widget.item.brand,
       'subtotal': (widget.item.sellingprice * quantity).toString(),
       'total': (widget.item.sellingprice * quantity).toString(),
-      'notes': selectedNotes.join(', '), // Join selected notes into a single string
     };
-    print(itemDetails);
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        int terminator = 0;
-        return AlertDialog(
-          title: Text('Confirm'),
-          content: Text('Are you sure you want to add this order?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Confirm'),
-              onPressed: () async {
-                var response = await http.post(
-                  url,
-                  body: json.encode(itemDetails),
-                  headers: {'Content-Type': 'application/json'},
-                );
+    // Add main item to cart
+    await _addToCart(mainItemDetails);
 
-                if (response.statusCode == 200) {
-                  terminator = 1;
-                  var responseBody = json.decode(response.body);
-                  print('Item added to cart: $responseBody');
-                } else {
-                  print(
-                      'Failed to add item to cart. Status code: ${response.statusCode}');
-                }
-                if (terminator == 1) {
-                  Navigator.pop(context);
-                  navigateToHomePage();
-                  terminator = 0;
-                }
+    // Add selected notes to cart
+    for (String note in selectedNotes) {
+      var noteItemDetails = {
+        'pa_id': '1',
+        'machine_id': '0001',
+        'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        'itemcode': note, // Assuming note item has its own unique item code
+        'itemname': note, // Assuming note item name is same as item code for simplicity
+        'category': 'notes', // Assuming category of note items is 'notes'
+        'qty': '1', // Assuming quantity of note item is always 1
+        'unitprice': '0', // Assuming note items are free
+        'markup': '0', // Assuming note items are free
+        'sellingprice': '0', // Assuming note items are free
+        'department': '', // Assuming department of note items is empty
+        'uom': '', // Assuming uom of note items is empty
+        'vatable': '', // Assuming vatable of note items is empty
+        'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
+        'division': '', // Assuming division of note items is empty
+        'section': '', // Assuming section of note items is empty
+        'close_status': '0', // Assuming close_status of note items is always 0
+        'picture_path': '', // Assuming picture_path of note items is empty
+        'brand': '', // Assuming brand of note items is empty
+        'subtotal': '0', // Assuming subtotal of note items is always 0
+        'total': '0', // Assuming total of note items is always 0
+      };
+      
+      // Add note item to cart
+      await _addToCart(noteItemDetails);
+    }
 
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+    // Navigate to home page
+    navigateToHomePage();
+  }
+
+  Future<void> _addToCart(Map<String, String> itemDetails) async {
+    var ipAddress = AppConfig.serverIPAddress;
+    var url = Uri.parse('http://$ipAddress:8080/add-to-cart');
+    
+    var response = await http.post(
+      url,
+      body: json.encode(itemDetails),
+      headers: {'Content-Type': 'application/json'},
     );
+
+    if (response.statusCode == 200) {
+      var responseBody = json.decode(response.body);
+      print('Item added to cart: $responseBody');
+    } else {
+      print('Failed to add item to cart. Status code: ${response.statusCode}');
+    }
   }
 
   @override
@@ -264,45 +300,44 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                 SizedBox(height: 10),
                                 Expanded(
                                   child: FutureBuilder<List<String>>(
-  future: fetchNoteItems(),
-  builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return Center(
-        child: CircularProgressIndicator(),
-      );
-    } else if (snapshot.hasError) {
-      return Text('Error: ${snapshot.error}');
-    } else {
-      List<String> noteItems = snapshot.data!;
-      return ListView.builder(
-        itemCount: noteItems.length,
-        itemBuilder: (context, index) {
-          return StatefulBuilder(
-            builder: (context, setState) { // I-wrap ang CheckboxListTile sa StatefulBuilder
-              return CheckboxListTile(
-                title: Text(noteItems[index]),
-                value: selectedNotes.contains(noteItems[index]),
-                onChanged: (bool? value) {
-                  setState(() { // Gumamit ng setState sa loob ng StatefulBuilder para mapansin ang pagbabago
-                    if (value != null) {
-                      if (value) {
-                        selectedNotes.add(noteItems[index]);
-                      } else {
-                        selectedNotes.remove(noteItems[index]);
-                      }
-                    }
-                  });
-                },
-                tristate: false,
-              );
-            },
-          );
-        },
-      );
-    }
-  },
-),
-
+                                    future: fetchNoteItems(),
+                                    builder: (BuildContext context, AsyncSnapshot<List<String>> snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return Center(
+                                          child: CircularProgressIndicator(),
+                                        );
+                                      } else if (snapshot.hasError) {
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        List<String> noteItems = snapshot.data!;
+                                        return ListView.builder(
+                                          itemCount: noteItems.length,
+                                          itemBuilder: (context, index) {
+                                            return StatefulBuilder(
+                                              builder: (context, setState) {
+                                                return CheckboxListTile(
+                                                  title: Text(noteItems[index]),
+                                                  value: selectedNotes.contains(noteItems[index]),
+                                                  onChanged: (bool? value) {
+                                                    setState(() {
+                                                      if (value != null) {
+                                                        if (value) {
+                                                          selectedNotes.add(noteItems[index]);
+                                                        } else {
+                                                          selectedNotes.remove(noteItems[index]);
+                                                        }
+                                                      }
+                                                    });
+                                                  },
+                                                  tristate: false,
+                                                );
+                                              },
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                  ),
                                 ),
                               ],
                             ),
@@ -311,7 +346,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
                       );
                       if (selected != null) {
                         setState(() {
-                          dropdownValue = selected.join(', ');
+                          selectedNotes = selected;
                         });
                       }
                     },
@@ -326,7 +361,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
                         children: [
                           Expanded(
                             child: Text(
-                              dropdownValue,
+                              selectedNotes.isEmpty ? 'Select a note...' : selectedNotes.join(', '),
                               style: TextStyle(
                                 fontSize: 16,
                               ),
@@ -356,8 +391,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
     if (item.picture_path.trim().isNotEmpty) {
       return item.picture_path;
     } else {
-      String itemName =
-          item.itemname.trim().toUpperCase().replaceAll(' ', '_');
+      String itemName = item.itemname.trim().toUpperCase().replaceAll(' ', '_');
 
       List<String> imageFiles = [
         '25SL',
