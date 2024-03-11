@@ -16,6 +16,7 @@ class _IpScreenState extends State<IpScreen> {
   void getSavedIpAddress() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
+_ipAddressController.text = "192.168.5.100";
     if (ipAddress != null) {
       setState(() {
         // _ipAddressController.text = ipAddress;

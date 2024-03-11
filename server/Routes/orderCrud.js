@@ -52,6 +52,20 @@ router.get('/items', async (req, res) => {
     }
   });
 
+  
+router.get('/allItems', async (req, res) => {
+  try {
+    const pool = await sql.connect(config);
+    const result = await pool.request().query(`
+    SELECT * FROM [restopos45].[dbo].[items]
+    `);
+    res.json(result);
+  } catch (err) {
+    console.error('Error executing SQL query:', err);
+    res.status(500).json({ error: 'Failed to fetch note items' });
+  }
+});
+
   // Endpoint para sa pag-add sa cart ng mga notes
 router.post('/add-notes-to-cart', async (req, res) => {
     try {
