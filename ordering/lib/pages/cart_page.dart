@@ -1,369 +1,211 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/cart_nav_bar.dart';
+import 'dart:convert';
 
-class CartPage extends StatelessWidget {
+class CartPage extends StatefulWidget {
+  @override
+  _CartPageState createState() => _CartPageState();
+}
+
+class _CartPageState extends State<CartPage> {
+  List<Map<String, dynamic>> cartItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCartItems();
+  }
+
+  Future<void> _fetchCartItems() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? cartItemsString = prefs.getStringList('cartItems');
+
+    if (cartItemsString != null) {
+      setState(() {
+        cartItems = cartItemsString.map((item) => json.decode(item) as Map<String, dynamic>).toList();
+      });
+    }
+  }
+
+  String _getImagePathForItem(Map<String, dynamic> item) {
+    if (item['picture_path'] != null && item['picture_path'].trim().isNotEmpty) {
+      return item['picture_path'];
+    } else {
+      String itemName = (item['itemname'] ?? '').trim().toUpperCase().replaceAll(' ', '_');
+
+      List<String> imageFiles = [
+        '25SL',
+        '50SL',
+        '75SL',
+        '100SL',
+        'BANGSILOG',
+        'BLACKCOFFEE',
+        'CAPPUCCINO',
+        'CHICKSILOG',
+        'CHOCOMT',
+        'COKE1L',
+        'COKEINCAN',
+        'DEFAULT',
+        'ESPRESSO',
+        'HOTCHOCO',
+        'HOTSILOG',
+        'LESSICE',
+        'MATCHAMT',
+        'NOICE',
+        'NOSUGAR',
+        'OREOMT',
+        'REDVELVETMT',
+        'ROYALINCAN',
+        'SISIG',
+        'SPRITEINCAN',
+        'TAPSILOG',
+      ];
+
+      for (String imageFileName in imageFiles) {
+        if (itemName.contains(imageFileName)) {
+          return 'images/${imageFileName.toUpperCase()}.png';
+        }
+      }
+
+      return 'images/DEFAULT.png';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      body: ListView(
-        children: [
-          SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.only(top: screenWidth * 0.05),
+      body: ListView.builder(
+        itemCount: cartItems.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: Icon(
-                            Icons.arrow_back_ios,
-                            color: Colors.black,
-                            size: screenWidth * 0.07,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   SizedBox(height: screenWidth * 0.08),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                    child: Text(
-                      "Order List",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: screenWidth * 0.08,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  Text(
+                    "Order List",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: screenWidth * 0.08,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-
-                  //Item
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
-                      child: Container(
-                        width: screenWidth * 0.9,
-                        height: screenWidth * 0.35,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 3,
-                              blurRadius: 10,
-                              offset: Offset(0, 3),
-                            )
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              alignment: Alignment.center,
-                              child: Image.asset(
-                                "images/SISIG.png",
-                                height: screenWidth * 0.22,
-                                width: screenWidth * 0.35,
-                              ),
-                            ),
-                            Container(
-                              width: screenWidth * 0.33,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  Text(
-                                    "Hot Burger",
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.06,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    "Taste our Hot Pizza",
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.04,
-                                    ),
-                                  ),
-                                  Text(
-                                    "\$10",
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.06,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
-                              child: Container(
-                                padding: EdgeInsets.all(screenWidth * 0.015),
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.plus,
-                                      color: Colors.white,
-                                      size: screenWidth * 0.08,
-                                    ),
-                                    Text(
-                                      "2",
-                                      style: TextStyle(
-                                        fontSize: screenWidth * 0.06,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    Icon(
-                                      CupertinoIcons.minus,
-                                      color: Colors.white,
-                                      size: screenWidth * 0.08,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  //item (Example of additional item, you can adjust as needed)
-                  // This item will be more responsive with less hardcoding
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
-                      child: Container(
-                        width: screenWidth * 0.9,
-                        height: screenWidth * 0.35,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.5),
-                              spreadRadius: 3,
-                              blurRadius: 10,
-                              offset: Offset(0, 3),
-                            )
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              alignment: Alignment.center,
-                              child: Image.asset(
-                                "images/COKE1L.png",
-                                height: screenWidth * 0.22,
-                                width: screenWidth * 0.35,
-                              ),
-                            ),
-                            Container(
-                              width: screenWidth * 0.33,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  Text(
-                                    "Hot Burger",
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.06,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    "Taste our Hot Pizza",
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.04,
-                                    ),
-                                  ),
-                                  Text(
-                                    "\$10",
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.06,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02),
-                              child: Container(
-                                padding: EdgeInsets.all(screenWidth * 0.015),
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Icon(
-                                      CupertinoIcons.plus,
-                                      color: Colors.white,
-                                      size: screenWidth * 0.08,
-                                    ),
-                                    Text(
-                                      "2",
-                                      style: TextStyle(
-                                        fontSize: screenWidth * 0.06,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    Icon(
-                                      CupertinoIcons.minus,
-                                      color: Colors.white,
-                                      size: screenWidth * 0.08,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: screenWidth * 0.05),
-                    child: Container(
-                      padding: EdgeInsets.all(screenWidth * 0.04),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.5),
-                            spreadRadius: 3,
-                            blurRadius: 10,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: screenWidth * 0.02,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Items: ",
-                                  style: TextStyle(fontSize: screenWidth * 0.06),
-                                ),
-                                Text(
-                                  "\$10",
-                                  style: TextStyle(fontSize: screenWidth * 0.06),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Divider(
-                            color: Colors.black,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: screenWidth * 0.02,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Sub-Total: ",
-                                  style: TextStyle(fontSize: screenWidth * 0.06),
-                                ),
-                                Text(
-                                  "\$10",
-                                  style: TextStyle(fontSize: screenWidth * 0.06),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Divider(
-                            color: Colors.black,
-                          ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: screenWidth * 0.02,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                // Text(
-                                //   "Delivery: ",
-                                //   style: TextStyle(fontSize: screenWidth * 0.06),
-                                // ),
-                                // Text(
-                                //   "\$10",
-                                //   style: TextStyle(fontSize: screenWidth * 0.06),
-                                // ),
-                              ],
-                            ),
-                          ),
-                          // Divider(
-                          //   color: Colors.black,
-                          // ),
-                          Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: screenWidth * 0.02,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Total: ",
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.06,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  "\$10",
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.06,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
+                  SizedBox(height: screenWidth * 0.02),
                 ],
               ),
-            ),
-          ),
-        ],
+            );
+          } else {
+            Map<String, dynamic> item = cartItems[index - 1];
+            return Padding(
+              padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02, horizontal: screenWidth * 0.05),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 3,
+                      blurRadius: 10,
+                      offset: Offset(0, 3),
+                    )
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      alignment: Alignment.center,
+                      width: screenWidth * 0.35,
+                      height: screenWidth * 0.35,
+                      child: Image.asset(
+                        _getImagePathForItem(item),
+                        height: screenWidth * 0.22,
+                        width: screenWidth * 0.35,
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text(
+                            item['itemname'],
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.06,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            item['category'],
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.04,
+                            ),
+                          ),
+                          if (item['category'] == 'notes' && item['notes'] != null)
+                            Text(
+                              "Added notes: ${item['notes']}",
+                              style: TextStyle(
+                                fontSize: screenWidth * 0.04,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          Text(
+                            "\$${item['sellingprice']}",
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.06,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Container(
+                      padding: EdgeInsets.all(screenWidth * 0.015),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Icon(
+                            CupertinoIcons.plus,
+                            color: Colors.white,
+                            size: screenWidth * 0.08,
+                          ),
+                          Text(
+                            item['qty'],
+                            style: TextStyle(
+                              fontSize: screenWidth * 0.06,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Icon(
+                            CupertinoIcons.minus,
+                            color: Colors.white,
+                            size: screenWidth * 0.08,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        },
       ),
-      // drawer: DrawerWidget(),
       bottomNavigationBar: CartNavBar(),
     );
   }

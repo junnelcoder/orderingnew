@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../pages/config.dart';
 
 class HomeNavBar extends StatefulWidget {
@@ -20,15 +20,25 @@ class HomeNavBar extends StatefulWidget {
 
 class _HomeNavBarState extends State<HomeNavBar> {
   Future<int> fetchOpenCartItemsCount() async {
-    var ipAddress = AppConfig.serverIPAddress;
-    var url = Uri.parse('http://$ipAddress:8080/api/get-open-cart-items-count');
-    var response = await http.get(url);
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String>? cartItems = prefs.getStringList('cartItems');
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      final int count = data['count'] as int;
-      return count;
-    } else {
+      if (cartItems != null) {
+        // Count items except the ones with category 'notes'
+        int openCartItemsCount = 0;
+        for (String cartItem in cartItems) {
+          Map<String, dynamic> item = json.decode(cartItem);
+          if (item['category'] != 'notes' ) {
+            openCartItemsCount++;
+          }
+        }
+        return openCartItemsCount;
+      } else {
+        // If no cart items found, return count as 0
+        return 0;
+      }
+    } catch (e) {
       throw Exception('Failed to fetch open cart items count');
     }
   }

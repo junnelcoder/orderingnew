@@ -3,10 +3,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:fluttertoast/fluttertoast.dart'; // Import Fluttertoast package
+import 'package:fluttertoast/fluttertoast.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
 import 'package:ordering/pages/home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -46,7 +47,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
     );
   }
 
-  Future<List<String>> fetchNoteItems() async {
+  Future<List<Map<String, dynamic>>> fetchNoteItems() async {
     var ipAddress = AppConfig.serverIPAddress;
     var url = Uri.parse('http://$ipAddress:8080/api/get-notes');
 
@@ -55,10 +56,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
 
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
-        List<String> notes =
-            data.map<String>((item) => item.toString()).toList();
-
-        print('Note items: $notes');
+        List<Map<String, dynamic>> notes = List<Map<String, dynamic>>.from(data);
         return notes;
       } else {
         throw Exception('Failed to fetch note items');
@@ -70,7 +68,6 @@ class _SingleItemPageState extends State<SingleItemPage> {
   }
 
   Future<void> addToCart() async {
-    // Show confirmation dialog
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -87,10 +84,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
             TextButton(
               child: Text('Confirm'),
               onPressed: () async {
-                // Close dialog
                 Navigator.of(context).pop();
-
-                // Add item to cart
                 await _addItemToCart();
               },
             ),
@@ -101,94 +95,85 @@ class _SingleItemPageState extends State<SingleItemPage> {
   }
 
   Future<void> _addItemToCart() async {
-    var ipAddress = AppConfig.serverIPAddress;
-    var url = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
+    try {
+      await _saveItemToLocal(widget.item, quantity);
+      navigateToHomePage();
+      Fluttertoast.showToast(
+        msg: 'Item successfully added to orders tab',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.greenAccent,
+        textColor: Colors.white,
+      );
+    } catch (e) {
+      print('Error adding item to cart: $e');
+    }
+  }
 
-    var mainItemDetails = {
-      'pa_id': '1',
-      'machine_id': '0001',
-      'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-      'itemcode': widget.item.itemcode,
-      'itemname': widget.item.itemname,
-      'category': widget.item.category,
-      'qty': quantity.toString(),
-      'unitprice': widget.item.unitPrice.toString(),
-      'markup': widget.item.markup.toString(),
-      'sellingprice': widget.item.sellingprice.toString(),
-      'department': widget.item.department,
-      'uom': widget.item.uom,
-      'vatable': widget.item.vatable,
-      'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
-      'division': widget.item.division,
-      'section': widget.item.section,
-      'close_status': widget.item.close_status.toString(),
-      'picture_path': widget.item.picture_path,
-      'brand': widget.item.brand,
-      'subtotal': (widget.item.sellingprice * quantity).toString(),
-      'total': (widget.item.sellingprice * quantity).toString(),
-    };
-
-    // Add main item to cart
-    await _addToCart(mainItemDetails);
-
-    // Add selected notes to cart
-    for (String note in selectedNotes) {
-      var noteItemDetails = {
+  Future<void> _saveItemToLocal(Item item, int quantity) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String>? cartItems = prefs.getStringList('cartItems') ?? [];
+      var mainItemDetails = {
         'pa_id': '1',
         'machine_id': '0001',
         'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-        'itemcode': note,
-        'itemname': note,
-        'category': 'notes',
-        'qty': '1',
-        'unitprice': '0',
-        'markup': '0',
-        'sellingprice': '0',
-        'department': '',
-        'uom': '',
-        'vatable': '',
+        'itemcode': item.itemcode,
+        'itemname': item.itemname,
+        'category': item.category,
+        'qty': quantity.toString(),
+        'unitprice': item.unitPrice.toString(),
+        'markup': item.markup.toString(),
+        'sellingprice': item.sellingprice.toString(),
+        'department': item.department,
+        'uom': item.uom,
+        'vatable': item.vatable,
         'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
-        'division': '',
-        'section': '',
-        'close_status': '0',
-        'picture_path': '',
-        'brand': '',
-        'subtotal': '0',
-        'total': '0',
+        'division': item.division,
+        'section': item.section,
+        'close_status': item.close_status.toString(),
+        'picture_path': item.picture_path,
+        'brand': item.brand,
+        'subtotal': (item.sellingprice * quantity).toString(),
+        'total': (item.sellingprice * quantity).toString(),
       };
 
-      // Add note item to cart
-      await _addToCart(noteItemDetails);
-    }
+      cartItems.add(json.encode(mainItemDetails));
 
-    // Navigate to home page
-    navigateToHomePage();
+      List<Map<String, dynamic>> noteItems = await fetchNoteItems();
 
-    // Show toast notification
-    Fluttertoast.showToast(
-      msg: 'Item successfully added to orders tab',
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.greenAccent,
-      textColor: Colors.white,
-    );
-  }
+      for (Map<String, dynamic> noteItem in noteItems) {
+        var noteItemDetails = {
+          'pa_id': '1',
+          'machine_id': '0001',
+          'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+          'itemcode': noteItem['itemcode'],
+          'itemname': noteItem['itemname'],
+          'category': 'notes',
+          'qty': quantity.toString(),
+          'unitprice': noteItem['unitPrice'].toString(),
+          'markup': noteItem['markup'].toString(),
+          'sellingprice': noteItem['sellingprice'].toString(),
+          'department': noteItem['department'],
+          'uom': noteItem['uom'],
+          'vatable': noteItem['vatable'],
+          'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
+          'division': noteItem['division'],
+          'section': noteItem['section'],
+          'close_status': noteItem['close_status'].toString(),
+          'picture_path': noteItem['picture_path'],
+          'brand': noteItem['brand'],
+          'subtotal': (noteItem['sellingprice'] * quantity).toString(), // Assuming quantity is always 1
+          'total': (noteItem['sellingprice'] * quantity).toString(), // Assuming quantity is always 1
+        };
+        cartItems.add(json.encode(noteItemDetails));
+      }
 
-  Future<void> _addToCart(Map<String, String> itemDetails) async {
-    var ipAddress = AppConfig.serverIPAddress;
-    var url = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
-
-    var response = await http.post(
-      url,
-      body: json.encode(itemDetails),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      var responseBody = json.decode(response.body);
-      print('Item added to cart: $responseBody');
-    } else {
-      print('Failed to add item to cart. Status code: ${response.statusCode}');
+      await prefs.setStringList('cartItems', cartItems);
+      print('Cart Items: $cartItems');
+    } catch (e) {
+      print('Error saving item to local storage: $e');
+      throw Exception('Failed to save item to local storage');
     }
   }
 
@@ -317,10 +302,10 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                 ),
                                 SizedBox(height: 10),
                                 Expanded(
-                                  child: FutureBuilder<List<String>>(
+                                  child: FutureBuilder<List<Map<String, dynamic>>>(
                                     future: fetchNoteItems(),
                                     builder: (BuildContext context,
-                                        AsyncSnapshot<List<String>> snapshot) {
+                                        AsyncSnapshot<List<Map<String, dynamic>>> snapshot) {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
                                         return Center(
@@ -329,25 +314,22 @@ class _SingleItemPageState extends State<SingleItemPage> {
                                       } else if (snapshot.hasError) {
                                         return Text('Error: ${snapshot.error}');
                                       } else {
-                                        List<String> noteItems = snapshot.data!;
+                                        List<Map<String, dynamic>> noteItems = snapshot.data!;
                                         return ListView.builder(
                                           itemCount: noteItems.length,
                                           itemBuilder: (context, index) {
                                             return StatefulBuilder(
                                               builder: (context, setState) {
                                                 return CheckboxListTile(
-                                                  title: Text(noteItems[index]),
-                                                  value: selectedNotes.contains(
-                                                      noteItems[index]),
+                                                  title: Text(noteItems[index]['itemname']),
+                                                  value: selectedNotes.contains(noteItems[index]['itemname']),
                                                   onChanged: (bool? value) {
                                                     setState(() {
                                                       if (value != null) {
                                                         if (value) {
-                                                          selectedNotes.add(
-                                                              noteItems[index]);
+                                                          selectedNotes.add(noteItems[index]['itemname']);
                                                         } else {
-                                                          selectedNotes.remove(
-                                                              noteItems[index]);
+                                                          selectedNotes.remove(noteItems[index]['itemname']);
                                                         }
                                                       }
                                                     });
