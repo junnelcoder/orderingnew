@@ -30,7 +30,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-void _toggleDarkMode() {
+  void _toggleDarkMode() {
     setState(() {
       isDarkMode = !isDarkMode;
     });
@@ -38,39 +38,46 @@ void _toggleDarkMode() {
 
   Future<void> fetchCategories() async {
     var ipAddress = AppConfig.serverIPAddress;
-    
-try {
-  final response = await http.get(
-    Uri.parse('http://$ipAddress:8080/api/categories'),
-  ).timeout(Duration(seconds: 5)); 
-   if (response.statusCode == 200) {
-    final List<dynamic> data = json.decode(response.body);
-        categories =
-            data.where((category) => category != null).cast<String>().toList();
-             SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setStringList('categories', categories);
-      setState(() {
+
+    try {
+      final response = await http
+          .get(
+            Uri.parse('http://$ipAddress:8080/api/categories'),
+          )
+          .timeout(Duration(seconds: 5));
+      if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         categories =
             data.where((category) => category != null).cast<String>().toList();
-      });
-    } else {
-      throw Exception('Failed to fetch categories');
-    }
-}catch(e){
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setStringList('categories', categories);
+        setState(() {
+          final List<dynamic> data = json.decode(response.body);
+          categories = data
+              .where((category) => category != null)
+              .cast<String>()
+              .toList();
+        });
+      } else {
+        throw Exception('Failed to fetch categories');
+      }
+    } catch (e) {
       print("offline");
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? storedCategories = prefs.getStringList('categories');
-if (storedCategories != null) {
-      setState(() {
-        final List<dynamic> data = storedCategories.cast<dynamic>(); // Casting storedCategories to List<dynamic>
-        categories = data.where((category) => category != null).cast<String>().toList();
-      });
-    } else {
-      throw Exception('Failed to fetch categories');
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String>? storedCategories = prefs.getStringList('categories');
+      if (storedCategories != null) {
+        setState(() {
+          final List<dynamic> data = storedCategories
+              .cast<dynamic>(); // Casting storedCategories to List<dynamic>
+          categories = data
+              .where((category) => category != null)
+              .cast<String>()
+              .toList();
+        });
+      } else {
+        throw Exception('Failed to fetch categories');
+      }
     }
-}
-   
   }
 
   @override
@@ -150,7 +157,7 @@ if (storedCategories != null) {
                   child: TabBarView(
                     children: [
                       ItemWidget(
-                          category: 'ALL',
+                        category: 'ALL',
                         searchQuery: _searchController.text,
                         isDarkMode: isDarkMode,
                         toggleDarkMode: _toggleDarkMode,

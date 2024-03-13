@@ -29,7 +29,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
         int openCartItemsCount = 0;
         for (String cartItem in cartItems) {
           Map<String, dynamic> item = json.decode(cartItem);
-          if (item['category'] != 'notes' ) {
+          if (item['category'] != 'notes') {
             openCartItemsCount++;
           }
         }
@@ -58,7 +58,9 @@ class _HomeNavBarState extends State<HomeNavBar> {
             padding: EdgeInsets.symmetric(horizontal: 15),
             height: 80,
             decoration: BoxDecoration(
-              color: widget.isDarkMode ? Colors.black : Colors.white, // Toggle background color based on dark mode
+              color: widget.isDarkMode
+                  ? Colors.black
+                  : Colors.white, // Toggle background color based on dark mode
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.4),
@@ -86,8 +88,11 @@ class _HomeNavBarState extends State<HomeNavBar> {
                         children: [
                           // Dark mode toggle icon
                           Icon(
-                            widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                            color: widget.isDarkMode ? Colors.white : Colors.black,
+                            widget.isDarkMode
+                                ? Icons.dark_mode
+                                : Icons.light_mode,
+                            color:
+                                widget.isDarkMode ? Colors.white : Colors.black,
                           ),
                           // Circle container representing the dark mode toggle
                           Container(
@@ -95,11 +100,17 @@ class _HomeNavBarState extends State<HomeNavBar> {
                             height: 30,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: widget.isDarkMode ? Colors.black : Colors.white,
+                              color: widget.isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                             ),
                             child: Icon(
-                              widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                              color: widget.isDarkMode ? Colors.white : Colors.black,
+                              widget.isDarkMode
+                                  ? Icons.light_mode
+                                  : Icons.dark_mode,
+                              color: widget.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
                             ),
                           ),
                         ],
@@ -119,7 +130,9 @@ class _HomeNavBarState extends State<HomeNavBar> {
                       Container(
                         padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: widget.isDarkMode ? Colors.white : Colors.black, // Change color based on dark mode
+                          color: widget.isDarkMode
+                              ? Colors.white
+                              : Colors.black, // Change color based on dark mode
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
@@ -131,7 +144,10 @@ class _HomeNavBarState extends State<HomeNavBar> {
                         ),
                         child: Icon(
                           Icons.assignment_add,
-                          color: widget.isDarkMode ? Colors.black : Colors.white, // Change icon color based on dark mode
+                          color: widget.isDarkMode
+                              ? Colors.black
+                              : Colors
+                                  .white, // Change icon color based on dark mode
                           size: 30,
                         ),
                       ),
