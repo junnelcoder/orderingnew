@@ -1,8 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/cart_nav_bar.dart';
 import 'dart:convert';
+
+import '../widgets/cart_nav_bar.dart';
 
 class CartPage extends StatefulWidget {
   @override
@@ -78,30 +79,38 @@ class _CartPageState extends State<CartPage> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Order List"),
+        automaticallyImplyLeading: false,
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+            ),
+          ),
+        ),
+      ),
       body: ListView.builder(
-        itemCount: cartItems.length + 1,
+        itemCount: cartItems.length,
         itemBuilder: (context, index) {
-          if (index == 0) {
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: screenWidth * 0.08),
-                  Text(
-                    "Order List",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: screenWidth * 0.08,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: screenWidth * 0.02),
-                ],
-              ),
-            );
-          } else {
-            Map<String, dynamic> item = cartItems[index - 1];
+          Map<String, dynamic> item = cartItems[index];
+          List<String> notesList = [];
+
+          // Check if the following items have the category "notes"
+          for (int i = index + 1; i < cartItems.length; i++) {
+            if (cartItems[i]['category'] == 'notes') {
+              notesList.add(cartItems[i]['itemname']);
+            } else {
+              break;
+            }
+          }
+
+          if (item['category'] != 'notes') {
             return Padding(
               padding: EdgeInsets.symmetric(vertical: screenWidth * 0.02, horizontal: screenWidth * 0.05),
               child: Container(
@@ -149,9 +158,9 @@ class _CartPageState extends State<CartPage> {
                               fontSize: screenWidth * 0.04,
                             ),
                           ),
-                          if (item['category'] == 'notes' && item['notes'] != null)
+                          if (notesList.isNotEmpty)
                             Text(
-                              "Added notes: ${item['notes']}",
+                              "Added notes: ${notesList.join(', ')}",
                               style: TextStyle(
                                 fontSize: screenWidth * 0.04,
                                 color: Colors.grey,
@@ -203,6 +212,8 @@ class _CartPageState extends State<CartPage> {
                 ),
               ),
             );
+          } else {
+            return SizedBox(); // Return an empty widget if the category is "notes"
           }
         },
       ),

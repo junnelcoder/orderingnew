@@ -150,7 +150,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
           'itemcode': noteItem['itemcode'],
           'itemname': noteItem['itemname'],
           'category': 'notes',
-          'qty': quantity.toString(),
+          'qty': '0',
           'unitprice': noteItem['unitPrice'].toString(),
           'markup': noteItem['markup'].toString(),
           'sellingprice': noteItem['sellingprice'].toString(),
