@@ -42,24 +42,22 @@ class _CartPageState extends State<CartPage> {
   }
 
   Future<void> _removeCartItem(int index) async {
-  // Get the ID of the item to be removed
-  String itemId = cartItems[index]['id'];
+    // Get the ID of the item to be removed
+    String itemId = cartItems[index]['id'];
 
-  // Remove all items with the same ID
-  cartItems.removeWhere((item) => item['id'] == itemId);
+    // Remove all items with the same ID
+    cartItems.removeWhere((item) => item['id'] == itemId);
 
-  // Update the shared preferences
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setStringList(
-      'cartItems', cartItems.map((item) => json.encode(item)).toList());
+    // Update the shared preferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+        'cartItems', cartItems.map((item) => json.encode(item)).toList());
 
-  // Check if cart is empty after deletion
-  if (cartItems.isEmpty) {
-    setState(() {}); // Trigger setState to update UI
+    // Check if cart is empty after deletion
+    if (cartItems.isEmpty) {
+      setState(() {}); // Trigger setState to update UI
+    }
   }
-}
-
-
 
   String _getImagePathForItem(Map<String, dynamic> item) {
     if (item['picture_path'] != null &&
@@ -105,6 +103,63 @@ class _CartPageState extends State<CartPage> {
 
       return 'images/DEFAULT.png';
     }
+  }
+
+  Future<void> _updateCartItemQuantity(int index, int newQuantity) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? cartItemsString = prefs.getStringList('cartItems');
+    int? value = prefs.getInt('newAmount');
+
+    if (cartItemsString != null) {
+      List<Map<String, dynamic>> updatedCartItems = [];
+      for (int i = 0; i < cartItems.length; i++) {
+        if (i == index) {
+          cartItems[i]['qty'] = newQuantity.toString();
+          cartItems[i]['sellingprice'] = value.toString();
+        }
+        updatedCartItems.add(cartItems[i]);
+      }
+
+      await prefs.setStringList('cartItems',
+          updatedCartItems.map((item) => json.encode(item)).toList());
+      setState(() {
+        cartItems = updatedCartItems;
+      });
+    }
+  }
+
+  void _incrementQuantity(int index) async {
+    int newQuantity = int.parse(cartItems[index]['qty']) + 1;
+    final prefs = await SharedPreferences.getInstance();
+    final sellingPricesString = prefs.getString('sellingPrices');
+    if (sellingPricesString != null) {
+      final List<dynamic> sellingPricesJson = json.decode(sellingPricesString);
+      final List<int> sellingPrices =
+          sellingPricesJson.map<int>((price) => price as int).toList();
+
+      int newAmount =
+          int.parse(cartItems[index]['sellingprice']) + sellingPrices[index];
+      await prefs.setInt('newAmount', newAmount);
+      _updateCartItemQuantity(index, newQuantity);
+    } else {}
+  }
+
+  void _decrementQuantity(int index) async {
+    int newQuantity = int.parse(cartItems[index]['qty']) - 1;
+    final prefs = await SharedPreferences.getInstance();
+    final sellingPricesString = prefs.getString('sellingPrices');
+    if (sellingPricesString != null) {
+      final List<dynamic> sellingPricesJson = json.decode(sellingPricesString);
+      final List<int> sellingPrices =
+          sellingPricesJson.map<int>((price) => price as int).toList();
+      int newAmount =
+          int.parse(cartItems[index]['sellingprice']) - sellingPrices[index];
+      if (newQuantity >= 1) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('newAmount', newAmount);
+        _updateCartItemQuantity(index, newQuantity);
+      }
+    } else {}
   }
 
   @override
@@ -243,10 +298,14 @@ class _CartPageState extends State<CartPage> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Icon(
-                                    CupertinoIcons.plus,
-                                    color: Colors.white,
-                                    size: screenWidth * 0.08,
+                                  IconButton(
+                                    icon: Icon(
+                                      CupertinoIcons.plus,
+                                      color: Colors.white,
+                                      size: screenWidth * 0.08,
+                                    ),
+                                    onPressed: () => _incrementQuantity(
+                                        index), // Call _incrementQuantity
                                   ),
                                   Text(
                                     item['qty'],
@@ -256,10 +315,14 @@ class _CartPageState extends State<CartPage> {
                                       color: Colors.white,
                                     ),
                                   ),
-                                  Icon(
-                                    CupertinoIcons.minus,
-                                    color: Colors.white,
-                                    size: screenWidth * 0.08,
+                                  IconButton(
+                                    icon: Icon(
+                                      CupertinoIcons.minus,
+                                      color: Colors.white,
+                                      size: screenWidth * 0.08,
+                                    ),
+                                    onPressed: () => _decrementQuantity(
+                                        index), // Call _decrementQuantity
                                   ),
                                 ],
                               ),

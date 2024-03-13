@@ -17,13 +17,12 @@ class ItemWidget extends StatefulWidget {
   final bool isDarkMode; // Add this parameter
   final VoidCallback toggleDarkMode; // Toggle function
 
-   const ItemWidget({
+  const ItemWidget({
     required this.category,
     required this.searchQuery,
     required this.isDarkMode, // Add this parameter
     required this.toggleDarkMode,
   });
-  
 
   @override
   _ItemWidgetState createState() => _ItemWidgetState();
@@ -50,124 +49,124 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   Future<void> fetchItemsFromSharedPreferences() async {
-  try {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? jsonData = prefs.getString('items');
-    if (jsonData != null) {
-      final Map<String, dynamic> data = json.decode(jsonData);
-      // Check if the data contains 'recordsets' key and its value is a list
-      if (data.containsKey('recordsets') && data['recordsets'] is List<dynamic>) {
-        final List<dynamic> recordsets = data['recordsets'];
-        if (recordsets.isNotEmpty && recordsets[0] is List<dynamic>) {
-          final List<dynamic> firstRecordset = recordsets[0];
-              List<Item> filteredItems = firstRecordset
-              .map((item) => Item.fromJson(item))
-              .where((item) => item.category == widget.category)
-              .toList();
-          if (widget.searchQuery.isNotEmpty) {
-            filteredItems = filteredItems
-                .where((item) => item.itemname
-                    .toLowerCase()
-                    .contains(widget.searchQuery.toLowerCase()))
-                .toList();
-            
-          }else{
-            print("empty");
-            setState(() {
-            items = filteredItems;
-            isLoading = false;
-          });
-              if(widget.category=="ALL"){
-            print("emptyy");
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? jsonData = prefs.getString('items');
+      if (jsonData != null) {
+        final Map<String, dynamic> data = json.decode(jsonData);
+        // Check if the data contains 'recordsets' key and its value is a list
+        if (data.containsKey('recordsets') &&
+            data['recordsets'] is List<dynamic>) {
+          final List<dynamic> recordsets = data['recordsets'];
+          if (recordsets.isNotEmpty && recordsets[0] is List<dynamic>) {
+            final List<dynamic> firstRecordset = recordsets[0];
             List<Item> filteredItems = firstRecordset
-              .map((item) => Item.fromJson(item))
-              .toList();
-            if (widget.searchQuery.isNotEmpty) {
-            filteredItems = filteredItems
-                .where((item) => item.itemname
-                    .toLowerCase()
-                    .contains(widget.searchQuery.toLowerCase()))
+                .map((item) => Item.fromJson(item))
+                .where((item) => item.category == widget.category)
                 .toList();
-          }
-          setState(() {
-            items = filteredItems;
-            isLoading = false;
-          });
+            if (widget.searchQuery.isNotEmpty) {
+              filteredItems = filteredItems
+                  .where((item) => item.itemname
+                      .toLowerCase()
+                      .contains(widget.searchQuery.toLowerCase()))
+                  .toList();
+            } else {
+              print("empty");
+              setState(() {
+                items = filteredItems;
+                isLoading = false;
+              });
+              if (widget.category == "ALL") {
+                print("emptyy");
+                List<Item> filteredItems =
+                    firstRecordset.map((item) => Item.fromJson(item)).toList();
+                if (widget.searchQuery.isNotEmpty) {
+                  filteredItems = filteredItems
+                      .where((item) => item.itemname
+                          .toLowerCase()
+                          .contains(widget.searchQuery.toLowerCase()))
+                      .toList();
+                }
+                setState(() {
+                  items = filteredItems;
+                  isLoading = false;
+                });
+              }
             }
+          } else {
+            print('Invalid recordsets format in SharedPreferences data');
           }
-          
         } else {
-          print('Invalid recordsets format in SharedPreferences data');
+          print('Missing or invalid recordsets key in SharedPreferences data');
         }
       } else {
-        print('Missing or invalid recordsets key in SharedPreferences data');
+        setState(() {
+          items =
+              []; // Clear items list if SharedPreferences doesn't contain 'items' key
+          isLoading = false;
+        });
+        print('No data found in SharedPreferences');
       }
-    } else {
-      setState(() {
-        items = []; // Clear items list if SharedPreferences doesn't contain 'items' key
-        isLoading = false;
-      });
-      print('No data found in SharedPreferences');
+    } catch (e) {
+      print('Error fetching items from SharedPreferences: $e');
     }
-  } catch (e) {
-    print('Error fetching items from SharedPreferences: $e');
   }
-}
-
-
-
 
   Future<void> fetchItems() async {
-    String ipAddress = AppConfig.serverIPAddress;;
-    const Duration timeoutDuration = Duration(seconds: 5); 
+    String ipAddress = AppConfig.serverIPAddress;
+    ;
+    const Duration timeoutDuration = Duration(seconds: 5);
     String url = 'http://$ipAddress:8080/api/items';
     if (widget.category != 'ALL') {
       url += '?category=${Uri.encodeQueryComponent(widget.category)}';
     }
     try {
-      final response = await http.get(
-        Uri.parse(url),
-      ).timeout(timeoutDuration);
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      setState(() {
-        items = data.map((item) => Item.fromJson(item)).toList();
-        if (widget.searchQuery.isNotEmpty) {
-          items = items
-              .where((item) => item.itemname
-                  .toLowerCase()
-                  .contains(widget.searchQuery.toLowerCase()))
-              .toList();
-        }
-        isLoading = false;
-      });
-    } else {
-      throw Exception('Failed to fetch items');
-    }
-    
+      final response = await http
+          .get(
+            Uri.parse(url),
+          )
+          .timeout(timeoutDuration);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        setState(() {
+          items = data.map((item) => Item.fromJson(item)).toList();
+          if (widget.searchQuery.isNotEmpty) {
+            items = items
+                .where((item) => item.itemname
+                    .toLowerCase()
+                    .contains(widget.searchQuery.toLowerCase()))
+                .toList();
+          }
+          isLoading = false;
+        });
+        final sellingPrices =
+            data.map<int>((item) => item['sellingprice']).toList();
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('sellingPrices', json.encode(sellingPrices));
+      } else {
+        throw Exception('Failed to fetch items');
+      }
     } catch (e) {
-       print('Error fetching items: $e');
-    fetchItemsFromSharedPreferences();
-
+      print('Error fetching items: $e');
+      fetchItemsFromSharedPreferences();
     }
-     try {
-  final response = await http.get(
-    Uri.parse('http://$ipAddress:8080/api/allItems'),
-  ).timeout(Duration(seconds: 5));
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> data = json.decode(response.body);
-    String jsonData = json.encode(data);
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('items', jsonData);
-    
-  } else {
-    print('Failed to connect to server');
-  }
-} catch (e) {
-  print('Error connecting to server: $e');
-}
-
-
+    try {
+      final response = await http
+          .get(
+            Uri.parse('http://$ipAddress:8080/api/allItems'),
+          )
+          .timeout(Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        String jsonData = json.encode(data);
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('items', jsonData);
+      } else {
+        print('Failed to connect to server');
+      }
+    } catch (e) {
+      print('Error connecting to server: $e');
+    }
   }
 
   Future<void> checkConnectivity() async {
