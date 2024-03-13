@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
+import 'home_page.dart';
 import '../widgets/cart_nav_bar.dart';
 
 class CartPage extends StatefulWidget {
@@ -32,15 +32,34 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  Future<void> _removeCartItem(int index) async {
-    setState(() {
-      cartItems.removeAt(index);
-    });
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-        'cartItems', cartItems.map((item) => json.encode(item)).toList());
+  void navigateToHomePage() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HomePage(),
+      ),
+    );
   }
+
+  Future<void> _removeCartItem(int index) async {
+  // Get the ID of the item to be removed
+  String itemId = cartItems[index]['id'];
+
+  // Remove all items with the same ID
+  cartItems.removeWhere((item) => item['id'] == itemId);
+
+  // Update the shared preferences
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList(
+      'cartItems', cartItems.map((item) => json.encode(item)).toList());
+
+  // Check if cart is empty after deletion
+  if (cartItems.isEmpty) {
+    setState(() {}); // Trigger setState to update UI
+  }
+}
+
+
 
   String _getImagePathForItem(Map<String, dynamic> item) {
     if (item['picture_path'] != null &&
@@ -98,7 +117,7 @@ class _CartPageState extends State<CartPage> {
         automaticallyImplyLeading: false,
         leading: InkWell(
           onTap: () {
-            Navigator.pop(context);
+            navigateToHomePage();
           },
           child: Padding(
             padding: EdgeInsets.all(8.0),
@@ -109,143 +128,152 @@ class _CartPageState extends State<CartPage> {
           ),
         ),
       ),
-      body: ListView.builder(
-        itemCount: cartItems.length,
-        itemBuilder: (context, index) {
-          Map<String, dynamic> item = cartItems[index];
-          List<String> notesList = [];
-
-          // Check if the following items have the category "notes"
-          for (int i = index + 1; i < cartItems.length; i++) {
-            if (cartItems[i]['category'] == 'notes') {
-              notesList.add(cartItems[i]['itemname']);
-            } else {
-              break;
-            }
-          }
-
-          if (item['category'] != 'notes') {
-            return Dismissible(
-              key: Key(item.hashCode.toString()),
-              direction: DismissDirection.endToStart,
-              onDismissed: (direction) {
-                _removeCartItem(index);
-              },
-              background: Container(
-                alignment: Alignment.centerRight,
-                padding: EdgeInsets.only(right: 20.0),
-                color: Colors.red,
-                child: Icon(Icons.delete, color: Colors.white),
+      body: cartItems.isEmpty
+          ? Center(
+              child: Text(
+                'No orders yet',
+                style: TextStyle(fontSize: 20),
               ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                    vertical: screenWidth * 0.02,
-                    horizontal: screenWidth * 0.05),
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 3,
-                        blurRadius: 10,
-                        offset: Offset(0, 3),
-                      )
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        alignment: Alignment.center,
-                        width: screenWidth * 0.35,
-                        height: screenWidth * 0.35,
-                        child: Image.asset(
-                          _getImagePathForItem(item),
-                          height: screenWidth * 0.22,
-                          width: screenWidth * 0.35,
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Text(
-                              item['itemname'],
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.06,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              item['category'],
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.04,
-                              ),
-                            ),
-                            if (notesList.isNotEmpty)
-                              Text(
-                                "Added notes: ${notesList.join(', ')}",
-                                style: TextStyle(
-                                  fontSize: screenWidth * 0.04,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            Text(
-                              "\$${item['sellingprice']}",
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.06,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
+            )
+          : ListView.builder(
+              itemCount: cartItems.length,
+              itemBuilder: (context, index) {
+                Map<String, dynamic> item = cartItems[index];
+                List<String> notesList = [];
+
+                // Check if the following items have the category "notes"
+                for (int i = index + 1; i < cartItems.length; i++) {
+                  if (cartItems[i]['category'] == 'notes') {
+                    notesList.add(cartItems[i]['itemname']);
+                  } else {
+                    break;
+                  }
+                }
+
+                if (item['category'] != 'notes') {
+                  return Dismissible(
+                    key: Key(item.hashCode.toString()),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) {
+                      _removeCartItem(index);
+                    },
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: EdgeInsets.only(right: 20.0),
+                      color: Colors.red,
+                      child: Icon(Icons.delete, color: Colors.white),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: screenWidth * 0.02,
+                          horizontal: screenWidth * 0.05),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 3,
+                              blurRadius: 10,
+                              offset: Offset(0, 3),
                             )
                           ],
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      Container(
-                        padding: EdgeInsets.all(screenWidth * 0.015),
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Row(
                           children: [
-                            Icon(
-                              CupertinoIcons.plus,
-                              color: Colors.white,
-                              size: screenWidth * 0.08,
-                            ),
-                            Text(
-                              item['qty'],
-                              style: TextStyle(
-                                fontSize: screenWidth * 0.06,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                            Container(
+                              alignment: Alignment.center,
+                              width: screenWidth * 0.35,
+                              height: screenWidth * 0.35,
+                              child: Image.asset(
+                                _getImagePathForItem(item),
+                                height: screenWidth * 0.22,
+                                width: screenWidth * 0.35,
                               ),
                             ),
-                            Icon(
-                              CupertinoIcons.minus,
-                              color: Colors.white,
-                              size: screenWidth * 0.08,
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  Text(
+                                    item['itemname'],
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.06,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    item['category'],
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.04,
+                                    ),
+                                  ),
+                                  if (notesList.isNotEmpty)
+                                    Text(
+                                      "Added notes: ${notesList.join(', ')}",
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  Text(
+                                    "\$${item['sellingprice']}",
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.06,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Container(
+                              padding: EdgeInsets.all(screenWidth * 0.015),
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Icon(
+                                    CupertinoIcons.plus,
+                                    color: Colors.white,
+                                    size: screenWidth * 0.08,
+                                  ),
+                                  Text(
+                                    item['qty'],
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.06,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Icon(
+                                    CupertinoIcons.minus,
+                                    color: Colors.white,
+                                    size: screenWidth * 0.08,
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          } else {
-            return SizedBox(); // Return an empty widget if the category is "notes"
-          }
-        },
-      ),
+                    ),
+                  );
+                } else {
+                  return SizedBox(); // Return an empty widget if the category is "notes"
+                }
+              },
+            ),
       bottomNavigationBar: CartNavBar(),
     );
   }
