@@ -68,82 +68,92 @@ class _SingleItemPageState extends State<SingleItemPage> {
   }
 
   Future<void> addToCart() async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirm'),
-          content: Text('Are you sure you want to add this order?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Confirm'),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _addItemToCart();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _addItemToCart() async {
-    try {
-      await _saveItemToLocal(widget.item, quantity);
-      navigateToHomePage();
-      Fluttertoast.showToast(
-        msg: 'Item successfully added to orders tab',
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.greenAccent,
-        textColor: Colors.white,
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Confirm'),
+        content: Text('Are you sure you want to add this order?'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text('Confirm'),
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await _addItemToCart(selectedNotes);
+            },
+          ),
+        ],
       );
-    } catch (e) {
-      print('Error adding item to cart: $e');
-    }
+    },
+  );
+}
+
+
+  Future<void> _addItemToCart(List<String> selectedNotes) async {
+  try {
+    await _saveItemToLocal(widget.item, quantity, selectedNotes);
+    navigateToHomePage();
+    Fluttertoast.showToast(
+      msg: 'Item successfully added to orders tab',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.greenAccent,
+      textColor: Colors.white,
+    );
+  } catch (e) {
+    print('Error adding item to cart: $e');
   }
+}
 
-  Future<void> _saveItemToLocal(Item item, int quantity) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String>? cartItems = prefs.getStringList('cartItems') ?? [];
-      var mainItemDetails = {
-        'pa_id': '1',
-        'machine_id': '0001',
-        'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-        'itemcode': item.itemcode,
-        'itemname': item.itemname,
-        'category': item.category,
-        'qty': quantity.toString(),
-        'unitprice': item.unitPrice.toString(),
-        'markup': item.markup.toString(),
-        'sellingprice': item.sellingprice.toString(),
-        'department': item.department,
-        'uom': item.uom,
-        'vatable': item.vatable,
-        'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
-        'division': item.division,
-        'section': item.section,
-        'close_status': item.close_status.toString(),
-        'picture_path': item.picture_path,
-        'brand': item.brand,
-        'subtotal': (item.sellingprice * quantity).toString(),
-        'total': (item.sellingprice * quantity).toString(),
-      };
 
-      cartItems.add(json.encode(mainItemDetails));
+ Future<void> _saveItemToLocal(Item item, int quantity, List<String> selectedNotes) async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? cartItems = prefs.getStringList('cartItems') ?? [];
+    
+    // Generate a unique identifier for the main item
+    String mainItemId = UniqueKey().toString();
+    
+    var mainItemDetails = {
+      'id': mainItemId,
+      'pa_id': '1',
+      'machine_id': '0001',
+      'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      'itemcode': item.itemcode,
+      'itemname': item.itemname,
+      'category': item.category,
+      'qty': quantity.toString(),
+      'unitprice': item.unitPrice.toString(),
+      'markup': item.markup.toString(),
+      'sellingprice': item.sellingprice.toString(),
+      'department': item.department,
+      'uom': item.uom,
+      'vatable': item.vatable,
+      'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
+      'division': item.division,
+      'section': item.section,
+      'close_status': item.close_status.toString(),
+      'picture_path': item.picture_path,
+      'brand': item.brand,
+      'subtotal': (item.sellingprice * quantity).toString(),
+      'total': (item.sellingprice * quantity).toString(),
+    };
 
-      List<Map<String, dynamic>> noteItems = await fetchNoteItems();
+    cartItems.add(json.encode(mainItemDetails));
 
-      for (Map<String, dynamic> noteItem in noteItems) {
+    List<Map<String, dynamic>> noteItems = await fetchNoteItems();
+
+    for (Map<String, dynamic> noteItem in noteItems) {
+      if (selectedNotes.contains(noteItem['itemname'])) {
+        // Use the same identifier for the main item and its associated notes
         var noteItemDetails = {
+          'id': mainItemId,
           'pa_id': '1',
           'machine_id': '0001',
           'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
@@ -168,14 +178,16 @@ class _SingleItemPageState extends State<SingleItemPage> {
         };
         cartItems.add(json.encode(noteItemDetails));
       }
-
-      await prefs.setStringList('cartItems', cartItems);
-      print('Cart Items: $cartItems');
-    } catch (e) {
-      print('Error saving item to local storage: $e');
-      throw Exception('Failed to save item to local storage');
     }
+
+    await prefs.setStringList('cartItems', cartItems);
+    print('Cart Items: $cartItems');
+  } catch (e) {
+    print('Error saving item to local storage: $e');
+    throw Exception('Failed to save item to local storage');
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
