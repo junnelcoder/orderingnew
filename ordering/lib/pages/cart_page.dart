@@ -131,41 +131,47 @@ class _CartPageState extends State<CartPage> {
   void _incrementQuantity(int index) async {
     int newQuantity = int.parse(cartItems[index]['qty']) + 1;
     final prefs = await SharedPreferences.getInstance();
-    final sellingPricesString = prefs.getString('sellingPrices');
-    if (sellingPricesString != null) {
-      final List<dynamic> sellingPricesJson = json.decode(sellingPricesString);
-      final List<int> sellingPrices =
-          sellingPricesJson.map<int>((price) => price as int).toList();
+    int newAmount = int.parse(cartItems[index]['sellingprice']) +
+        int.parse(cartItems[index]['total']);
+    await prefs.setInt('newAmount', newAmount);
+    _updateCartItemQuantity(index, newQuantity);
+  }
 
-      int newAmount =
-          int.parse(cartItems[index]['sellingprice']) + sellingPrices[index];
-      await prefs.setInt('newAmount', newAmount);
-      _updateCartItemQuantity(index, newQuantity);
-    } else {}
+  Future<void> delete(int index) async {
+    index++;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? cartItemsString = prefs.getStringList('cartItems');
+
+    if (cartItemsString != null) {
+      List<Map<String, dynamic>> cartItems = cartItemsString
+          .map((item) => json.decode(item) as Map<String, dynamic>)
+          .toList();
+      cartItems.removeAt(index);
+
+      // Convert the list of maps back to JSON strings
+      List<String> updatedCartItems =
+          cartItems.map((item) => json.encode(item)).toList();
+
+      // Save the updated list back to SharedPreferences
+      await prefs.setStringList('cartItems', updatedCartItems);
+      setState(() {});
+    }
   }
 
   void _decrementQuantity(int index) async {
     int newQuantity = int.parse(cartItems[index]['qty']) - 1;
-    final prefs = await SharedPreferences.getInstance();
-    final sellingPricesString = prefs.getString('sellingPrices');
-    if (sellingPricesString != null) {
-      final List<dynamic> sellingPricesJson = json.decode(sellingPricesString);
-      final List<int> sellingPrices =
-          sellingPricesJson.map<int>((price) => price as int).toList();
-      int newAmount =
-          int.parse(cartItems[index]['sellingprice']) - sellingPrices[index];
-      if (newQuantity >= 1) {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setInt('newAmount', newAmount);
-        _updateCartItemQuantity(index, newQuantity);
-      }
-    } else {}
+    int newAmount = int.parse(cartItems[index]['total']) -
+        int.parse(cartItems[index]['sellingprice']);
+    if (newQuantity >= 1) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('newAmount', newAmount);
+      _updateCartItemQuantity(index, newQuantity);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       appBar: AppBar(
         title: Text("Order List"),
@@ -269,15 +275,29 @@ class _CartPageState extends State<CartPage> {
                                     ),
                                   ),
                                   if (notesList.isNotEmpty)
-                                    Text(
-                                      "Added notes: ${notesList.join(', ')}",
-                                      style: TextStyle(
-                                        fontSize: screenWidth * 0.04,
-                                        color: Colors.grey,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            "Added notes: ${notesList.join(', ')}",
+                                            style: TextStyle(
+                                              fontSize: screenWidth * 0.04,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.delete,
+                                            color: Colors
+                                                .red, // Set the color to red
+                                          ),
+                                          onPressed: () => delete(index),
+                                        ),
+                                      ],
                                     ),
                                   Text(
-                                    "\$${item['total']}",
+                                    "\$${item['sellingprice']}",
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.06,
                                       fontWeight: FontWeight.bold,
@@ -304,8 +324,7 @@ class _CartPageState extends State<CartPage> {
                                       color: Colors.white,
                                       size: screenWidth * 0.08,
                                     ),
-                                    onPressed: () => _incrementQuantity(
-                                        index), // Call _incrementQuantity
+                                    onPressed: () => _incrementQuantity(index),
                                   ),
                                   Text(
                                     item['qty'],
@@ -321,8 +340,7 @@ class _CartPageState extends State<CartPage> {
                                       color: Colors.white,
                                       size: screenWidth * 0.08,
                                     ),
-                                    onPressed: () => _decrementQuantity(
-                                        index), // Call _decrementQuantity
+                                    onPressed: () => _decrementQuantity(index),
                                   ),
                                 ],
                               ),
