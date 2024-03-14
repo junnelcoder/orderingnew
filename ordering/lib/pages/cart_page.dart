@@ -115,7 +115,7 @@ class _CartPageState extends State<CartPage> {
       for (int i = 0; i < cartItems.length; i++) {
         if (i == index) {
           cartItems[i]['qty'] = newQuantity.toString();
-          cartItems[i]['sellingprice'] = value.toString();
+          cartItems[i]['total'] = value.toString();
         }
         updatedCartItems.add(cartItems[i]);
       }
@@ -277,7 +277,7 @@ class _CartPageState extends State<CartPage> {
                                       ),
                                     ),
                                   Text(
-                                    "\$${item['sellingprice']}",
+                                    "\$${item['total']}",
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.06,
                                       fontWeight: FontWeight.bold,
