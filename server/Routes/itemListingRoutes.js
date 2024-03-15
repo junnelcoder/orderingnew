@@ -8,6 +8,7 @@ router.get('/categories', async (req, res) => {
         const pool = await sql.connect(config);
         const result = await pool.request().query(`
             SELECT DISTINCT [category] FROM [restopos45].[dbo].[items]
+            WHERE [category] NOT IN ('notes', 'NOTES', 'Notes')
         `);
         const categories = result.recordset.map(record => record.category);
         res.json(categories);
