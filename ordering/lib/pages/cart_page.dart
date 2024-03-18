@@ -14,13 +14,13 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> {
   List<Map<String, dynamic>> cartItems = [];
+  Map<String, dynamic>? notesData;
   // List<String> notesList = [];
 
   @override
   void initState() {
     super.initState();
     _fetchCartItems();
-    // _fetchNotes();
   }
 
   Future<void> _fetchCartItems() async {
@@ -36,24 +36,20 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  // Future<void> _fetchNotes() async {
-  //   try {
-  //     var ipAddress = AppConfig.serverIPAddress;
-  //     var url = Uri.parse('http://$ipAddress:8080/api/get-notes');
-  //     final response = await http.get(url);
-
-  //     if (response.statusCode == 200) {
-  //       final List<String> notes = List<String>.from(json.decode(response.body));
-  //       setState(() {
-  //         notesList = notes;
-  //       });
-  //     } else {
-  //       throw Exception('Failed to fetch notes');
-  //     }
-  //   } catch (e) {
-  //     // print('Error fetching notes: $e');
-  //   }
-  // }
+  Future<void> _fetchNotes() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? notesDataString = prefs.getString('notes');
+    if (notesDataString != null) {
+      setState(() {
+        List<dynamic> notesDataList = json.decode(notesDataString);
+        List<Map<String, dynamic>> notes =
+            notesDataList.cast<Map<String, dynamic>>();
+      });
+      print('Notes fetched successfully');
+    } else {
+      print('No notes found');
+    }
+  }
 
   void navigateToHomePage() {
     Navigator.pushReplacement(
@@ -131,7 +127,8 @@ class _CartPageState extends State<CartPage> {
       for (int i = 0; i < cartItems.length; i++) {
         if (i == index) {
           int qty = int.parse(cartItems[i]['qty'].toString());
-          double sellingPrice = double.parse(cartItems[i]['sellingprice'].toString());
+          double sellingPrice =
+              double.parse(cartItems[i]['sellingprice'].toString());
 
           cartItems[i]['qty'] = newQuantity.toString();
           cartItems[i]['total'] = (newQuantity * sellingPrice).toString();
@@ -174,52 +171,51 @@ class _CartPageState extends State<CartPage> {
       setState(() {});
     }
   }
-Future<void> _removeNotes(String cartItemId, int cartItemIndex, String note) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String>? cartItemsString = prefs.getStringList('cartItems');
 
-  if (cartItemsString != null) {
-    // Convert JSON strings to Map objects
-    List<Map<String, dynamic>> cartItems = cartItemsString
-        .map((item) => json.decode(item) as Map<String, dynamic>)
-        .toList();
+  Future<void> _removeNotes(
+      String cartItemId, int cartItemIndex, String note) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? cartItemsString = prefs.getStringList('cartItems');
 
-    // Initialize an empty list to hold updated cart items
-    List<Map<String, dynamic>> updatedCartItems = [];
+    if (cartItemsString != null) {
+      // Convert JSON strings to Map objects
+      List<Map<String, dynamic>> cartItems = cartItemsString
+          .map((item) => json.decode(item) as Map<String, dynamic>)
+          .toList();
 
-    // Iterate through cart items
-    for (int i = 0; i < cartItems.length; i++) {
-      // If the current item has the specified cartItemId
-      if (cartItems[i]['id'] == cartItemId) {
-        // Check if the item is a note category and matches the note to be removed
-        if (cartItems[i]['category'] == 'notes' && cartItems[i]['itemname'] == note) {
-          // Skip this note, effectively removing it
-          continue;
+      // Initialize an empty list to hold updated cart items
+      List<Map<String, dynamic>> updatedCartItems = [];
+
+      // Iterate through cart items
+      for (int i = 0; i < cartItems.length; i++) {
+        // If the current item has the specified cartItemId
+        if (cartItems[i]['id'] == cartItemId) {
+          // Check if the item is a note category and matches the note to be removed
+          if (cartItems[i]['category'] == 'notes' &&
+              cartItems[i]['itemname'] == note) {
+            // Skip this note, effectively removing it
+            continue;
+          }
         }
+        // Add the current item to the updated cart items list
+        updatedCartItems.add(cartItems[i]);
       }
-      // Add the current item to the updated cart items list
-      updatedCartItems.add(cartItems[i]);
+
+      // Update the cartItems in SharedPreferences
+      await prefs.setStringList('cartItems',
+          updatedCartItems.map((item) => json.encode(item)).toList());
+
+      // Update the state to reflect changes
+      setState(() {
+        cartItems = updatedCartItems;
+      });
+
+      // Fetch updated cart items to reflect changes immediately
+      await _fetchCartItems();
+    } else {
+      print('Error: SharedPreferences cartItemsString is null');
     }
-
-    // Update the cartItems in SharedPreferences
-    await prefs.setStringList(
-        'cartItems', updatedCartItems.map((item) => json.encode(item)).toList());
-
-    // Update the state to reflect changes
-    setState(() {
-      cartItems = updatedCartItems;
-    });
-
-    // Fetch updated cart items to reflect changes immediately
-    await _fetchCartItems();
-  } else {
-    print('Error: SharedPreferences cartItemsString is null');
   }
-}
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -266,9 +262,11 @@ Future<void> _removeNotes(String cartItemId, int cartItemIndex, String note) asy
                   List<String> availableNotes = List<String>.from(notesList);
 
                   // Remove notes already associated with items
+                  // print(cartItems[3]);
                   for (int i = 0; i < cartItems.length; i++) {
-                    if (cartItems[i]['category'] == 'notes' && cartItems[i]['notes'] != null) {
-                      availableNotes.remove(cartItems[i]['notes']);
+                    if (cartItems[i]['category'] == 'notes' &&
+                        cartItems[i]['itemname'] != null) {
+                      availableNotes.remove(cartItems[i]['itemname']);
                     }
                   }
 
@@ -321,8 +319,10 @@ Future<void> _removeNotes(String cartItemId, int cartItemIndex, String note) asy
                                 SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
                                     children: [
                                       Text(
                                         item['itemname'],
@@ -370,7 +370,8 @@ Future<void> _removeNotes(String cartItemId, int cartItemIndex, String note) asy
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       IconButton(
                                         icon: Icon(
@@ -378,7 +379,8 @@ Future<void> _removeNotes(String cartItemId, int cartItemIndex, String note) asy
                                           color: Colors.white,
                                           size: screenWidth * 0.08,
                                         ),
-                                        onPressed: () => _incrementQuantity(index),
+                                        onPressed: () =>
+                                            _incrementQuantity(index),
                                       ),
                                       Text(
                                         item['qty'],
@@ -394,59 +396,67 @@ Future<void> _removeNotes(String cartItemId, int cartItemIndex, String note) asy
                                           color: Colors.white,
                                           size: screenWidth * 0.08,
                                         ),
-                                        onPressed: () => _decrementQuantity(index),
+                                        onPressed: () =>
+                                            _decrementQuantity(index),
                                       ),
                                     ],
                                   ),
                                 ),
                               ],
                             ),
-                           if (notesList.isNotEmpty)
-  Padding(
-    padding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.05,
-        vertical: screenWidth * 0.02),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Added notes:",
-          style: TextStyle(
-            fontSize: screenWidth * 0.04,
-            color: Colors.grey,
-          ),
-        ),
-        ...notesList.asMap().entries.map(
-          (entry) => Row(
-            children: [
-              Expanded(
-                child: Text(
-                  "- ${entry.value}",
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.04,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.clear,
-                  color: Colors.red,
-                ),
-                onPressed: () {
-                  String note = entry.value;
-                  String cartItemId = cartItems[index]['id']; // Get the id of the current item
-                  print("Clicked note at index ${entry.key}: $note");
-                  _removeNotes(cartItemId, entry.key, note); // Pass the id to the _removeNotes function
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  ),
-               ],
+                            if (notesList.isNotEmpty)
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: screenWidth * 0.05,
+                                    vertical: screenWidth * 0.02),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Added notes:",
+                                      style: TextStyle(
+                                        fontSize: screenWidth * 0.04,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    ...notesList.asMap().entries.map(
+                                          (entry) => Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  "- ${entry.value}",
+                                                  style: TextStyle(
+                                                    fontSize:
+                                                        screenWidth * 0.04,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                icon: Icon(
+                                                  Icons.clear,
+                                                  color: Colors.red,
+                                                ),
+                                                onPressed: () {
+                                                  String note = entry.value;
+                                                  String cartItemId = cartItems[
+                                                          index][
+                                                      'id']; // Get the id of the current item
+                                                  print(
+                                                      "Clicked note at index ${entry.key}: $note");
+                                                  _removeNotes(
+                                                      cartItemId,
+                                                      entry.key,
+                                                      note); // Pass the id to the _removeNotes function
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     ),
@@ -456,8 +466,8 @@ Future<void> _removeNotes(String cartItemId, int cartItemIndex, String note) asy
                 }
               },
             ),
-            
-       bottomNavigationBar: cartItems.isNotEmpty ? CartNavBar(cartItems: cartItems) : null,
+      bottomNavigationBar:
+          cartItems.isNotEmpty ? CartNavBar(cartItems: cartItems) : null,
     );
   }
 }

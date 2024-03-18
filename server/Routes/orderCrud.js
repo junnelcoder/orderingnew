@@ -130,53 +130,68 @@ router.post('/add-notes-to-cart', async (req, res) => {
 
 // Endpoint to handle adding items to the cart
 router.post('/add-to-cart', async (req, res) => {
-    try {
-      // Extract item details from the request body
-      const { pa_id, machine_id, itemcode, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, section, brand, close_status, picture_path,total,subtotal } = req.body;
-      const trans_date = new Date().toISOString().split('T')[0]; // Extract date portion only
+  console.log("add");
+  try {
+    const items = req.body; // Array of cart items
+
+    // Parse each item and insert into the database
+    for (const item of items) {
+      const { pa_id, so_number, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status } = JSON.parse(item);
       
-      // Calculate subtotal and total
+      // Generate current date for trans_date
+      const currentDate = new Date().toISOString().split('T')[0];
+
+      // Generate current time for tran_time
+      const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
       
+      // Format time to HH:mm:ss format
+      const formattedTime = currentTime.split(' ')[0];
+
+      // Combine date and time into a single datetime string
+      const transDateTime = currentDate + ' ' + formattedTime;
+
+      // Validate close_status
+      const closeStatusInt = parseInt(close_status);
       
-      // Connect to the database
+
       const pool = await sql.connect(config);
-      
-      // Insert the item details into the cart_items table using parameterized query
+
       const request = pool.request()
-          .input('pa_id', sql.VarChar, pa_id)
-          .input('machine_id', sql.VarChar, machine_id)
-          .input('trans_date', sql.Date, trans_date)
-          .input('itemcode', sql.VarChar, itemcode)
-          .input('itemname', sql.VarChar, itemname)
-          .input('category', sql.VarChar, category)
-          .input('qty', sql.VarChar, qty)
-          .input('unitprice', sql.VarChar, unitprice)
-          .input('markup', sql.VarChar, markup)
-          .input('sellingprice', sql.VarChar, sellingprice)
-          .input('department', sql.VarChar, department)
-          .input('uom', sql.VarChar, uom)
-          .input('vatable', sql.VarChar, vatable)
-          .input('tran_time', sql.VarChar, tran_time)
-          .input('division', sql.VarChar, division)
-          .input('section', sql.VarChar, section)
-          .input('brand', sql.VarChar, brand)
-          .input('close_status', sql.TinyInt, close_status) // Use TinyInt for close_status
-          .input('picture_path', sql.VarChar, picture_path)
-          .input('subtotal', sql.VarChar, subtotal)
-          .input('total', sql.VarChar, total);
-        
+        .input('pa_id', sql.Char, pa_id)
+        .input('so_number', sql.VarChar, so_number)
+        .input('machine_id', sql.VarChar, machine_id)
+        .input('trans_date', sql.DateTime, currentDate)
+        .input('itemcode', sql.VarChar, itemcode)
+        .input('itemname', sql.Char, itemname)
+        .input('category', sql.VarChar, category)
+        .input('qty', sql.Decimal(18, 2), qty)
+        .input('unitprice', sql.Decimal(18, 2), parseFloat(unitprice)) // Parse unitprice to float
+        .input('markup', sql.Decimal(18, 2), markup)
+        .input('sellingprice', sql.Decimal(18, 2), sellingprice)
+        .input('subtotal', sql.Decimal(18, 2), subtotal)
+        .input('total', sql.Decimal(18, 2), total)
+        .input('department', sql.VarChar, department)
+        .input('uom', sql.Char, uom)
+        .input('vatable', sql.TinyInt, vatable)
+        .input('tran_time', sql.DateTime, new Date(transDateTime)) // Pass datetime object
+        .input('division', sql.VarChar, division)
+        .input('section', sql.VarChar, section)
+        .input('brand', sql.VarChar, brand)
+        .input('close_status', sql.TinyInt, closeStatusInt);
+
       await request.query(`
-        INSERT INTO [restopos45].[dbo].[cart_items] (pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, brand, section, close_status, picture_path, subtotal, total)
-        VALUES (@pa_id, @machine_id, @trans_date, @itemcode, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @department, @uom, @vatable, @tran_time, @division, @brand, @section, @close_status, @picture_path, @subtotal, @total)
+        INSERT INTO [dbo].[so_detail] (pa_id, so_number, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status)
+        VALUES (@pa_id, @so_number, @machine_id, @trans_date, @itemcode, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @subtotal, @total, @department, @uom, @vatable, @tran_time, @division, @section, @brand, @close_status)
       `);
-      
-      // Send a response indicating success
-      res.status(200).json({ message: 'Item added to cart successfully' });
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
     }
-  });
+
+    // Send a response indicating success
+    res.status(200).json({ message: 'Items added to cart successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 
   router.get('/get-open-cart-items-count', async (req, res) => {
     try {
