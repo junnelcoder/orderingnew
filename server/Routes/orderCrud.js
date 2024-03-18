@@ -134,10 +134,19 @@ router.post('/add-to-cart', async (req, res) => {
   try {
     const items = req.body; // Array of cart items
 
+    let subtotalAmount = 0;
+    let totalAmount = 0;
+    let paid = 0;
+    let machineid = 0;
     // Parse each item and insert into the database
     for (const item of items) {
       const { pa_id, so_number, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status } = JSON.parse(item);
       
+      // Calculate subtotal and total amounts
+      subtotalAmount += parseFloat(subtotal);
+      totalAmount += parseFloat(total);
+       paid = pa_id;
+      machineid = machine_id;
       // Generate current date for trans_date
       const currentDate = new Date().toISOString().split('T')[0];
 
@@ -153,14 +162,13 @@ router.post('/add-to-cart', async (req, res) => {
       // Validate close_status
       const closeStatusInt = parseInt(close_status);
       
-
       const pool = await sql.connect(config);
 
       const request = pool.request()
         .input('pa_id', sql.Char, pa_id)
         .input('so_number', sql.VarChar, so_number)
         .input('machine_id', sql.VarChar, machine_id)
-        .input('trans_date', sql.DateTime, currentDate)
+        .input('trans_date', sql.DateTime, new Date(trans_date)) // Correctly pass trans_date
         .input('itemcode', sql.VarChar, itemcode)
         .input('itemname', sql.Char, itemname)
         .input('category', sql.VarChar, category)
@@ -168,7 +176,7 @@ router.post('/add-to-cart', async (req, res) => {
         .input('unitprice', sql.Decimal(18, 2), parseFloat(unitprice)) // Parse unitprice to float
         .input('markup', sql.Decimal(18, 2), markup)
         .input('sellingprice', sql.Decimal(18, 2), sellingprice)
-        .input('subtotal', sql.Decimal(18, 2), subtotal)
+        .input('subtotal', sql.Decimal(18, 2), total)
         .input('total', sql.Decimal(18, 2), total)
         .input('department', sql.VarChar, department)
         .input('uom', sql.Char, uom)
@@ -185,6 +193,28 @@ router.post('/add-to-cart', async (req, res) => {
       `);
     }
 
+    // Insert into so_header table
+    const pool = await sql.connect(config);
+    const request = pool.request()
+      .input('so_number', sql.VarChar, '123456') // Assuming so_number is fixed for all items
+      .input('machine_id', sql.VarChar, machineid) // Assuming machine_id is same for all items
+      .input('trans_date', sql.DateTime, new Date().toISOString().split('T')[0]) // Correctly pass trans_date
+      .input('pa_id', sql.Char, paid) // Assuming pa_id is same for all items
+      .input('subtotal_amount', sql.Decimal(18, 2), totalAmount)
+      .input('total_amount', sql.Decimal(18, 2), totalAmount)
+      .input('tran_time', sql.DateTime, new Date()) // Pass current datetime object
+      .input('close_status', sql.TinyInt, 1)
+      .query(`
+        INSERT INTO [dbo].[so_header] (so_number, machine_id, trans_date, pa_id, subtotal_amount, total_amount, tran_time, close_status)
+        VALUES (@so_number, @machine_id, @trans_date, @pa_id, @subtotal_amount, @total_amount, @tran_time, @close_status)
+      `);
+
+    // Set close_status to 1 for all records in so_detail
+    await pool.request().query(`
+      UPDATE [dbo].[so_detail] 
+      SET so_number = NULL, close_status = 1
+    `);
+
     // Send a response indicating success
     res.status(200).json({ message: 'Items added to cart successfully' });
   } catch (err) {
@@ -192,6 +222,9 @@ router.post('/add-to-cart', async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
+
+
 
   router.get('/get-open-cart-items-count', async (req, res) => {
     try {
