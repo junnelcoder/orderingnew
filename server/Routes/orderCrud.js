@@ -138,15 +138,32 @@ router.post('/add-to-cart', async (req, res) => {
     let totalAmount = 0;
     let paid = 0;
     let machineid = 0;
+    
+    const pool = await sql.connect(config);
+    const updateResult = await pool.request().query(`
+      DECLARE @last_or VARCHAR(20);
+      SELECT @last_or = last_or FROM [dbo].[business_date_res];
+
+      DECLARE @new_or VARCHAR(20);
+      SET @new_or = RIGHT('00000' + CAST(CAST(RIGHT(@last_or, 5) AS INT) + 1 AS VARCHAR), 5);
+
+      UPDATE [dbo].[business_date_res] SET last_or = @new_or;
+
+      SELECT @new_or AS new_or;
+    `);
+
+    const newSoNumber = updateResult.recordset[0].new_or;
     // Parse each item and insert into the database
     for (const item of items) {
-      const { pa_id, so_number, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status } = JSON.parse(item);
+      const { pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status } = JSON.parse(item);
       
       // Calculate subtotal and total amounts
       subtotalAmount += parseFloat(subtotal);
       totalAmount += parseFloat(total);
        paid = pa_id;
       machineid = machine_id;
+      const newSoNumber = updateResult.recordset[0].new_or;
+      console.log(newSoNumber);
       // Generate current date for trans_date
       const currentDate = new Date().toISOString().split('T')[0];
 
@@ -166,7 +183,7 @@ router.post('/add-to-cart', async (req, res) => {
 
       const request = pool.request()
         .input('pa_id', sql.Char, pa_id)
-        .input('so_number', sql.VarChar, so_number)
+        .input('so_number', sql.VarChar, newSoNumber)
         .input('machine_id', sql.VarChar, machine_id)
         .input('trans_date', sql.DateTime, new Date(trans_date)) // Correctly pass trans_date
         .input('itemcode', sql.VarChar, itemcode)
@@ -176,7 +193,7 @@ router.post('/add-to-cart', async (req, res) => {
         .input('unitprice', sql.Decimal(18, 2), parseFloat(unitprice)) // Parse unitprice to float
         .input('markup', sql.Decimal(18, 2), markup)
         .input('sellingprice', sql.Decimal(18, 2), sellingprice)
-        .input('subtotal', sql.Decimal(18, 2), total)
+        .input('subtotal', sql.Decimal(18, 2), subtotal)
         .input('total', sql.Decimal(18, 2), total)
         .input('department', sql.VarChar, department)
         .input('uom', sql.Char, uom)
@@ -194,13 +211,13 @@ router.post('/add-to-cart', async (req, res) => {
     }
 
     // Insert into so_header table
-    const pool = await sql.connect(config);
+    // const pool = await sql.connect(config);
     const request = pool.request()
-      .input('so_number', sql.VarChar, '123456') // Assuming so_number is fixed for all items
+      .input('so_number', sql.VarChar, newSoNumber) // Assuming so_number is fixed for all items
       .input('machine_id', sql.VarChar, machineid) // Assuming machine_id is same for all items
       .input('trans_date', sql.DateTime, new Date().toISOString().split('T')[0]) // Correctly pass trans_date
       .input('pa_id', sql.Char, paid) // Assuming pa_id is same for all items
-      .input('subtotal_amount', sql.Decimal(18, 2), totalAmount)
+      .input('subtotal_amount', sql.Decimal(18, 2), subtotalAmount)
       .input('total_amount', sql.Decimal(18, 2), totalAmount)
       .input('tran_time', sql.DateTime, new Date()) // Pass current datetime object
       .input('close_status', sql.TinyInt, 1)
@@ -212,7 +229,7 @@ router.post('/add-to-cart', async (req, res) => {
     // Set close_status to 1 for all records in so_detail
     await pool.request().query(`
       UPDATE [dbo].[so_detail] 
-      SET so_number = NULL, close_status = 1
+      SET close_status = 1
     `);
 
     // Send a response indicating success
