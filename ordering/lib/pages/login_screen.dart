@@ -7,6 +7,7 @@ import 'package:ordering/pages/home_page.dart';
 import 'config.dart';
 import 'ip_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -17,6 +18,12 @@ class LoginScreen extends StatefulWidget {
 
 final TextEditingController _passwordController = TextEditingController();
 String? _selectedUsername;
+
+void saveUsernameToSharedPreferences(String username) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('username', username);
+  print(username);
+}
 
 class _LoginPageState extends State<LoginScreen> {
   bool _isObscured = true;
@@ -40,10 +47,18 @@ class _LoginPageState extends State<LoginScreen> {
 
   void fetchUsers() async {
     try {
-      var ipAddress = AppConfig.serverIPAddress.trim();
+      var ipAddress = AppConfig.serverIPAddress?.trim();
+      print('IP Address: $ipAddress'); // Debug statement
+
+      if (ipAddress == null) {
+        print('Server IP address is null'); // Debug statement
+        return;
+      }
+
       final response = await http
           .get(Uri.parse('http://$ipAddress:8080/api/getUsers'))
           .timeout(Duration(seconds: 5));
+
       if (response.statusCode == 200) {
         final List<dynamic> responseData = jsonDecode(response.body);
 
@@ -51,32 +66,32 @@ class _LoginPageState extends State<LoginScreen> {
           users.add(userData['username']);
           passwords.add(userData['password']);
         }
+        for (int i = 0; i < passwords.length; i++) {
+          String password = passwords[i];
+          String encryptedPassword = '';
+          for (int x = 0; x < password.length; x++) {
+            var n = password.codeUnitAt(x) - (x + 1);
+            encryptedPassword += String.fromCharCode(n);
+          }
+          passwords[i] = encryptedPassword;
+        }
 
         setState(() {
-          // No need to redefine users here
-          // Printing usernames and passwords for testing purposes
-          // print('Users: $users');
-          // print('Passwords: $passwords');
+          // Update your UI if necessary
         });
       } else {
-        print('Failed to load users');
+        print('Failed to load users: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching users: $e');
       Fluttertoast.showToast(
-        msg: "IP is inactive",
+        msg: "Error fetching users",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 3,
         backgroundColor: Colors.red,
         textColor: Colors.white,
         fontSize: 16.0,
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => IpScreen(),
-        ),
       );
     }
   }
@@ -223,6 +238,7 @@ class _LoginPageState extends State<LoginScreen> {
                               for (int i = 0; i < arrSize; i++) {
                                 if (username.trim() == users[i].trim()) {
                                   if (password.trim() == passwords[i].trim()) {
+                                    saveUsernameToSharedPreferences(username);
                                     Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(

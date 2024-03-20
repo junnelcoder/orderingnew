@@ -7,11 +7,11 @@ router.get('/getUsers', async (req, res) => {
     try {
         const pool = await sql.connect(config);
         const result = await pool.request().query(`
-            SELECT [cashier_name],[password] FROM [restopos45].[dbo].[user]
+            SELECT [user_id],[user_password] FROM [restopos45].[dbo].[user_access]
         `);
         const users = result.recordset.map(record => ({
-            username: record.cashier_name,
-            password: record.password
+            username: record.user_id,
+            password: record.user_password
         }));
         res.json(users);
         
