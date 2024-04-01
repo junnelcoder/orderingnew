@@ -3,17 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../pages/config.dart';
+import '../pages/home_page.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CartNavBar extends StatelessWidget {
   final List<Map<String, dynamic>> cartItems;
+  final Function(List<Map<String, dynamic>>) updateCartItems;
+  final VoidCallback fetchCartItems;
 
-  const CartNavBar({Key? key, required this.cartItems}) : super(key: key);
+  const CartNavBar({
+    Key? key,
+    required this.cartItems,
+    required this.updateCartItems,
+    required this.fetchCartItems,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     double totalAmount = 0;
 
-    // Compute the total amount by summing up the 'total' values of each cart item
     if (cartItems.isNotEmpty) {
       totalAmount = cartItems
           .map((item) => double.parse(item['total'].toString()))
@@ -60,7 +68,7 @@ class CartNavBar extends StatelessWidget {
           ),
           InkWell(
             onTap: () {
-              saveOrderToDatabase(cartItems);
+              _showConfirmationDialog(context);
             },
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -91,7 +99,55 @@ class CartNavBar extends StatelessWidget {
     );
   }
 
-  Future<void> saveOrderToDatabase(List<Map<String, dynamic>> cartItems) async {
+  Future<void> _showConfirmationDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirm Order'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                  'Are you sure you want to place the order?',
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'This action cannot be undone.',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.black),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(
+                'Confirm',
+                style: TextStyle(color: Colors.red),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                saveOrderToDatabase(cartItems, context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> saveOrderToDatabase(List<Map<String, dynamic>> cartItems, BuildContext context) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? ipAddress = prefs.getString('ipAddress');
@@ -106,7 +162,20 @@ class CartNavBar extends StatelessWidget {
       );
 
       if (response.statusCode == 200) {
-        print('Order saved successfully');
+        Fluttertoast.showToast(
+          msg: "Order placed successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+        await prefs.remove('cartItems'); // Clear cartItems from local storage
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
       } else {
         print('Failed to save order. Status code: ${response.statusCode}');
       }
@@ -134,13 +203,34 @@ class _CartPageState extends State<CartPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? cartItemsString = prefs.getString('cartItems');
     if (cartItemsString != null) {
-      print(cartItemsString); // Print the content of cartItemsString
-      // Remove unnecessary characters and backslashes
       cartItemsString = cartItemsString.replaceAll('[', '');
       cartItemsString = cartItemsString.replaceAll(']', '');
       cartItemsString = cartItemsString.replaceAll('\\', '');
 
-      // Parse the JSON string into a list of maps
+      List<dynamic> parsedItems = jsonDecode('[$cartItemsString]');
+      List<Map<String, dynamic>> items = List<Map<String, dynamic>>.from(
+          parsedItems.map((item) => jsonDecode(item)));
+
+      setState(() {
+        cartItems = items;
+      });
+    }
+  }
+
+  void _updateCartItems(List<Map<String, dynamic>> updatedItems) {
+    setState(() {
+      cartItems = updatedItems;
+    });
+  }
+
+  Future<void> _fetchCartItems() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? cartItemsString = prefs.getString('cartItems');
+    if (cartItemsString != null) {
+      cartItemsString = cartItemsString.replaceAll('[', '');
+      cartItemsString = cartItemsString.replaceAll(']', '');
+      cartItemsString = cartItemsString.replaceAll('\\', '');
+
       List<dynamic> parsedItems = jsonDecode('[$cartItemsString]');
       List<Map<String, dynamic>> items = List<Map<String, dynamic>>.from(
           parsedItems.map((item) => jsonDecode(item)));
@@ -160,8 +250,13 @@ class _CartPageState extends State<CartPage> {
       body: Center(
         child: Text('Your cart items here'),
       ),
-      bottomNavigationBar:
-          cartItems.isNotEmpty ? CartNavBar(cartItems: cartItems) : null,
+      bottomNavigationBar: cartItems.isNotEmpty
+          ? CartNavBar(
+              cartItems: cartItems,
+              updateCartItems: _updateCartItems,
+              fetchCartItems: _fetchCartItems,
+            )
+          : null,
     );
   }
 }
