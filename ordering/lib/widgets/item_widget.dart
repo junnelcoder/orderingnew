@@ -7,7 +7,6 @@ import 'package:shimmer/shimmer.dart';
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
-import '../pages/login_screen.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

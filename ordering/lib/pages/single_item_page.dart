@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../widgets/item_widget.dart';
-import 'config.dart';
 import 'package:ordering/pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

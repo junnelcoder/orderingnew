@@ -47,13 +47,13 @@ class _LoginPageState extends State<LoginScreen> {
 
   void fetchUsers() async {
     try {
-      var ipAddress = AppConfig.serverIPAddress?.trim();
+      var ipAddress = AppConfig.serverIPAddress.trim();
       print('IP Address: $ipAddress'); // Debug statement
 
-      if (ipAddress == null) {
-        print('Server IP address is null'); // Debug statement
-        return;
-      }
+      // if (ipAddress == null) {
+      //   print('Server IP address is null'); // Debug statement
+      //   return;
+      // }
 
       final response = await http
           .get(Uri.parse('http://$ipAddress:8080/api/getUsers'))
