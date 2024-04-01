@@ -25,21 +25,21 @@ class _CartPageState extends State<CartPage> {
   }
 
   Future<void> _fetchCartItems() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String>? cartItemsString = prefs.getStringList('cartItems');
-  if (cartItemsString != null) {
-    setState(() {
-      cartItems = cartItemsString
-          .map((item) => json.decode(item) as Map<String, dynamic>)
-          .toList();
-    });
-    
-    for (int i = 0; i < cartItems.length; i++) {
-      final item = cartItems[i];
-      print("Index $i: itemname: ${item['itemname']}, id: ${item['id']}");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? cartItemsString = prefs.getStringList('cartItems');
+    if (cartItemsString != null) {
+      setState(() {
+        cartItems = cartItemsString
+            .map((item) => json.decode(item) as Map<String, dynamic>)
+            .toList();
+      });
+
+      for (int i = 0; i < cartItems.length; i++) {
+        final item = cartItems[i];
+        print("Index $i: itemname: ${item['itemname']}, id: ${item['id']}");
+      }
     }
   }
-}
 
   Future<List<Map<String, dynamic>>> _saveToShared(unselected) async {
     String unselectedNotesJson = json.encode(unselected);
@@ -68,7 +68,6 @@ class _CartPageState extends State<CartPage> {
       throw Exception('Failed to fetch note items');
     }
   }
-
 
   void navigateToHomePage() {
     Navigator.pushReplacement(
@@ -179,28 +178,28 @@ class _CartPageState extends State<CartPage> {
 
     await _updateCartItemQuantity(index, newQuantity);
   }
-Future<void> _addNotes(String note, int index, String itemId) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<String>? cartItemsString = prefs.getStringList('cartItems');
 
-  if (cartItemsString != null) {
-    setState(() {
-      if (cartItemsString.isNotEmpty) {
-        Map<String, dynamic> lastCartItem =
-            json.decode(cartItemsString.last);
+  Future<void> _addNotes(String note, int index, String itemId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? cartItemsString = prefs.getStringList('cartItems');
 
-        Map<String, dynamic> duplicatedItem = Map.from(lastCartItem);
-        duplicatedItem['itemname'] = note;
-        duplicatedItem['id'] = itemId; 
-        cartItemsString.add(json.encode(duplicatedItem));
-        prefs.setStringList('cartItems', cartItemsString);
-        prefs.remove('unselectedNotes');
-        _fetchCartItems();
-      }
-    });
+    if (cartItemsString != null) {
+      setState(() {
+        if (cartItemsString.isNotEmpty) {
+          Map<String, dynamic> lastCartItem = json.decode(cartItemsString.last);
+
+          Map<String, dynamic> duplicatedItem = Map.from(lastCartItem);
+          duplicatedItem['itemname'] = note;
+          duplicatedItem['id'] = itemId;
+          duplicatedItem['category'] = "notes";
+          cartItemsString.add(json.encode(duplicatedItem));
+          prefs.setStringList('cartItems', cartItemsString);
+          prefs.remove('unselectedNotes');
+          _fetchCartItems();
+        }
+      });
+    }
   }
-}
-
 
   Future<void> _removeNotes(
       String cartItemId, int cartItemIndex, String note) async {
@@ -234,289 +233,284 @@ Future<void> _addNotes(String note, int index, String itemId) async {
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  final screenWidth = MediaQuery.of(context).size.width;
- return Scaffold(
-  appBar: AppBar(
-    title: Text("Order List"),
-    automaticallyImplyLeading: false,
-    leading: InkWell(
-      onTap: () {
-        navigateToHomePage();
-      },
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Icon(
-          Icons.arrow_back_ios,
-          color: Colors.black,
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Order List"),
+        automaticallyImplyLeading: false,
+        leading: InkWell(
+          onTap: () {
+            navigateToHomePage();
+          },
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+            ),
+          ),
         ),
       ),
-    ),
-  ),
-  body: cartItems.isEmpty
-      ? Center(
-          child: Text(
-            'No orders yet',
-            style: TextStyle(fontSize: 20),
-          ),
-        )
-        
-      : ListView.builder(
-        
-          itemCount: cartItems.length,
-          itemBuilder: (context, index) {
-            Map<String, dynamic> item = cartItems[index];
-            List<String> notesList = [];
+      body: cartItems.isEmpty
+          ? Center(
+              child: Text(
+                'No orders yet',
+                style: TextStyle(fontSize: 20),
+              ),
+            )
+          : ListView.builder(
+              itemCount: cartItems.length,
+              itemBuilder: (context, index) {
+                Map<String, dynamic> item = cartItems[index];
+                List<String> notesList = [];
 
-            for (int i = 0; i < cartItems.length; i++) {
-              if (cartItems[i]['category'] == 'notes' &&
-                  cartItems[i]['id'] == item['id']) {
-                notesList.add(cartItems[i]['itemname']);
-              }
-            }
-
-            if (item['category'] != 'notes') {
-              List<String> availableNotes = List<String>.from(notesList);
-              for (int i = 0; i < cartItems.length; i++) {
-                if (cartItems[i]['category'] == 'notes' &&
-                    cartItems[i]['itemname'] != null) {
-                  availableNotes.remove(cartItems[i]['itemname']);
-                }
-              }
-
-              List<Map<String, dynamic>> unselectedNotes = [];
-              for (int i = 0; i < notes.length; i++) {
-                bool isSelected = false;
-                String noteName = notes[i]['itemname'];
-                for (int j = 0; j < notesList.length; j++) {
-                  if (notesList[j] == noteName) {
-                    isSelected = true;
-                    break;
+                for (int i = 0; i < cartItems.length; i++) {
+                  if (cartItems[i]['category'] == 'notes' &&
+                      cartItems[i]['id'] == item['id']) {
+                    notesList.add(cartItems[i]['itemname']);
                   }
                 }
-                if (!isSelected) {
-                  Map<String, dynamic> noteWithId = {
-                    ...notes[i],
-                    'id': item['id']
-                  };
-                  unselectedNotes.add(noteWithId);
-                }
-              }
-              _saveToShared(unselectedNotes);
 
-              return Dismissible(
-                key: Key(item.hashCode.toString()),
-                direction: DismissDirection.endToStart,
-                onDismissed: (direction) {
-                  _removeCartItem(index);
-                },
-                background: Container(
-                  alignment: Alignment.centerRight,
-                  padding: EdgeInsets.only(right: 20.0),
-                  color: Colors.red,
-                  child: Icon(Icons.delete, color: Colors.white),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: screenWidth * 0.02,
-                    horizontal: screenWidth * 0.05,
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 3,
-                          blurRadius: 10,
-                          offset: Offset(0, 3),
-                        )
-                      ],
+                if (item['category'] != 'notes') {
+                  List<String> availableNotes = List<String>.from(notesList);
+                  for (int i = 0; i < cartItems.length; i++) {
+                    if (cartItems[i]['category'] == 'notes' &&
+                        cartItems[i]['itemname'] != null) {
+                      availableNotes.remove(cartItems[i]['itemname']);
+                    }
+                  }
+
+                  List<Map<String, dynamic>> unselectedNotes = [];
+                  for (int i = 0; i < notes.length; i++) {
+                    bool isSelected = false;
+                    String noteName = notes[i]['itemname'];
+                    for (int j = 0; j < notesList.length; j++) {
+                      if (notesList[j] == noteName) {
+                        isSelected = true;
+                        break;
+                      }
+                    }
+                    if (!isSelected) {
+                      Map<String, dynamic> noteWithId = {
+                        ...notes[i],
+                        'id': item['id']
+                      };
+                      unselectedNotes.add(noteWithId);
+                    }
+                  }
+                  _saveToShared(unselectedNotes);
+
+                  return Dismissible(
+                    key: Key(item.hashCode.toString()),
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) {
+                      _removeCartItem(index);
+                    },
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: EdgeInsets.only(right: 20.0),
+                      color: Colors.red,
+                      child: Icon(Icons.delete, color: Colors.white),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: screenWidth * 0.02,
+                        horizontal: screenWidth * 0.05,
+                      ),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 3,
+                              blurRadius: 10,
+                              offset: Offset(0, 3),
+                            )
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              alignment: Alignment.center,
-                              width: screenWidth * 0.35,
-                              height: screenWidth * 0.35,
-                              child: Image.asset(
-                                _getImagePathForItem(item),
-                                height: screenWidth * 0.22,
-                                width: screenWidth * 0.35,
-                              ),
+                            Row(
+                              children: [
+                                Container(
+                                  alignment: Alignment.center,
+                                  width: screenWidth * 0.35,
+                                  height: screenWidth * 0.35,
+                                  child: Image.asset(
+                                    _getImagePathForItem(item),
+                                    height: screenWidth * 0.22,
+                                    width: screenWidth * 0.35,
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    children: [
+                                      Text(
+                                        item['itemname'],
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.06,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        item['category'],
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.04,
+                                        ),
+                                      ),
+                                      Text(
+                                        "₱${double.parse(item['total']).toStringAsFixed(2)}",
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.06,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                                Container(
+                                  padding: EdgeInsets.all(screenWidth * 0.015),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          CupertinoIcons.plus,
+                                          color: Colors.white,
+                                          size: screenWidth * 0.08,
+                                        ),
+                                        onPressed: () =>
+                                            _incrementQuantity(index),
+                                      ),
+                                      Text(
+                                        item['qty'],
+                                        style: TextStyle(
+                                          fontSize: screenWidth * 0.06,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          CupertinoIcons.minus,
+                                          color: Colors.white,
+                                          size: screenWidth * 0.08,
+                                        ),
+                                        onPressed: () =>
+                                            _decrementQuantity(index),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(width: 10),
-                            Expanded(
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.05,
+                                vertical: screenWidth * 0.02,
+                              ),
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item['itemname'],
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.06,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    item['category'],
+                                    "Added notes:",
                                     style: TextStyle(
                                       fontSize: screenWidth * 0.04,
+                                      color: Colors.grey,
                                     ),
                                   ),
-                                  
-                                  Text(
-                                    "₱${double.parse(item['total']).toStringAsFixed(2)}",
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.06,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
+                                  ...notesList.map(
+                                    (note) => Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            "- $note",
+                                            style: TextStyle(
+                                              fontSize: screenWidth * 0.04,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.clear,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () {
+                                            String cartItemId =
+                                                cartItems[index]['id'];
+                                            print("Clicked note: $note");
+                                            _removeNotes(
+                                              cartItemId,
+                                              index,
+                                              note,
+                                            );
+                                          },
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            Container(
-                              padding: EdgeInsets.all(screenWidth * 0.015),
-                              decoration: BoxDecoration(
-                                color: Colors.black,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(
-                                      CupertinoIcons.plus,
-                                      color: Colors.white,
-                                      size: screenWidth * 0.08,
-                                    ),
-                                    onPressed: () =>
-                                        _incrementQuantity(index),
+                                  SizedBox(
+                                    height: 10,
                                   ),
-                                  Text(
-                                    item['qty'],
-                                    style: TextStyle(
-                                      fontSize: screenWidth * 0.06,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      CupertinoIcons.minus,
-                                      color: Colors.white,
-                                      size: screenWidth * 0.08,
-                                    ),
-                                    onPressed: () =>
-                                        _decrementQuantity(index),
-                                  ),
+                                  if (unselectedNotes.isNotEmpty)
+                                    DropdownButton<String>(
+                                      hint: Text("Select a note"),
+                                      value: null,
+                                      onChanged: (String? newValue) {
+                                        if (newValue != null) {
+                                          _addNotes(
+                                              newValue, index, item['id']);
+                                        }
+                                      },
+                                      items: unselectedNotes
+                                          .map<DropdownMenuItem<String>>(
+                                            (item) => DropdownMenuItem<String>(
+                                              value: item['itemname'],
+                                              child:
+                                                  Text(item['itemname'].trim()),
+                                            ),
+                                          )
+                                          .toList(),
+                                    )
                                 ],
                               ),
                             ),
                           ],
                         ),
-                        if(notesList.isNotEmpty)
-                         Padding(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: screenWidth * 0.05,
-                              vertical: screenWidth * 0.02,
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                
-                                Text(
-                                  "Added notes:",
-                                  style: TextStyle(
-                                    fontSize: screenWidth * 0.04,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                ...notesList.map(
-                                      (note) => Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              "- $note",
-                                              style: TextStyle(
-                                                fontSize: screenWidth * 0.04,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: Icon(
-                                              Icons.clear,
-                                              color: Colors.red,
-                                            ),
-                                            onPressed: () {
-                                              String cartItemId =
-                                                  cartItems[index]['id'];
-                                              print(
-                                                  "Clicked note: $note");
-                                              _removeNotes(
-                                                cartItemId,
-                                                index,
-                                                note,
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                
-                                DropdownButton<String>(
-                                  hint: Text("Select a note"),
-                                  value: null,
-                                  onChanged: (String? newValue) {
-                                    if (newValue != null) {
-                                      _addNotes(newValue, index, item['id']);
-                                    }
-                                  },
-                                  
-                                  items: unselectedNotes
-                                  
-                                      .map<DropdownMenuItem<String>>(
-                                        (item) => DropdownMenuItem<String>(
-                                          value: item['itemname'],
-                                          child: Text(item['itemname'].trim()),
-                                        ),
-                                      )
-                                      .toList(),
-                                ),
-                              ],
-                            ),
                       ),
-                          
-                      ],
                     ),
-                  ),
-                ),
-              );
-            } else {
-              return SizedBox();
-            }
-          },
-        ),
-  bottomNavigationBar: cartItems.isNotEmpty
-    ? CartNavBar(cartItems: cartItems, updateCartItems: (_) {}, fetchCartItems: () {  },)
-    : null,
-
-);
-
-       
-}}
+                  );
+                } else {
+                  return SizedBox();
+                }
+              },
+            ),
+      bottomNavigationBar: cartItems.isNotEmpty
+          ? CartNavBar(
+              cartItems: cartItems,
+              updateCartItems: (_) {},
+              fetchCartItems: () {},
+            )
+          : null,
+    );
+  }
+}
