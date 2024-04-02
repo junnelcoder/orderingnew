@@ -138,6 +138,12 @@ class CartNavBar extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
                 saveOrderToDatabase(cartItems, context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomePage(),
+                  ),
+                );
               },
             ),
           ],
