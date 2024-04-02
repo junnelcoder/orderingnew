@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../pages/config.dart';
 import '../pages/home_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -147,7 +146,8 @@ class CartNavBar extends StatelessWidget {
     );
   }
 
-  Future<void> saveOrderToDatabase(List<Map<String, dynamic>> cartItems, BuildContext context) async {
+  Future<void> saveOrderToDatabase(
+      List<Map<String, dynamic>> cartItems, BuildContext context) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? ipAddress = prefs.getString('ipAddress');

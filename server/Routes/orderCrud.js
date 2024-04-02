@@ -22,7 +22,7 @@ router.get('/categories', async (req, res) => {
   });
 
 
-router.get('/items', async (req, res) => {
+  router.get('/items', async (req, res) => {
     try {
       let category = req.query.category;
       let query = 'SELECT * FROM [restopos45].[dbo].[items]';
@@ -32,6 +32,9 @@ router.get('/items', async (req, res) => {
         category = decodeURIComponent(category); // Decode the category parameter
         query += ' WHERE category = @category';
       }
+
+      // Add ORDER BY clause to sort items alphabetically by itemname
+      query += ' ORDER BY itemname';
   
       const pool = await sql.connect(config);
       const result = await pool.request()
@@ -44,13 +47,14 @@ router.get('/items', async (req, res) => {
         return itemCategory !== '' && !['notes', 'notes', 'notes'].includes(itemCategory);
       });
       
-      // Send the list of filtered items as a JSON response
+      // Send the list of filtered and sorted items as a JSON response
       res.json(filteredItems);
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server Error');
     }
   });
+
 
   
 router.get('/allItems', async (req, res) => {
