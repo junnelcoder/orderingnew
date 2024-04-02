@@ -97,6 +97,25 @@ class _SingleItemPageState extends State<SingleItemPage> {
       },
     );
   }
+Future<String> _fetchTerminalId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    var url = Uri.parse('http://$ipAddress:8080/api/getTerminalId');
+
+    try {
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+        return data['terminalId'];
+      } else {
+        throw Exception('Failed to fetch terminal ID');
+      }
+    } catch (e) {
+      print('Error fetching terminal ID: $e');
+      throw Exception('Failed to fetch terminal ID');
+    }
+  }
 
   Future<void> _addItemToCart(List<String> selectedNotes) async {
     try {
@@ -122,11 +141,11 @@ class _SingleItemPageState extends State<SingleItemPage> {
       String? storedUsername = prefs.getString('username');
       // Generate a unique identifier for the main item
       String mainItemId = UniqueKey().toString();
-
+      String terminalId = await _fetchTerminalId();
       var mainItemDetails = {
         'id': mainItemId,
         'pa_id': storedUsername,
-        'machine_id': '0001',
+        'machine_id': terminalId.toString(),
         'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
         'itemcode': item.itemcode,
         'itemname': item.itemname,
@@ -158,7 +177,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
           var noteItemDetails = {
             'id': mainItemId,
             'pa_id': storedUsername,
-            'machine_id': '0001',
+            'machine_id': terminalId,
             'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
             'itemcode': noteItem['itemcode'],
             'itemname': noteItem['itemname'],

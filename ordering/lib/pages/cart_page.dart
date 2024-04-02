@@ -85,9 +85,9 @@ class _CartPageState extends State<CartPage> {
     await prefs.setStringList(
         'cartItems', cartItems.map((item) => json.encode(item)).toList());
 
-    if (cartItems.isEmpty) {
+    
       setState(() {});
-    }
+    
   }
 
   String _getImagePathForItem(Map<String, dynamic> item) {
@@ -192,6 +192,7 @@ class _CartPageState extends State<CartPage> {
           duplicatedItem['itemname'] = note;
           duplicatedItem['id'] = itemId;
           duplicatedItem['category'] = "notes";
+          duplicatedItem['total'] = 0;
           cartItemsString.add(json.encode(duplicatedItem));
           prefs.setStringList('cartItems', cartItemsString);
           prefs.remove('unselectedNotes');
