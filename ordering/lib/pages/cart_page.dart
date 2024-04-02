@@ -36,7 +36,7 @@ class _CartPageState extends State<CartPage> {
 
       for (int i = 0; i < cartItems.length; i++) {
         final item = cartItems[i];
-        print("Index $i: itemname: ${item['itemname']}, id: ${item['id']}");
+        print("Index $i: itemname: ${item['itemname']}, id: ${item['pa_id']}");
       }
     }
   }

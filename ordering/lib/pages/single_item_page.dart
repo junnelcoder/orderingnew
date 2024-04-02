@@ -119,13 +119,13 @@ class _SingleItemPageState extends State<SingleItemPage> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       List<String>? cartItems = prefs.getStringList('cartItems') ?? [];
-
+      String? storedUsername = prefs.getString('username');
       // Generate a unique identifier for the main item
       String mainItemId = UniqueKey().toString();
 
       var mainItemDetails = {
         'id': mainItemId,
-        'pa_id': '1',
+        'pa_id': storedUsername,
         'machine_id': '0001',
         'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
         'itemcode': item.itemcode,
@@ -157,7 +157,7 @@ class _SingleItemPageState extends State<SingleItemPage> {
           // Use the same identifier for the main item and its associated notes
           var noteItemDetails = {
             'id': mainItemId,
-            'pa_id': '1',
+            'pa_id': storedUsername,
             'machine_id': '0001',
             'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
             'itemcode': noteItem['itemcode'],

@@ -82,8 +82,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Remove the "ALL" category from the categories list
+    List<String> filteredCategories =
+        categories.where((category) => category != 'ALL').toList();
+
     return DefaultTabController(
-      length: categories.length + 1,
+      length: filteredCategories.length,
       child: Scaffold(
         backgroundColor: isDarkMode ? Colors.black : Colors.white,
         body: SafeArea(
@@ -145,32 +149,21 @@ class _HomePageState extends State<HomePage> {
                   indicator: BoxDecoration(),
                   labelStyle: TextStyle(fontSize: 15),
                   labelPadding: EdgeInsets.symmetric(horizontal: 20),
-                  tabs: [
-                    Tab(text: 'ALL'),
-                    ...categories
-                        .map<Tab>((category) => Tab(text: category))
-                        .toList(),
-                  ],
+                  tabs: filteredCategories
+                      .map<Tab>((category) => Tab(text: category))
+                      .toList(),
                 ),
                 Flexible(
                   flex: 1,
                   child: TabBarView(
-                    children: [
-                      ItemWidget(
-                        category: 'ALL',
-                        searchQuery: _searchController.text,
-                        isDarkMode: isDarkMode,
-                        toggleDarkMode: _toggleDarkMode,
-                      ),
-                      ...categories
-                          .map<Widget>((category) => ItemWidget(
-                                category: category,
-                                searchQuery: _searchController.text,
-                                isDarkMode: isDarkMode,
-                                toggleDarkMode: _toggleDarkMode,
-                              ))
-                          .toList(),
-                    ],
+                    children: filteredCategories
+                        .map<Widget>((category) => ItemWidget(
+                              category: category,
+                              searchQuery: _searchController.text,
+                              isDarkMode: isDarkMode,
+                              toggleDarkMode: _toggleDarkMode,
+                            ))
+                        .toList(),
                   ),
                 ),
               ],
