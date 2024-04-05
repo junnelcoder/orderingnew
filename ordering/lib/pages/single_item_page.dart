@@ -76,17 +76,42 @@ class _SingleItemPageState extends State<SingleItemPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirm'),
-          content: Text('Are you sure you want to add this order?'),
+          backgroundColor: Colors.white,
+          title: Text(
+            "Confirm",
+            style: TextStyle(
+              fontSize: 30,
+              color: Colors.black,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to add this order?',
+            style: TextStyle(
+              fontSize: 23,
+              color: Colors.black,
+            ),
+          ),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.black,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Confirm'),
+              child: Text(
+                'Confirm',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.black,
+                ),
+              ),
               onPressed: () async {
                 Navigator.of(context).pop();
                 await _addItemToCart(selectedNotes);
@@ -97,7 +122,8 @@ class _SingleItemPageState extends State<SingleItemPage> {
       },
     );
   }
-Future<String> _fetchTerminalId() async {
+
+  Future<String> _fetchTerminalId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
     var url = Uri.parse('http://$ipAddress:8080/api/getTerminalId');
@@ -523,7 +549,7 @@ class SingleItemNavBar extends StatelessWidget {
                 "Total Price:",
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 15,
+                  fontSize: 20,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -532,7 +558,7 @@ class SingleItemNavBar extends StatelessWidget {
                 "\₱$formattedTotal",
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 18,
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                 ),
               ),
