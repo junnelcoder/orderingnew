@@ -85,9 +85,7 @@ class _CartPageState extends State<CartPage> {
     await prefs.setStringList(
         'cartItems', cartItems.map((item) => json.encode(item)).toList());
 
-    
-      setState(() {});
-    
+    setState(() {});
   }
 
   String _getImagePathForItem(Map<String, dynamic> item) {
@@ -239,7 +237,12 @@ class _CartPageState extends State<CartPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: Text("Order List"),
+        title: Text(
+          "Order List",
+          style: TextStyle(
+            fontSize: 30,
+          ),
+        ),
         automaticallyImplyLeading: false,
         leading: InkWell(
           onTap: () {
@@ -373,7 +376,7 @@ class _CartPageState extends State<CartPage> {
                                       Text(
                                         "₱${double.parse(item['total']).toStringAsFixed(2)}",
                                         style: TextStyle(
-                                          fontSize: screenWidth * 0.06,
+                                          fontSize: screenWidth * 0.08,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.black,
                                         ),
@@ -434,7 +437,7 @@ class _CartPageState extends State<CartPage> {
                                   Text(
                                     "Added notes:",
                                     style: TextStyle(
-                                      fontSize: screenWidth * 0.04,
+                                      fontSize: screenWidth * 0.04 * 1.3,
                                       color: Colors.grey,
                                     ),
                                   ),
@@ -474,7 +477,14 @@ class _CartPageState extends State<CartPage> {
                                   ),
                                   if (unselectedNotes.isNotEmpty)
                                     DropdownButton<String>(
-                                      hint: Text("Select a note"),
+                                      hint: Text(
+                                        "Select a note",
+                                        style: TextStyle(
+                                          fontSize: 23,
+                                          fontWeight: FontWeight
+                                              .bold, // Add fontWeight if desired
+                                        ),
+                                      ),
                                       value: null,
                                       onChanged: (String? newValue) {
                                         if (newValue != null) {

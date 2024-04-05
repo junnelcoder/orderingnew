@@ -54,7 +54,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
           int openCartItemsCount = snapshot.data!;
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 15),
-            height: 80,
+            height: 90,
             decoration: BoxDecoration(
               color: widget.isDarkMode
                   ? Colors.black
@@ -146,7 +146,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                               ? Colors.black
                               : Colors
                                   .white, // Change icon color based on dark mode
-                          size: 30,
+                          size: 40,
                         ),
                       ),
                       if (openCartItemsCount > 0)
@@ -163,7 +163,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                               openCartItemsCount.toString(),
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 20,
                               ),
                             ),
                           ),
