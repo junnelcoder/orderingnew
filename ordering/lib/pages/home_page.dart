@@ -196,7 +196,7 @@ floatingActionButton: _isSwitchOn
         },
         label: Text('Select a Table'), // Palitan ang label ng button
         icon: Icon(Icons.table_chart), // Palitan ang icon ng "Select Table"
-        backgroundColor: Colors.grey, // Palitan ang kulay ng background
+        backgroundColor: Colors.black, // Palitan ang kulay ng background
         foregroundColor: Colors.white, // Palitan ang kulay ng text at icon
         elevation: 4.0, // Palitan ang taas ng elevasyon para sa shadow effect
       )
