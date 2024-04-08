@@ -134,7 +134,6 @@ router.post('/add-notes-to-cart', async (req, res) => {
 
 // Endpoint to handle adding items to the cart
 router.post('/add-to-cart', async (req, res) => {
-  console.log("add");
   try {
     const items = req.body; // Array of cart items
 
@@ -270,4 +269,49 @@ router.post('/add-to-cart', async (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   });
+
+  router.get('/tableno', async (req, res) => {
+    try {
+      await sql.connect(config);
+    const query1 = `SELECT trans_no, table_no, occupied FROM tableno WHERE occupied = 0 ORDER BY trans_no ASC`;
+    const result1 = await sql.query(query1);
+    const query2 = `SELECT trans_no, table_no, occupied FROM tableno WHERE occupied = 1 ORDER BY trans_no`;
+    const result2 = await sql.query(query2);
+    res.json({ occupied_0: result1.recordset, occupied_1: result2.recordset });
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+  router.post('/occupy', async (req, res) => {
+    try {
+      const selectedIndex = req.body; 
+  
+      if (isNaN(selectedIndex)) {
+        return res.status(400).json({ error: 'Invalid input. Please provide a valid integer.' });
+      }
+  
+      const pool = await sql.connect(config);
+      const updateQuery = `
+        UPDATE [dbo].[tableno]
+        SET [occupied] = 1
+        WHERE [trans_no] = @selectedIndex
+      `;
+  
+      const request = pool.request();
+      request.input('selectedIndex', sql.Int, selectedIndex);
+  
+      const result = await request.query(updateQuery);
+      res.status(200).json({ message: `Table ${selectedIndex} occupied successfully.` });
+    } catch (err) {
+      console.error('Error updating occupied status:', err);
+      res.status(500).json({ error: 'Failed to update occupied status.', message: err.message, stack: err.stack });
+    }
+  });
+  
+  
+  
+  
+
 module.exports = router;
