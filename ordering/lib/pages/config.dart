@@ -3,3 +3,4 @@ class AppConfig {
 }
 
 List<Map<String, dynamic>> notes = [];
+List<int> selected = [];

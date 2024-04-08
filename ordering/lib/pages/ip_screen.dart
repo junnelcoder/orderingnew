@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:ordering/pages/home_page.dart';
 import 'login_screen.dart';
 import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
+import '../pages/select_table.dart';
 
 class IpScreen extends StatefulWidget {
   const IpScreen({Key? key}) : super(key: key);
@@ -16,7 +18,7 @@ class _IpScreenState extends State<IpScreen> {
   void getSavedIpAddress() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    _ipAddressController.text = "192.168.5.102";
+    _ipAddressController.text = "192.168.5.105";
     if (ipAddress != null) {
       setState(() {
         // _ipAddressController.text = ipAddress;
@@ -41,7 +43,7 @@ class _IpScreenState extends State<IpScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => LoginScreen(),
+              builder: (context) => HomePage(),
             ),
           );
         } else {
