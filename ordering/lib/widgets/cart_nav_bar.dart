@@ -29,7 +29,7 @@ class CartNavBar extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15),
-      height: 80,
+      height: 90,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -50,16 +50,16 @@ class CartNavBar extends StatelessWidget {
                 "Total Price:",
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 15,
+                  fontSize: 23,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: 4),
+              SizedBox(height: 1),
               Text(
                 "\₱${totalAmount.toStringAsFixed(2)}",
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 18,
+                  fontSize: 30,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -104,18 +104,25 @@ class CartNavBar extends StatelessWidget {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirm Order'),
+          backgroundColor: Colors.white,
+          title: Text(
+            'Confirm Order',
+            style: TextStyle(
+              fontSize: 30,
+              color: Colors.black,
+            ),
+          ),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text(
                   'Are you sure you want to place the order?',
-                  style: TextStyle(fontSize: 16),
+                  style: TextStyle(fontSize: 23),
                 ),
                 SizedBox(height: 10),
                 Text(
                   'This action cannot be undone.',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
               ],
             ),
@@ -124,7 +131,7 @@ class CartNavBar extends StatelessWidget {
             TextButton(
               child: Text(
                 'Cancel',
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(fontSize: 20, color: Colors.black),
               ),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -133,7 +140,7 @@ class CartNavBar extends StatelessWidget {
             TextButton(
               child: Text(
                 'Confirm',
-                style: TextStyle(color: Colors.red),
+                style: TextStyle(fontSize: 20, color: Colors.red),
               ),
               onPressed: () {
                 Navigator.of(context).pop();

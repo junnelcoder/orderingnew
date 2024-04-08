@@ -1,15 +1,19 @@
 import 'dart:convert';
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeNavBar extends StatefulWidget {
   final bool isDarkMode;
+  final bool isSwitchOn; // State ng switch button
   final VoidCallback toggleDarkMode;
+  final ValueChanged<bool> onSwitchChanged; // Callback function para sa pagbabago ng switch button
 
   const HomeNavBar({
     required this.isDarkMode,
+    required this.isSwitchOn,
     required this.toggleDarkMode,
+    required this.onSwitchChanged,
   });
 
   @override
@@ -17,6 +21,8 @@ class HomeNavBar extends StatefulWidget {
 }
 
 class _HomeNavBarState extends State<HomeNavBar> {
+  bool _someFunctionalitySwitchValue = false; // Define switch value
+
   Future<int> fetchOpenCartItemsCount() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -54,11 +60,9 @@ class _HomeNavBarState extends State<HomeNavBar> {
           int openCartItemsCount = snapshot.data!;
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 15),
-            height: 80,
+            height: 90,
             decoration: BoxDecoration(
-              color: widget.isDarkMode
-                  ? Colors.black
-                  : Colors.white, // Toggle background color based on dark mode
+              color: widget.isDarkMode ? Colors.black : Colors.white,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.4),
@@ -68,47 +72,35 @@ class _HomeNavBarState extends State<HomeNavBar> {
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align items at the start and end of the row
               children: [
-                // Dark mode switch
                 Stack(
                   children: [
                     IconButton(
                       onPressed: () {
                         widget.toggleDarkMode();
                       },
-                      iconSize: 30, // Reduce icon size for dark mode toggle
+                      iconSize: 30,
                       padding: EdgeInsets.all(12),
                       constraints: BoxConstraints(),
                       alignment: Alignment.centerRight,
                       icon: Stack(
                         alignment: Alignment.centerRight,
                         children: [
-                          // Dark mode toggle icon
                           Icon(
-                            widget.isDarkMode
-                                ? Icons.dark_mode
-                                : Icons.light_mode,
-                            color:
-                                widget.isDarkMode ? Colors.white : Colors.black,
+                            widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                            color: widget.isDarkMode ? Colors.white : Colors.black,
                           ),
-                          // Circle container representing the dark mode toggle
                           Container(
                             width: 30,
                             height: 30,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: widget.isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                              color: widget.isDarkMode ? Colors.black : Colors.white,
                             ),
                             child: Icon(
-                              widget.isDarkMode
-                                  ? Icons.light_mode
-                                  : Icons.dark_mode,
-                              color: widget.isDarkMode
-                                  ? Colors.white
-                                  : Colors.black,
+                              widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                              color: widget.isDarkMode ? Colors.white : Colors.black,
                             ),
                           ),
                         ],
@@ -116,9 +108,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     ),
                   ],
                 ),
-                // Invisible icon for centering
-                Icon(Icons.add, color: Colors.transparent, size: 120),
-                // Icon Button assignment_add
+                // Icon(Icons.add, color: Colors.transparent, size: 120),
                 GestureDetector(
                   onTap: () {
                     Navigator.pushNamed(context, "cartPage");
@@ -128,9 +118,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                       Container(
                         padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: widget.isDarkMode
-                              ? Colors.white
-                              : Colors.black, // Change color based on dark mode
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
@@ -142,11 +130,8 @@ class _HomeNavBarState extends State<HomeNavBar> {
                         ),
                         child: Icon(
                           Icons.assignment_add,
-                          color: widget.isDarkMode
-                              ? Colors.black
-                              : Colors
-                                  .white, // Change icon color based on dark mode
-                          size: 30,
+                          color: widget.isDarkMode ? Colors.black : Colors.white,
+                          size: 40,
                         ),
                       ),
                       if (openCartItemsCount > 0)
@@ -163,7 +148,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                               openCartItemsCount.toString(),
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 20,
                               ),
                             ),
                           ),
@@ -171,6 +156,34 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     ],
                   ),
                 ),
+                // Switch button for some functionality
+Column(
+  children: [
+    Switch(
+      value: _someFunctionalitySwitchValue,
+      onChanged: (value) {
+        setState(() {
+          _someFunctionalitySwitchValue = value;
+          widget.onSwitchChanged(value); // Pasa ang bagong estado ng switch button
+        });
+        // perform action on switch value change
+      },
+      activeTrackColor: Colors.grey, // Kulay ng track kapag naka-on
+      activeColor: Colors.white, // Kulay ng button kapag naka-on
+    ),
+    Text(
+      _someFunctionalitySwitchValue ? 'QS' : 'FNB', // Teksto ng switch button base sa estado
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: widget.isDarkMode ? Colors.white : Colors.black,
+      ),
+    ),
+  ],
+),
+
+
+
               ],
             ),
           );

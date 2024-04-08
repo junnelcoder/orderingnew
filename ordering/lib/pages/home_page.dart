@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:ordering/pages/select_table.dart';
 import '../widgets/home_nav_bar.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
@@ -16,6 +17,7 @@ class _HomePageState extends State<HomePage> {
   List<String> categories = [];
   late TextEditingController _searchController;
   bool isDarkMode = false;
+  bool _isSwitchOn = false; // Initial state ng switch button
 
   @override
   void initState() {
@@ -36,10 +38,18 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _toggleSwitch(bool newValue) {
+    setState(() {
+      _isSwitchOn = newValue;
+    });
+  }
+
   Future<void> fetchCategories() async {
     var ipAddress = AppConfig.serverIPAddress;
 
     try {
+      // Simulan ang pagkuha ng mga kategorya mula sa server
+      SharedPreferences prefs = await SharedPreferences.getInstance();
       final response = await http
           .get(
             Uri.parse('http://$ipAddress:8080/api/categories'),
@@ -49,32 +59,31 @@ class _HomePageState extends State<HomePage> {
         final List<dynamic> data = json.decode(response.body);
         categories =
             data.where((category) => category != null).cast<String>().toList();
-        SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setStringList('categories', categories);
         setState(() {
-          final List<dynamic> data = json.decode(response.body);
           categories = data
               .where((category) => category != null)
               .cast<String>()
               .toList();
         });
       } else {
+        // Kung may error sa pagkuha ng mga kategorya, i-handle ito dito
         throw Exception('Failed to fetch categories');
       }
     } catch (e) {
-      print("offline");
+      // Kung offline o may error sa pagkuha ng mga kategorya, i-handle ito dito
       SharedPreferences prefs = await SharedPreferences.getInstance();
       List<String>? storedCategories = prefs.getStringList('categories');
       if (storedCategories != null) {
         setState(() {
-          final List<dynamic> data = storedCategories
-              .cast<dynamic>(); // Casting storedCategories to List<dynamic>
-          categories = data
+          categories = storedCategories
+              .cast<dynamic>()
               .where((category) => category != null)
               .cast<String>()
               .toList();
         });
       } else {
+        // Kung walang kategorya, i-handle ito dito
         throw Exception('Failed to fetch categories');
       }
     }
@@ -82,7 +91,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Remove the "ALL" category from the categories list
+    // Alisin ang "ALL" na kategorya mula sa listahan ng kategorya
     List<String> filteredCategories =
         categories.where((category) => category != 'ALL').toList();
 
@@ -172,8 +181,28 @@ class _HomePageState extends State<HomePage> {
         ),
         bottomNavigationBar: HomeNavBar(
           isDarkMode: isDarkMode,
+          isSwitchOn: _isSwitchOn,
           toggleDarkMode: _toggleDarkMode,
+          onSwitchChanged: _toggleSwitch,
         ),
+floatingActionButton: _isSwitchOn
+    ? FloatingActionButton.extended(
+        onPressed: () {
+          // Navigate to select_table.dart when the button is pressed
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SelectTablePage()),
+          );
+        },
+        label: Text('Select a Table'), // Palitan ang label ng button
+        icon: Icon(Icons.table_chart), // Palitan ang icon ng "Select Table"
+        backgroundColor: Colors.grey, // Palitan ang kulay ng background
+        foregroundColor: Colors.white, // Palitan ang kulay ng text at icon
+        elevation: 4.0, // Palitan ang taas ng elevasyon para sa shadow effect
+      )
+    : null, // Kung hindi naka-QS, huwag ipakita ang floating button
+
+
       ),
     );
   }
