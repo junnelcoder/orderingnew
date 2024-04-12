@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   late TextEditingController _searchController;
   bool isDarkMode = false;
   bool _isSwitchOn = false; // Initial state ng switch button
-
+  String selectedService = 'Select Service'; 
   @override
   void initState() {
     super.initState();
@@ -184,10 +184,13 @@ class _HomePageState extends State<HomePage> {
           isSwitchOn: _isSwitchOn,
           toggleDarkMode: _toggleDarkMode,
           onSwitchChanged: _toggleSwitch,
-        ),floatingActionButton: Column(
+          
+        ),
+        
+        floatingActionButton: Column(
   mainAxisAlignment: MainAxisAlignment.end,
   children: [
-    if (!_isSwitchOn) // Show "Select a Table" button only if switch is off
+    if (_isSwitchOn) // Show "Select a Table" button only if switch is off
       FloatingActionButton.extended(
         onPressed: () {
           // Navigate to select_table.dart when the button is pressed
@@ -218,6 +221,9 @@ class _HomePageState extends State<HomePage> {
                     onTap: () {
                       // Handle the "Dine In" option
                       print('Dine In selected');
+                      setState(() {
+                        selectedService = 'Dine In'; // Update selected service text
+                      });
                       Navigator.pop(context);
                     },
                     child: ListTile(
@@ -228,6 +234,9 @@ class _HomePageState extends State<HomePage> {
                     onTap: () {
                       // Handle the "Take Out" option
                       print('Take Out selected');
+                      setState(() {
+                        selectedService = 'Take Out'; // Update selected service text
+                      });
                       Navigator.pop(context);
                     },
                     child: ListTile(
@@ -238,6 +247,9 @@ class _HomePageState extends State<HomePage> {
                     onTap: () {
                       // Handle the "Pick Up" option
                       print('Pick Up selected');
+                      setState(() {
+                        selectedService = 'Pick Up'; // Update selected service text
+                      });
                       Navigator.pop(context);
                     },
                     child: ListTile(
@@ -250,7 +262,7 @@ class _HomePageState extends State<HomePage> {
           },
         );
       },
-      label: Text('Select Service'),
+      label: Text(selectedService), // Use selected service text
       icon: Icon(Icons.room_service),
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
@@ -258,6 +270,7 @@ class _HomePageState extends State<HomePage> {
     ),
   ],
 ),
+
  // Kung hindi naka-QS, huwag ipakita ang floating button
 
 
