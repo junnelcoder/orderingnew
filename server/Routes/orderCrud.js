@@ -287,7 +287,7 @@ router.post('/add-to-cart', async (req, res) => {
   router.post('/occupy', async (req, res) => {
     try {
       const selectedIndex = req.body; 
-  
+      console.log(selectedIndex);
       if (isNaN(selectedIndex)) {
         return res.status(400).json({ error: 'Invalid input. Please provide a valid integer.' });
       }

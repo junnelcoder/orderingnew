@@ -18,12 +18,14 @@ class _HomePageState extends State<HomePage> {
   late TextEditingController _searchController;
   bool isDarkMode = false;
   bool _isSwitchOn = false; // Initial state ng switch button
-  String selectedService = 'Select Service'; 
+  String selectedService = 'Select Service';
+  int alreadySelectedTable = 0;
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
     fetchCategories();
+    selectedFromShared();
   }
 
   @override
@@ -42,6 +44,13 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _isSwitchOn = newValue;
     });
+  }
+
+  Future<void> selectedFromShared() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? temp = prefs.getString('selectedTables');
+    alreadySelectedTable = int.tryParse(temp ?? '') ?? 0;
+    print(alreadySelectedTable);
   }
 
   Future<void> fetchCategories() async {
@@ -184,96 +193,100 @@ class _HomePageState extends State<HomePage> {
           isSwitchOn: _isSwitchOn,
           toggleDarkMode: _toggleDarkMode,
           onSwitchChanged: _toggleSwitch,
-          
         ),
-        
+
         floatingActionButton: Column(
-  mainAxisAlignment: MainAxisAlignment.end,
-  children: [
-    if (_isSwitchOn) // Show "Select a Table" button only if switch is off
-      FloatingActionButton.extended(
-        onPressed: () {
-          // Navigate to select_table.dart when the button is pressed
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => SelectTablePage()),
-          );
-        },
-        label: Text('Select Table'), // Palitan ang label ng button
-        icon: Icon(Icons.table_chart), // Palitan ang icon ng "Select Table"
-        backgroundColor: Colors.black, // Palitan ang kulay ng background
-        foregroundColor: Colors.white, // Palitan ang kulay ng text at icon
-        elevation: 4.0, // Palitan ang taas ng elevasyon para sa shadow effect
-      ),
-    SizedBox(height: 10),
-    FloatingActionButton.extended(
-      onPressed: () {
-        // Show the dropdown menu to select a service
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Select Service'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  InkWell(
-                    onTap: () {
-                      // Handle the "Dine In" option
-                      print('Dine In selected');
-                      setState(() {
-                        selectedService = 'Dine In'; // Update selected service text
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: ListTile(
-                      title: Text('Dine In'),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      // Handle the "Take Out" option
-                      print('Take Out selected');
-                      setState(() {
-                        selectedService = 'Take Out'; // Update selected service text
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: ListTile(
-                      title: Text('Take Out'),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: () {
-                      // Handle the "Pick Up" option
-                      print('Pick Up selected');
-                      setState(() {
-                        selectedService = 'Pick Up'; // Update selected service text
-                      });
-                      Navigator.pop(context);
-                    },
-                    child: ListTile(
-                      title: Text('Pick Up'),
-                    ),
-                  ),
-                ],
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (_isSwitchOn) // Show "Select a Table" button only if switch is off
+              FloatingActionButton.extended(
+                onPressed: () {
+                  // Navigate to select_table.dart when the button is pressed
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SelectTablePage()),
+                  );
+                },
+                label: Text('Select Table'), // Palitan ang label ng button
+                icon: Icon(
+                    Icons.table_chart), // Palitan ang icon ng "Select Table"
+                backgroundColor:
+                    Colors.black, // Palitan ang kulay ng background
+                foregroundColor:
+                    Colors.white, // Palitan ang kulay ng text at icon
+                elevation:
+                    4.0, // Palitan ang taas ng elevasyon para sa shadow effect
               ),
-            );
-          },
-        );
-      },
-      label: Text(selectedService), // Use selected service text
-      icon: Icon(Icons.room_service),
-      backgroundColor: Colors.black,
-      foregroundColor: Colors.white,
-      elevation: 4.0,
-    ),
-  ],
-),
+            SizedBox(height: 10),
+            FloatingActionButton.extended(
+              onPressed: () {
+                // Show the dropdown menu to select a service
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Select Service'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              // Handle the "Dine In" option
+                              print('Dine In selected');
+                              setState(() {
+                                selectedService =
+                                    'Dine In'; // Update selected service text
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: ListTile(
+                              title: Text('Dine In'),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              // Handle the "Take Out" option
+                              print('Take Out selected');
+                              setState(() {
+                                selectedService =
+                                    'Take Out'; // Update selected service text
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: ListTile(
+                              title: Text('Take Out'),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              // Handle the "Pick Up" option
+                              print('Pick Up selected');
+                              setState(() {
+                                selectedService =
+                                    'Pick Up'; // Update selected service text
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: ListTile(
+                              title: Text('Pick Up'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+              label: Text(selectedService), // Use selected service text
+              icon: Icon(Icons.room_service),
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              elevation: 4.0,
+            ),
+          ],
+        ),
 
- // Kung hindi naka-QS, huwag ipakita ang floating button
-
-
+        // Kung hindi naka-QS, huwag ipakita ang floating button
       ),
     );
   }

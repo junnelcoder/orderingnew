@@ -13,66 +13,34 @@ class SelectTablePage extends StatefulWidget {
 
 class _SelectTablePageState extends State<SelectTablePage> {
   List<int> _selectedTables = [];
-  List<int> _tempSelectedTables =
-      []; // Temporary list to track selected tables after button press
+  List<int> _tempSelectedTables = [];
   Map<int, TableStatus> _tableStatus = Map();
   List<String> tableNumbersJson = [];
   List<String> tableNumbersArr = [];
   List<String> tableOccupiedArr = [];
   List<String> tableNotOccupiedArr = [];
+  int alreadySelectedTable = 0;
 
   @override
   void initState() {
     super.initState();
     fetchDataFromServer();
+    selectedFromShared();
   }
 
-  Future<void> sendSelectedIndexToServer(List<int> selectedIndexes) async {
-    print("Print 1 $selectedIndexes");
+  Future<void> saveSelectedTables(String table) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedTables', table);
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => HomePage()));
+  }
 
-    // Convert selectedIndexes to a string using a delimiter
-    String temp = selectedIndexes.join(',');
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selectedIndexes', temp);
-
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? selectedIndexesString = prefs.getString('selectedIndexes');
-
-      if (selectedIndexesString != null) {
-        List<int> retrievedIndexes =
-            selectedIndexesString.split(',').map(int.parse).toList();
-        String? ipAddress = prefs.getString('ipAddress');
-        for (int i = 0; i < retrievedIndexes.length; i++) {
-          List<int> temp = [];
-          temp.add(retrievedIndexes[i]);
-          var apiUrl = Uri.parse('http://$ipAddress:8080/api/occupy');
-
-          print("Print 2 $temp");
-          var response = await http.post(
-            apiUrl,
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: jsonEncode(temp),
-          );
-
-          if (response.statusCode == 200) {
-            print('Tables occupied successfully.');
-            // Handle success as needed
-          } else {
-            print(
-                'Failed to occupy tables. Status code: ${response.statusCode}');
-            print('Response body: ${response.body}');
-          }
-        }
-      } else {
-        print('Selected indexes string is null.');
-      }
-    } catch (e) {
-      print('Error occupying tables: $e');
-    }
+  Future<void> selectedFromShared() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? temp = prefs.getString('selectedTables');
+    alreadySelectedTable = int.tryParse(temp ?? '') ?? 0;
+    print(alreadySelectedTable);
+    _tempSelectedTables.add(alreadySelectedTable);
   }
 
   Future<void> fetchDataFromServer() async {
@@ -111,7 +79,6 @@ class _SelectTablePageState extends State<SelectTablePage> {
           _tableStatus[int.parse(transNum)] = TableStatus.RESERVED;
         });
 
-        // Sort tableNumbersArr ascendingly
         tableNumbersArr.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
 
         setState(() {});
@@ -213,17 +180,18 @@ class _SelectTablePageState extends State<SelectTablePage> {
                   final tableStatus = _tableStatus[int.parse(tableNumber)];
                   final isSelected =
                       _tempSelectedTables.contains(int.parse(tableNumber));
+                  final isSelectedFromPrefs =
+                      _selectedTables.contains(alreadySelectedTable);
+
                   return GestureDetector(
                     onTap: () {
                       setState(() {
                         if (tableStatus != TableStatus.AVAILABLE) {
-                          return; // Do nothing if table is not available
+                          return;
                         }
-                        if (isSelected) {
-                          _tempSelectedTables.remove(int.parse(tableNumber));
-                        } else {
-                          _tempSelectedTables.add(int.parse(tableNumber));
-                        }
+                        _tempSelectedTables.clear();
+                        saveSelectedTables(tableNumber);
+                        _tempSelectedTables.add(int.parse(tableNumber));
                       });
                     },
                     child: Container(
@@ -256,7 +224,8 @@ class _SelectTablePageState extends State<SelectTablePage> {
                               ),
                             ],
                           ),
-                          if (isSelected)
+                          //
+                          if (isSelected || isSelectedFromPrefs)
                             Container(
                               color: Colors.black54.withOpacity(0.5),
                               child: Center(
@@ -277,89 +246,6 @@ class _SelectTablePageState extends State<SelectTablePage> {
               ),
             ),
             SizedBox(height: 20.0),
-            ElevatedButton(
-              onPressed: _tempSelectedTables.isEmpty
-                  ? null
-                  : () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('Success'),
-                          content: Container(
-                            width: double.maxFinite,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.check_circle,
-                                  color: Colors.green,
-                                  size: 48,
-                                ),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Tables reserved successfully!',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children:
-                                      _tempSelectedTables.map((tableNumber) {
-                                    return Container(
-                                      margin: EdgeInsets.only(bottom: 8),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.black),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      padding: EdgeInsets.all(8),
-                                      child: Text(
-                                        'Table $tableNumber',
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => HomePage(),
-                                  ),
-                                );
-                              },
-                              child: Text('OK'),
-                            ),
-                          ],
-                        ),
-                      );
-                      setState(() {
-                        _tempSelectedTables.forEach((table) {
-                          _tableStatus[table] = TableStatus.RESERVED;
-                        });
-                        sendSelectedIndexToServer(_tempSelectedTables);
-                        _selectedTables.addAll(_tempSelectedTables);
-                        _tempSelectedTables.clear();
-                      });
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
-              ),
-              child: Text(
-                'Select Table',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-            ),
           ],
         ),
       ),

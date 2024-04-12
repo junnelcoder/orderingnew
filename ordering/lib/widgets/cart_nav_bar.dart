@@ -159,8 +159,50 @@ class CartNavBar extends StatelessWidget {
     );
   }
 
+  Future<void> sendSelectedIndexToServer() async {
+    print("step 2");
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? selectedIndexesString = prefs.getString('selectedTables');
+
+      if (selectedIndexesString != null) {
+        List<int> retrievedIndexes =
+            selectedIndexesString.split(',').map(int.parse).toList();
+        String? ipAddress = prefs.getString('ipAddress');
+        for (int i = 0; i < retrievedIndexes.length; i++) {
+          List<int> temp = [];
+          temp.add(retrievedIndexes[i]);
+          var apiUrl = Uri.parse('http://$ipAddress:8080/api/occupy');
+
+          print("Print 2 $temp");
+          var response = await http.post(
+            apiUrl,
+            headers: <String, String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            },
+            body: jsonEncode(temp),
+          );
+
+          if (response.statusCode == 200) {
+            print('Tables occupied successfully.');
+            await prefs.remove('selectedTables');
+          } else {
+            print(
+                'Failed to occupy tables. Status code: ${response.statusCode}');
+            print('Response body: ${response.body}');
+          }
+        }
+      } else {
+        print('Selected indexes string is null.');
+      }
+    } catch (e) {
+      print('Error occupying tables: $e');
+    }
+  }
+
   Future<void> saveOrderToDatabase(
       List<Map<String, dynamic>> cartItems, BuildContext context) async {
+    print("step 1");
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? ipAddress = prefs.getString('ipAddress');
@@ -182,7 +224,10 @@ class CartNavBar extends StatelessWidget {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-        await prefs.remove('cartItems'); // Clear cartItems from local storage
+        await prefs.remove('cartItems');
+
+        print("to step 2");
+        sendSelectedIndexToServer();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
