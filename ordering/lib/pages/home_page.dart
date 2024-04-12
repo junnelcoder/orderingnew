@@ -19,14 +19,13 @@ class _HomePageState extends State<HomePage> {
   bool isDarkMode = false;
   bool _isSwitchOn = false; // Initial state ng switch button
   String selectedService = 'Select Service';
-  int alreadySelectedTable = 0;
+  String alreadySelectedTable = "";
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
     fetchCategories();
-    selectedFromShared();
     checkSwitchValue();
     loadSelectedService(); // Load selected service from local storage
   }
@@ -54,7 +53,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> selectedFromShared() async {
     final prefs = await SharedPreferences.getInstance();
     String? temp = prefs.getString('selectedTables');
-    alreadySelectedTable = int.tryParse(temp ?? '') ?? 0;
+    alreadySelectedTable = temp ?? '';
     print(alreadySelectedTable);
   }
 
@@ -135,10 +134,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    selectedFromShared();
     // Alisin ang "ALL" na kategorya mula sa listahan ng kategorya
     List<String> filteredCategories =
         categories.where((category) => category != 'ALL').toList();
-
+    String labelText = alreadySelectedTable.isNotEmpty
+        ? 'Table $alreadySelectedTable'
+        : 'Select Table';
     return DefaultTabController(
       length: filteredCategories.length,
       child: Scaffold(
@@ -242,7 +244,7 @@ class _HomePageState extends State<HomePage> {
                     MaterialPageRoute(builder: (context) => SelectTablePage()),
                   );
                 },
-                label: Text('Select Table'), // Palitan ang label ng button
+                label: Text(labelText), // Palitan ang label ng button
                 icon: Icon(
                     Icons.table_chart), // Palitan ang icon ng "Select Table"
                 backgroundColor:

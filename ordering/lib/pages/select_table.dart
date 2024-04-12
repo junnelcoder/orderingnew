@@ -43,6 +43,13 @@ class _SelectTablePageState extends State<SelectTablePage> {
     _tempSelectedTables.add(alreadySelectedTable);
   }
 
+  Future<void> removeFromShared() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('selectedTables');
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => HomePage()));
+  }
+
   Future<void> fetchDataFromServer() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
@@ -189,9 +196,16 @@ class _SelectTablePageState extends State<SelectTablePage> {
                         if (tableStatus != TableStatus.AVAILABLE) {
                           return;
                         }
-                        _tempSelectedTables.clear();
-                        saveSelectedTables(tableNumber);
-                        _tempSelectedTables.add(int.parse(tableNumber));
+                        if (_tempSelectedTables
+                            .contains(int.parse(tableNumber))) {
+                          removeFromShared();
+                          _tempSelectedTables.remove(int.parse(tableNumber));
+                        } else {
+                          // If the table is not selected, select it
+                          _tempSelectedTables.clear();
+                          saveSelectedTables(tableNumber);
+                          _tempSelectedTables.add(int.parse(tableNumber));
+                        }
                       });
                     },
                     child: Container(
