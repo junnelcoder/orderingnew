@@ -18,6 +18,12 @@ class _HomePageState extends State<HomePage> {
   late TextEditingController _searchController;
   bool isDarkMode = false;
   bool _isSwitchOn = false; // Initial state ng switch button
+  String _selectedService = 'Select Service'; // Track the selected service
+  List<String> _serviceOptions = [
+    'Dine In',
+    'Take Out',
+    'Pick Up'
+  ]; // Service options
 
   @override
   void initState() {
@@ -185,24 +191,79 @@ class _HomePageState extends State<HomePage> {
           toggleDarkMode: _toggleDarkMode,
           onSwitchChanged: _toggleSwitch,
         ),
-floatingActionButton: _isSwitchOn
-    ? FloatingActionButton.extended(
-        onPressed: () {
-          // Navigate to select_table.dart when the button is pressed
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => SelectTablePage()),
-          );
-        },
-        label: Text('Select a Table'), // Palitan ang label ng button
-        icon: Icon(Icons.table_chart), // Palitan ang icon ng "Select Table"
-        backgroundColor: Colors.black, // Palitan ang kulay ng background
-        foregroundColor: Colors.white, // Palitan ang kulay ng text at icon
-        elevation: 4.0, // Palitan ang taas ng elevasyon para sa shadow effect
-      )
-    : null, // Kung hindi naka-QS, huwag ipakita ang floating button
-
-
+        floatingActionButton: _isSwitchOn
+            ? Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        FloatingActionButton.extended(
+                          heroTag: null, // Remove transition effect
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => SelectTablePage()),
+                            );
+                          },
+                          label: Text('Select a Table'),
+                          icon: Icon(Icons.table_chart),
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          elevation: 4.0,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 8), // Add some space here
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        color: Colors.black,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 4.0, horizontal: 8.0),
+                        child: DropdownButton<String>(
+                          value: _selectedService,
+                          icon:
+                              Icon(Icons.arrow_drop_down, color: Colors.white),
+                          iconSize: 24,
+                          elevation: 16,
+                          style: TextStyle(color: Colors.white),
+                          underline: Container(
+                            height: 0,
+                            color: Colors.transparent,
+                          ),
+                          dropdownColor: Colors.black,
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedService = newValue!;
+                            });
+                          },
+                          items: _serviceOptions
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(
+                                value,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : null,
       ),
     );
   }
