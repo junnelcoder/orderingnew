@@ -161,17 +161,20 @@ Container(
   margin: EdgeInsets.only(top: 15), // Adjust the top margin value as needed
   child: Column(
     children: [
-      Switch(
-        value: _someFunctionalitySwitchValue,
-        onChanged: (value) {
-          setState(() {
-            _someFunctionalitySwitchValue = value;
-            widget.onSwitchChanged(value); // Pasa ang bagong estado ng switch button
-          });
-          // perform action on switch value change
-        },
-        activeTrackColor: Colors.black, // Kulay ng track kapag naka-on
-        activeColor: Colors.white, // Kulay ng button kapag naka-on
+      Semantics(
+        key: Key('someFunctionalitySwitch'), // Provide a unique key
+        child: Switch(
+          value: _someFunctionalitySwitchValue,
+          onChanged: (value) {
+            setState(() {
+              _someFunctionalitySwitchValue = value;
+              widget.onSwitchChanged(value); // Pasa ang bagong estado ng switch button
+            });
+            // perform action on switch value change
+          },
+          activeTrackColor: Colors.black, // Kulay ng track kapag naka-on
+          activeColor: Colors.white, // Kulay ng button kapag naka-on
+        ),
       ),
       Text(
         _someFunctionalitySwitchValue ? 'FNB' : 'QS', // Teksto ng switch button base sa estado
@@ -184,9 +187,6 @@ Container(
     ],
   ),
 )
-
-
-
 
               ],
             ),
