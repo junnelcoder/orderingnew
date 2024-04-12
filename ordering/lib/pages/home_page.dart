@@ -20,12 +20,15 @@ class _HomePageState extends State<HomePage> {
   bool _isSwitchOn = false; // Initial state ng switch button
   String selectedService = 'Select Service';
   int alreadySelectedTable = 0;
+
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
     fetchCategories();
     selectedFromShared();
+    checkSwitchValue();
+    loadSelectedService(); // Load selected service from local storage
   }
 
   @override
@@ -43,6 +46,8 @@ class _HomePageState extends State<HomePage> {
   void _toggleSwitch(bool newValue) {
     setState(() {
       _isSwitchOn = newValue;
+      // Save switch value to local storage
+      saveSwitchValueToShared(newValue);
     });
   }
 
@@ -95,6 +100,36 @@ class _HomePageState extends State<HomePage> {
         // Kung walang kategorya, i-handle ito dito
         throw Exception('Failed to fetch categories');
       }
+    }
+  }
+
+  Future<void> saveSwitchValueToShared(bool newValue) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('switchValue', newValue ? 'FNB' : 'QS');
+  }
+
+  Future<void> checkSwitchValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? switchValue = prefs.getString('switchValue');
+    if (switchValue != null && switchValue == 'FNB') {
+      setState(() {
+        _isSwitchOn = true;
+      });
+    }
+  }
+
+  Future<void> saveSelectedService(String service) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedService', service);
+  }
+
+  Future<void> loadSelectedService() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? service = prefs.getString('selectedService');
+    if (service != null) {
+      setState(() {
+        selectedService = service;
+      });
     }
   }
 
@@ -198,7 +233,7 @@ class _HomePageState extends State<HomePage> {
         floatingActionButton: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            if (_isSwitchOn) // Show "Select a Table" button only if switch is off
+            if (_isSwitchOn) // Show "Select a Table" button only if switch is on FNB
               FloatingActionButton.extended(
                 onPressed: () {
                   // Navigate to select_table.dart when the button is pressed
@@ -237,6 +272,8 @@ class _HomePageState extends State<HomePage> {
                                 selectedService =
                                     'Dine In'; // Update selected service text
                               });
+                              // Save selected service to local storage
+                              saveSelectedService('Dine In');
                               Navigator.pop(context);
                             },
                             child: ListTile(
@@ -251,6 +288,8 @@ class _HomePageState extends State<HomePage> {
                                 selectedService =
                                     'Take Out'; // Update selected service text
                               });
+                              // Save selected service to local storage
+                              saveSelectedService('Take Out');
                               Navigator.pop(context);
                             },
                             child: ListTile(
@@ -265,6 +304,8 @@ class _HomePageState extends State<HomePage> {
                                 selectedService =
                                     'Pick Up'; // Update selected service text
                               });
+                              // Save selected service to local storage
+                              saveSelectedService('Pick Up');
                               Navigator.pop(context);
                             },
                             child: ListTile(
