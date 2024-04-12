@@ -21,29 +21,52 @@ class HomeNavBar extends StatefulWidget {
 }
 
 class _HomeNavBarState extends State<HomeNavBar> {
-  bool _someFunctionalitySwitchValue = false; // Define switch value
+  late bool _someFunctionalitySwitchValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSwitchValueFromStorage();
+  }
+
+  Future<void> _loadSwitchValueFromStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? switchValue = prefs.getString('switchValue');
+    if (switchValue == null) {
+      // If no value is found in storage, set default to 'QS'
+      setState(() {
+        _someFunctionalitySwitchValue = false;
+      });
+      _saveSwitchValueToStorage(false);
+    } else {
+      // Set switch value from storage
+      setState(() {
+        _someFunctionalitySwitchValue = switchValue == 'FNB';
+      });
+    }
+  }
+
+  Future<void> _saveSwitchValueToStorage(bool newValue) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('switchValue', newValue ? 'FNB' : 'QS');
+  }
 
   Future<int> fetchOpenCartItemsCount() async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String>? cartItems = prefs.getStringList('cartItems');
-
-      if (cartItems != null) {
-        // Count items except the ones with category 'notes'
-        int openCartItemsCount = 0;
-        for (String cartItem in cartItems) {
-          Map<String, dynamic> item = json.decode(cartItem);
-          if (item['category'] != 'notes') {
-            openCartItemsCount++;
-          }
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? cartItems = prefs.getStringList('cartItems');
+    if (cartItems != null) {
+      // Count items except the ones with category 'notes'
+      int openCartItemsCount = 0;
+      for (String cartItem in cartItems) {
+        Map<String, dynamic> item = json.decode(cartItem);
+        if (item['category'] != 'notes') {
+          openCartItemsCount++;
         }
-        return openCartItemsCount;
-      } else {
-        // If no cart items found, return count as 0
-        return 0;
       }
-    } catch (e) {
-      throw Exception('Failed to fetch open cart items count');
+      return openCartItemsCount;
+    } else {
+      // If no cart items found, return count as 0
+      return 0;
     }
   }
 
@@ -72,7 +95,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align items at the start and end of the row
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Stack(
                   children: [
@@ -108,7 +131,6 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     ),
                   ],
                 ),
-                // Icon(Icons.add, color: Colors.transparent, size: 120),
                 GestureDetector(
                   onTap: () {
                     Navigator.pushNamed(context, "cartPage");
@@ -156,38 +178,36 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     ],
                   ),
                 ),
-                // Switch button for some functionality
-Container(
-  margin: EdgeInsets.only(top: 15), // Adjust the top margin value as needed
-  child: Column(
-    children: [
-      Semantics(
-        key: Key('someFunctionalitySwitch'), // Provide a unique key
-        child: Switch(
-          value: _someFunctionalitySwitchValue,
-          onChanged: (value) {
-            setState(() {
-              _someFunctionalitySwitchValue = value;
-              widget.onSwitchChanged(value); // Pasa ang bagong estado ng switch button
-            });
-            // perform action on switch value change
-          },
-          activeTrackColor: Colors.black, // Kulay ng track kapag naka-on
-          activeColor: Colors.white, // Kulay ng button kapag naka-on
-        ),
-      ),
-      Text(
-        _someFunctionalitySwitchValue ? 'FNB' : 'QS', // Teksto ng switch button base sa estado
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: widget.isDarkMode ? Colors.white : Colors.black,
-        ),
-      ),
-    ],
-  ),
-)
-
+                Container(
+                  margin: EdgeInsets.only(top: 15),
+                  child: Column(
+                    children: [
+                      Semantics(
+                        key: Key('someFunctionalitySwitch'),
+                        child: Switch(
+                          value: _someFunctionalitySwitchValue,
+                          onChanged: (value) {
+                            setState(() {
+                              _someFunctionalitySwitchValue = value;
+                              _saveSwitchValueToStorage(value);
+                              widget.onSwitchChanged(value);
+                            });
+                          },
+                          activeTrackColor: Colors.black,
+                          activeColor: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        _someFunctionalitySwitchValue ? 'FNB' : 'QS',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
           );
