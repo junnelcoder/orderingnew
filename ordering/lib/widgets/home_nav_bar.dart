@@ -7,8 +7,7 @@ class HomeNavBar extends StatefulWidget {
   final bool isDarkMode;
   final bool isSwitchOn; // State ng switch button
   final VoidCallback toggleDarkMode;
-  final ValueChanged<bool>
-      onSwitchChanged; // Callback function para sa pagbabago ng switch button
+  final ValueChanged<bool> onSwitchChanged; // Callback function para sa pagbabago ng switch button
 
   const HomeNavBar({
     required this.isDarkMode,
@@ -96,7 +95,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
               ],
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Align items at the start and end of the row
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Stack(
                   children: [
@@ -112,28 +111,19 @@ class _HomeNavBarState extends State<HomeNavBar> {
                         alignment: Alignment.centerRight,
                         children: [
                           Icon(
-                            widget.isDarkMode
-                                ? Icons.dark_mode
-                                : Icons.light_mode,
-                            color:
-                                widget.isDarkMode ? Colors.white : Colors.black,
+                            widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                            color: widget.isDarkMode ? Colors.white : Colors.black,
                           ),
                           Container(
                             width: 30,
                             height: 30,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: widget.isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
+                              color: widget.isDarkMode ? Colors.black : Colors.white,
                             ),
                             child: Icon(
-                              widget.isDarkMode
-                                  ? Icons.light_mode
-                                  : Icons.dark_mode,
-                              color: widget.isDarkMode
-                                  ? Colors.white
-                                  : Colors.black,
+                              widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                              color: widget.isDarkMode ? Colors.white : Colors.black,
                             ),
                           ),
                         ],
@@ -150,8 +140,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                       Container(
                         padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color:
-                              widget.isDarkMode ? Colors.white : Colors.black,
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
@@ -163,8 +152,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                         ),
                         child: Icon(
                           Icons.assignment_add,
-                          color:
-                              widget.isDarkMode ? Colors.black : Colors.white,
+                          color: widget.isDarkMode ? Colors.black : Colors.white,
                           size: 40,
                         ),
                       ),
@@ -190,38 +178,36 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     ],
                   ),
                 ),
-                // Switch button for some functionality
-Container(
-  margin: EdgeInsets.only(top: 15), // Adjust the top margin value as needed
-  child: Column(
-    children: [
-      Semantics(
-        key: Key('someFunctionalitySwitch'), // Provide a unique key
-        child: Switch(
-          value: _someFunctionalitySwitchValue,
-          onChanged: (value) {
-            setState(() {
-              _someFunctionalitySwitchValue = value;
-              widget.onSwitchChanged(value); // Pasa ang bagong estado ng switch button
-            });
-            // perform action on switch value change
-          },
-          activeTrackColor: Colors.black, // Kulay ng track kapag naka-on
-          activeColor: Colors.white, // Kulay ng button kapag naka-on
-        ),
-      ),
-      Text(
-        _someFunctionalitySwitchValue ? 'FNB' : 'QS', // Teksto ng switch button base sa estado
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: widget.isDarkMode ? Colors.white : Colors.black,
-        ),
-      ),
-    ],
-  ),
-)
-
+                Container(
+                  margin: EdgeInsets.only(top: 15),
+                  child: Column(
+                    children: [
+                      Semantics(
+                        key: Key('someFunctionalitySwitch'),
+                        child: Switch(
+                          value: _someFunctionalitySwitchValue,
+                          onChanged: (value) {
+                            setState(() {
+                              _someFunctionalitySwitchValue = value;
+                              _saveSwitchValueToStorage(value);
+                              widget.onSwitchChanged(value);
+                            });
+                          },
+                          activeTrackColor: Colors.black,
+                          activeColor: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        _someFunctionalitySwitchValue ? 'FNB' : 'QS',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: widget.isDarkMode ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
           );
