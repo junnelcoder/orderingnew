@@ -135,7 +135,10 @@ router.post('/add-notes-to-cart', async (req, res) => {
 // Endpoint to handle adding items to the cart
 router.post('/add-to-cart', async (req, res) => {
   try {
-    const items = req.body; // Array of cart items
+    const { cartItems, selectedTablesString, switchValue } = req.body;
+    console.log("switchValue");
+    console.log(selectedTablesString);
+    console.log("switchValue");
 
     let subtotalAmount = 0;
     let totalAmount = 0;
@@ -157,7 +160,7 @@ router.post('/add-to-cart', async (req, res) => {
 
     const newSoNumber = updateResult.recordset[0].new_or;
     // Parse each item and insert into the database
-    for (const item of items) {
+    for (const item of cartItems) {
       const { pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status } = JSON.parse(item);
       
       // Calculate subtotal and total amounts
@@ -215,19 +218,21 @@ router.post('/add-to-cart', async (req, res) => {
 
     // Insert into so_header table
     // const pool = await sql.connect(config);
-    const request = pool.request()
-      .input('so_number', sql.VarChar, newSoNumber) // Assuming so_number is fixed for all items
-      .input('machine_id', sql.VarChar, machineid) // Assuming machine_id is same for all items
-      .input('trans_date', sql.DateTime, new Date().toISOString().split('T')[0]) // Correctly pass trans_date
-      .input('pa_id', sql.Char, paid) // Assuming pa_id is same for all items
-      .input('subtotal_amount', sql.Decimal(18, 2), subtotalAmount)
-      .input('total_amount', sql.Decimal(18, 2), totalAmount)
-      .input('tran_time', sql.DateTime, new Date()) // Pass current datetime object
-      .input('close_status', sql.TinyInt, 1)
-      .query(`
-        INSERT INTO [dbo].[so_header] (so_number, machine_id, trans_date, pa_id, subtotal_amount, total_amount, tran_time, close_status)
-        VALUES (@so_number, @machine_id, @trans_date, @pa_id, @subtotal_amount, @total_amount, @tran_time, @close_status)
-      `);
+    const requestHeader = pool.request()
+    .input('so_number', sql.VarChar, newSoNumber) // Assuming so_number is fixed for all items
+    .input('machine_id', sql.VarChar, machineid) // Assuming machine_id is same for all items
+    .input('trans_date', sql.DateTime, new Date().toISOString().split('T')[0]) // Correctly pass trans_date
+    .input('pa_id', sql.Char, paid) // Assuming pa_id is same for all items
+    .input('subtotal_amount', sql.Decimal(18, 2), subtotalAmount)
+    .input('total_amount', sql.Decimal(18, 2), totalAmount)
+    .input('tran_time', sql.DateTime, new Date()) // Pass current datetime object
+    .input('close_status', sql.TinyInt, 1)
+    .input('table_no', sql.VarChar, selectedTablesString) 
+    .input('order_service', sql.VarChar, switchValue)
+    .query(`
+    INSERT INTO [dbo].[so_header] (so_number, machine_id, trans_date, pa_id, subtotal_amount, total_amount, tran_time, close_status, table_no, order_service) 
+    VALUES (@so_number, @machine_id, @trans_date, @pa_id, @subtotal_amount, @total_amount, @tran_time, @close_status, @table_no, @order_service) 
+  `);
 
     // Set close_status to 1 for all records in so_detail
     await pool.request().query(`

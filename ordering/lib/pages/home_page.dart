@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   late TextEditingController _searchController;
   bool isDarkMode = false;
   bool _isSwitchOn = false; // Initial state ng switch button
-  String selectedService = 'Select Service';
+  String selectedService = 'Dine In';
   String alreadySelectedTable = "";
 
   @override
@@ -27,7 +27,13 @@ class _HomePageState extends State<HomePage> {
     _searchController = TextEditingController();
     fetchCategories();
     checkSwitchValue();
-    loadSelectedService(); // Load selected service from local storage
+    loadSelectedService();
+    selectedFromShared();
+
+    // saveSelectedService('Dine In');
+    setState(() {
+      selectedService = 'Dine In';
+    });
   }
 
   @override
@@ -54,7 +60,6 @@ class _HomePageState extends State<HomePage> {
     final prefs = await SharedPreferences.getInstance();
     String? temp = prefs.getString('selectedTables');
     alreadySelectedTable = temp ?? '';
-    print(alreadySelectedTable);
   }
 
   Future<void> fetchCategories() async {
@@ -118,6 +123,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> saveSelectedService(String service) async {
+    print(service);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedService', service);
   }
@@ -135,11 +141,10 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     selectedFromShared();
-    // Alisin ang "ALL" na kategorya mula sa listahan ng kategorya
     List<String> filteredCategories =
         categories.where((category) => category != 'ALL').toList();
     String labelText = alreadySelectedTable.isNotEmpty
-        ? 'Table $alreadySelectedTable'
+        ? '$alreadySelectedTable'
         : 'Select Table';
     return DefaultTabController(
       length: filteredCategories.length,
@@ -257,68 +262,68 @@ class _HomePageState extends State<HomePage> {
             SizedBox(height: 10),
             FloatingActionButton.extended(
               onPressed: () {
-                // Show the dropdown menu to select a service
                 showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Select Service'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              // Handle the "Dine In" option
-                              print('Dine In selected');
-                              setState(() {
-                                selectedService =
-                                    'Dine In'; // Update selected service text
-                              });
-                              // Save selected service to local storage
-                              saveSelectedService('Dine In');
-                              Navigator.pop(context);
-                            },
-                            child: ListTile(
-                              title: Text('Dine In'),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              // Handle the "Take Out" option
-                              print('Take Out selected');
-                              setState(() {
-                                selectedService =
-                                    'Take Out'; // Update selected service text
-                              });
-                              // Save selected service to local storage
-                              saveSelectedService('Take Out');
-                              Navigator.pop(context);
-                            },
-                            child: ListTile(
-                              title: Text('Take Out'),
-                            ),
-                          ),
-                          InkWell(
-                            onTap: () {
-                              // Handle the "Pick Up" option
-                              print('Pick Up selected');
-                              setState(() {
-                                selectedService =
-                                    'Pick Up'; // Update selected service text
-                              });
-                              // Save selected service to local storage
-                              saveSelectedService('Pick Up');
-                              Navigator.pop(context);
-                            },
-                            child: ListTile(
-                              title: Text('Pick Up'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
+  context: context,
+  builder: (BuildContext context) {
+    return AlertDialog(
+      title: Text('Select Service'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                selectedService = 'Dine In';
+              });
+              saveSelectedService('Dine In');
+              Navigator.pop(context);
+            },
+            child: ListTile(
+              title: Text('Dine In'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                selectedService = 'Take Out';
+              });
+              saveSelectedService('Take Out');
+              Navigator.pop(context);
+            },
+            child: ListTile(
+              title: Text('Take Out'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                selectedService = 'Pick Up';
+              });
+              saveSelectedService('Pick Up');
+              Navigator.pop(context);
+            },
+            child: ListTile(
+              title: Text('Pick Up'),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              setState(() {
+                selectedService = 'Delivery';
+              });
+              saveSelectedService('Delivery');
+              Navigator.pop(context);
+            },
+            child: ListTile(
+              title: Text('Delivery'),
+            ),
+          ),
+        ],
+      ),
+    );
+  },
+);
+
               },
               label: Text(selectedService), // Use selected service text
               icon: Icon(Icons.room_service),

@@ -43,7 +43,7 @@ class _IpScreenState extends State<IpScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => HomePage(),
+              builder: (context) => SelectTablePage(),
             ),
           );
         } else {

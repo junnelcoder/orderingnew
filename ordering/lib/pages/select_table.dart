@@ -13,13 +13,14 @@ class SelectTablePage extends StatefulWidget {
 
 class _SelectTablePageState extends State<SelectTablePage> {
   List<int> _selectedTables = [];
-  List<int> _tempSelectedTables = [];
+  List<String> _tempSelectedTables = [];
   Map<int, TableStatus> _tableStatus = Map();
   List<String> tableNumbersJson = [];
   List<String> tableNumbersArr = [];
+  List<String> tableTransNumbArr = [];
   List<String> tableOccupiedArr = [];
   List<String> tableNotOccupiedArr = [];
-  int alreadySelectedTable = 0;
+  String alreadySelectedTable = "";
 
   @override
   void initState() {
@@ -27,25 +28,29 @@ class _SelectTablePageState extends State<SelectTablePage> {
     fetchDataFromServer();
     selectedFromShared();
   }
-
+Future<void> saveSelectedTables2(String table) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedTables2', table);
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => HomePage()));
+  }
   Future<void> saveSelectedTables(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedTables', table);
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => HomePage()));
+    
   }
 
   Future<void> selectedFromShared() async {
     final prefs = await SharedPreferences.getInstance();
     String? temp = prefs.getString('selectedTables');
-    alreadySelectedTable = int.tryParse(temp ?? '') ?? 0;
-    print(alreadySelectedTable);
+    alreadySelectedTable = temp ?? '';
     _tempSelectedTables.add(alreadySelectedTable);
   }
 
   Future<void> removeFromShared() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('selectedTables');
+    await prefs.remove('selectedTables2');
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => HomePage()));
   }
@@ -70,8 +75,8 @@ class _SelectTablePageState extends State<SelectTablePage> {
           final occ = tableData['occupied'];
           tableNumbersJson
               .add({'tbl_no': tableNum, 'trans_no': transNum, 'occupied': occ});
-          tableNumbersArr.add(transNum);
-          tableNotOccupiedArr.add(transNum);
+          // tableNumbersArr.add(tableNum);
+          // tableNotOccupiedArr.add(transNum);
           _tableStatus[int.parse(transNum)] = TableStatus.AVAILABLE;
         });
 
@@ -81,13 +86,41 @@ class _SelectTablePageState extends State<SelectTablePage> {
           final occ = tableData['occupied'];
           tableNumbersJson
               .add({'tbl_no': tableNum, 'trans_no': transNum, 'occupied': occ});
-          tableNumbersArr.add(transNum);
-          tableOccupiedArr.add(transNum);
+          // tableNumbersArr.add(tableNum);
+          // tableOccupiedArr.add(transNum);
           _tableStatus[int.parse(transNum)] = TableStatus.RESERVED;
         });
+        tableNumbersJson.sort((a, b) {
+  final String? tblNoA = a['tbl_no'];
+  final String? tblNoB = b['tbl_no'];
+  if (tblNoA == null && tblNoB == null) {
+    return 0;
+  } else if (tblNoA == null) {
+    return -1; 
+  } else if (tblNoB == null) {
+    return 1; 
+  }
 
-        tableNumbersArr.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+  final int? numA = int.tryParse(tblNoA.replaceAll(RegExp(r'[^0-9]'), ''));
+  final int? numB = int.tryParse(tblNoB.replaceAll(RegExp(r'[^0-9]'), ''));
 
+  if (numA == null && numB == null) {
+    return 0; 
+  } else if (numA == null) {
+    return -1; 
+  } else if (numB == null) {
+    return 1; 
+  }
+
+  return numA.compareTo(numB); 
+});
+
+
+for (int i = 0; i < tableNumbersJson.length; i++) {
+  tableNumbersArr.add(tableNumbersJson[i]['tbl_no']!);
+  tableTransNumbArr.add(tableNumbersJson[i]['trans_no']!);
+  tableOccupiedArr.add(tableNumbersJson[i]['occupied']!);
+}
         setState(() {});
       } else {
         print('Failed to fetch data. Status Code: ${response.statusCode}');
@@ -184,27 +217,30 @@ class _SelectTablePageState extends State<SelectTablePage> {
                 itemCount: tableNumbersArr.length,
                 itemBuilder: (context, index) {
                   final tableNumber = tableNumbersArr[index];
-                  final tableStatus = _tableStatus[int.parse(tableNumber)];
+                  final transNumber = tableTransNumbArr[index];
+                 final ifOccupied = int.parse(tableOccupiedArr[index]);
+final tableStatus = ifOccupied == 1 ? TableStatus.RESERVED : TableStatus.AVAILABLE;
                   final isSelected =
-                      _tempSelectedTables.contains(int.parse(tableNumber));
+                      _tempSelectedTables.contains(tableNumber);
                   final isSelectedFromPrefs =
                       _selectedTables.contains(alreadySelectedTable);
 
                   return GestureDetector(
                     onTap: () {
                       setState(() {
+                       
                         if (tableStatus != TableStatus.AVAILABLE) {
                           return;
                         }
                         if (_tempSelectedTables
-                            .contains(int.parse(tableNumber))) {
+                            .contains(tableNumber)) {
                           removeFromShared();
-                          _tempSelectedTables.remove(int.parse(tableNumber));
+                          _tempSelectedTables.remove(tableNumber);
                         } else {
-                          // If the table is not selected, select it
                           _tempSelectedTables.clear();
                           saveSelectedTables(tableNumber);
-                          _tempSelectedTables.add(int.parse(tableNumber));
+                          saveSelectedTables2(transNumber);
+                          _tempSelectedTables.add(tableNumber);
                         }
                       });
                     },
@@ -222,13 +258,6 @@ class _SelectTablePageState extends State<SelectTablePage> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Table',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
                                 '$tableNumber',
                                 style: TextStyle(
                                   color: Colors.white,
@@ -243,13 +272,7 @@ class _SelectTablePageState extends State<SelectTablePage> {
                             Container(
                               color: Colors.black54.withOpacity(0.5),
                               child: Center(
-                                child: Text(
-                                  'SELECTED',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                               
                               ),
                             ),
                         ],

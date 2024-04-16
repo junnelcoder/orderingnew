@@ -70,13 +70,11 @@ class _ItemWidgetState extends State<ItemWidget> {
                       .contains(widget.searchQuery.toLowerCase()))
                   .toList();
             } else {
-              print("empty");
               setState(() {
                 items = filteredItems;
                 isLoading = false;
               });
               if (widget.category == "ALL") {
-                print("emptyy");
                 List<Item> filteredItems =
                     firstRecordset.map((item) => Item.fromJson(item)).toList();
                 if (widget.searchQuery.isNotEmpty) {
@@ -181,7 +179,8 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   void _myFunction() async {
-    var ipAddress = AppConfig.serverIPAddress;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? ipAddress = prefs.getString('ipAddress');
     if (ipAddress != "") {
       print('IP Address: $ipAddress');
       try {
@@ -193,8 +192,7 @@ class _ItemWidgetState extends State<ItemWidget> {
         if (response.statusCode == 200) {
           String serverResponse = response.body;
           print('Server response: $serverResponse');
-          AppConfig.serverIPAddress = ipAddress;
-          // Navigate to LoginScreen
+          AppConfig.serverIPAddress = ipAddress!;
         } else {
           print('Failed to connect to server');
         }

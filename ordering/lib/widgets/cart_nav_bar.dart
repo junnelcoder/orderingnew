@@ -160,10 +160,9 @@ class CartNavBar extends StatelessWidget {
   }
 
   Future<void> sendSelectedIndexToServer() async {
-    print("step 2");
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? selectedIndexesString = prefs.getString('selectedTables');
+      String? selectedIndexesString = prefs.getString('selectedTables2');
 
       if (selectedIndexesString != null) {
         List<int> retrievedIndexes =
@@ -173,8 +172,6 @@ class CartNavBar extends StatelessWidget {
           List<int> temp = [];
           temp.add(retrievedIndexes[i]);
           var apiUrl = Uri.parse('http://$ipAddress:8080/api/occupy');
-
-          print("Print 2 $temp");
           var response = await http.post(
             apiUrl,
             headers: <String, String>{
@@ -184,7 +181,7 @@ class CartNavBar extends StatelessWidget {
           );
 
           if (response.statusCode == 200) {
-            print('Tables occupied successfully.');
+            await prefs.remove('selectedTables2');
             await prefs.remove('selectedTables');
           } else {
             print(
@@ -195,52 +192,80 @@ class CartNavBar extends StatelessWidget {
       } else {
         print('Selected indexes string is null.');
       }
+      
+           
     } catch (e) {
       print('Error occupying tables: $e');
     }
+    
   }
 
   Future<void> saveOrderToDatabase(
-      List<Map<String, dynamic>> cartItems, BuildContext context) async {
-    print("step 1");
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? ipAddress = prefs.getString('ipAddress');
-      var apiUrl = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
-
-      var response = await http.post(
-        apiUrl,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(cartItems.map((item) => jsonEncode(item)).toList()),
-      );
-
-      if (response.statusCode == 200) {
-        Fluttertoast.showToast(
-          msg: "Order placed successfully",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-        );
-        await prefs.remove('cartItems');
-
-        print("to step 2");
-        sendSelectedIndexToServer();
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomePage(),
-          ),
-        );
-      } else {
-        print('Failed to save order. Status code: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error saving order: $e');
+  List<Map<String, dynamic>> cartItems, BuildContext context) async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress'); 
+    String? selectedTablesString = prefs.getString('selectedTables');
+    String? selectedService = prefs.getString('selectedService'); 
+    String serviceValue = '';
+    switch(selectedService) {
+      case 'Dine In':
+        serviceValue = 'DI';
+        break;
+      case 'Take Out':
+        serviceValue = 'TO';
+        break;
+      case 'Delivery':
+        serviceValue = 'DE';
+        break;
+      case 'Pick Up':
+        serviceValue = 'PU';
+        break;
+      default:
+        serviceValue = ''; // Default value or handle other cases
     }
+    var apiUrl = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
+
+    var response = await http.post(
+      apiUrl,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        'cartItems': cartItems.map((item) => jsonEncode(item)).toList(),
+        'selectedTablesString': selectedTablesString,
+        'switchValue': serviceValue, 
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      Fluttertoast.showToast(
+        msg: "Order placed successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+      await prefs.remove('cartItems');
+      await prefs.remove('selectedService');
+
+      sendSelectedIndexToServer();
+      
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+        ),
+      );
+    } else {
+      print('Failed to save order. Status code: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error saving order: $e');
   }
+}
+
+
 }
 
 class CartPage extends StatefulWidget {
