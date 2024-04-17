@@ -5,9 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeNavBar extends StatefulWidget {
   final bool isDarkMode;
-  final bool isSwitchOn; // State ng switch button
+  final bool isSwitchOn;
   final VoidCallback toggleDarkMode;
-  final ValueChanged<bool> onSwitchChanged; // Callback function para sa pagbabago ng switch button
+  final ValueChanged<bool> onSwitchChanged;
 
   const HomeNavBar({
     required this.isDarkMode,
@@ -22,24 +22,31 @@ class HomeNavBar extends StatefulWidget {
 
 class _HomeNavBarState extends State<HomeNavBar> {
   late bool _someFunctionalitySwitchValue;
+  late bool _canInteractWithSwitch;
 
   @override
   void initState() {
     super.initState();
+    _canInteractWithSwitch = true;
     _loadSwitchValueFromStorage();
   }
 
   Future<void> _loadSwitchValueFromStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? cartItems = prefs.getStringList('cartItems');
+    if (cartItems != null && cartItems.isNotEmpty) {
+      setState(() {
+        _canInteractWithSwitch = false;
+      });
+    }
+
     String? switchValue = prefs.getString('switchValue');
     if (switchValue == null) {
-      // If no value is found in storage, set default to 'QS'
       setState(() {
         _someFunctionalitySwitchValue = false;
       });
       _saveSwitchValueToStorage(false);
     } else {
-      // Set switch value from storage
       setState(() {
         _someFunctionalitySwitchValue = switchValue == 'FNB';
       });
@@ -55,7 +62,6 @@ class _HomeNavBarState extends State<HomeNavBar> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? cartItems = prefs.getStringList('cartItems');
     if (cartItems != null) {
-      // Count items except the ones with category 'notes'
       int openCartItemsCount = 0;
       for (String cartItem in cartItems) {
         Map<String, dynamic> item = json.decode(cartItem);
@@ -65,7 +71,6 @@ class _HomeNavBarState extends State<HomeNavBar> {
       }
       return openCartItemsCount;
     } else {
-      // If no cart items found, return count as 0
       return 0;
     }
   }
@@ -184,17 +189,20 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     children: [
                       Semantics(
                         key: Key('someFunctionalitySwitch'),
-                        child: Switch(
-                          value: _someFunctionalitySwitchValue,
-                          onChanged: (value) {
-                            setState(() {
-                              _someFunctionalitySwitchValue = value;
-                              _saveSwitchValueToStorage(value);
-                              widget.onSwitchChanged(value);
-                            });
-                          },
-                          activeTrackColor: Colors.black,
-                          activeColor: Colors.white,
+                        child: IgnorePointer(
+                          ignoring: !_canInteractWithSwitch,
+                          child: Switch(
+                            value: _someFunctionalitySwitchValue,
+                            onChanged: _canInteractWithSwitch ? (value) {
+                              setState(() {
+                                _someFunctionalitySwitchValue = value;
+                                _saveSwitchValueToStorage(value);
+                                widget.onSwitchChanged(value);
+                              });
+                            } : null,
+                            activeTrackColor: Colors.black,
+                            activeColor: Colors.white,
+                          ),
                         ),
                       ),
                       Text(
