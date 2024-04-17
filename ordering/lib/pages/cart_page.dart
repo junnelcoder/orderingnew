@@ -17,12 +17,23 @@ class _CartPageState extends State<CartPage> {
   Map<String, dynamic>? notesData;
   List<String> notesList = ['No notes added'];
   TextEditingController _textFieldController = TextEditingController();
+  late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
+    _initSharedPreferences();
     _fetchCartItems();
     _fetchNotes();
+  }
+
+  Future<void> _saveCustomerName(String customerName) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('customerName', customerName);
+  }
+
+  Future<void> _initSharedPreferences() async {
+    prefs = await SharedPreferences.getInstance();
   }
 
   Future<void> _fetchCartItems() async {
@@ -90,10 +101,12 @@ class _CartPageState extends State<CartPage> {
   }
 
   String _getImagePathForItem(Map<String, dynamic> item) {
-    if (item['picture_path'] != null && item['picture_path'].trim().isNotEmpty) {
+    if (item['picture_path'] != null &&
+        item['picture_path'].trim().isNotEmpty) {
       return item['picture_path'];
     } else {
-      String itemcode = item['itemcode'].trim().toUpperCase().replaceAll(' ', '_');
+      String itemcode =
+          item['itemcode'].trim().toUpperCase().replaceAll(' ', '_');
       String ipAddress = AppConfig.serverIPAddress;
       // Construct the URL to fetch the image dynamically from the server
       return 'http://$ipAddress:8080/api/image/$itemcode';
@@ -247,7 +260,8 @@ class _CartPageState extends State<CartPage> {
                       }
 
                       if (item['category'] != 'notes') {
-                        List<String> availableNotes = List<String>.from(notesList);
+                        List<String> availableNotes =
+                            List<String>.from(notesList);
                         for (int i = 0; i < cartItems.length; i++) {
                           if (cartItems[i]['category'] == 'notes' &&
                               cartItems[i]['itemname'] != null) {
@@ -319,13 +333,14 @@ class _CartPageState extends State<CartPage> {
                                           _getImagePathForItem(item),
                                           height: screenWidth * 0.22,
                                           width: screenWidth * 0.35,
-                                           errorBuilder: (context, error, stackTrace) {
-                                              return Image.asset(
-                                                'images/DEFAULT.png',
-                                                width: 155,
-                                                height: 120,
-                                              );
-                                            },
+                                          errorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Image.asset(
+                                              'images/DEFAULT.png',
+                                              width: 155,
+                                              height: 120,
+                                            );
+                                          },
                                         ),
                                       ),
                                       SizedBox(width: 10),
@@ -362,10 +377,12 @@ class _CartPageState extends State<CartPage> {
                                       ),
                                       SizedBox(width: 10),
                                       Container(
-                                        padding: EdgeInsets.all(screenWidth * 0.015),
+                                        padding:
+                                            EdgeInsets.all(screenWidth * 0.015),
                                         decoration: BoxDecoration(
                                           color: Colors.black,
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                         child: Column(
                                           mainAxisAlignment:
@@ -408,7 +425,8 @@ class _CartPageState extends State<CartPage> {
                                       vertical: screenWidth * 0.02,
                                     ),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           "Added notes:",
@@ -424,7 +442,8 @@ class _CartPageState extends State<CartPage> {
                                                 child: Text(
                                                   "- $note",
                                                   style: TextStyle(
-                                                    fontSize: screenWidth * 0.04,
+                                                    fontSize:
+                                                        screenWidth * 0.04,
                                                     color: Colors.grey,
                                                   ),
                                                 ),
@@ -464,16 +483,17 @@ class _CartPageState extends State<CartPage> {
                                             value: null,
                                             onChanged: (String? newValue) {
                                               if (newValue != null) {
-                                                _addNotes(
-                                                    newValue, index, item['id']);
+                                                _addNotes(newValue, index,
+                                                    item['id']);
                                               }
                                             },
                                             items: unselectedNotes
                                                 .map<DropdownMenuItem<String>>(
-                                                  (item) => DropdownMenuItem<String>(
+                                                  (item) =>
+                                                      DropdownMenuItem<String>(
                                                     value: item['itemname'],
-                                                    child:
-                                                        Text(item['itemname'].trim()),
+                                                    child: Text(item['itemname']
+                                                        .trim()),
                                                   ),
                                                 )
                                                 .toList(),
@@ -492,22 +512,21 @@ class _CartPageState extends State<CartPage> {
                     },
                   ),
           ),
-         Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              // borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: TextField(
-              controller: _textFieldController,
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Enter Customer Name',
-                
+          if (prefs.getString('switchValue') != 'FNB')
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+              ),
+              child: TextField(
+                controller: _textFieldController,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Enter Customer Name',
+                ),
               ),
             ),
-          ),
         ],
       ),
       bottomNavigationBar: cartItems.isNotEmpty

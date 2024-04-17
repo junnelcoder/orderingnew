@@ -2,12 +2,12 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:ordering/pages/ip_screen.dart';
 import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ItemWidget extends StatefulWidget {
@@ -47,70 +47,9 @@ class _ItemWidgetState extends State<ItemWidget> {
     }
   }
 
-  Future<void> fetchItemsFromSharedPreferences() async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? jsonData = prefs.getString('items');
-      if (jsonData != null) {
-        final Map<String, dynamic> data = json.decode(jsonData);
-        // Check if the data contains 'recordsets' key and its value is a list
-        if (data.containsKey('recordsets') &&
-            data['recordsets'] is List<dynamic>) {
-          final List<dynamic> recordsets = data['recordsets'];
-          if (recordsets.isNotEmpty && recordsets[0] is List<dynamic>) {
-            final List<dynamic> firstRecordset = recordsets[0];
-            List<Item> filteredItems = firstRecordset
-                .map((item) => Item.fromJson(item))
-                .where((item) => item.category == widget.category)
-                .toList();
-            if (widget.searchQuery.isNotEmpty) {
-              filteredItems = filteredItems
-                  .where((item) => item.itemname
-                      .toLowerCase()
-                      .contains(widget.searchQuery.toLowerCase()))
-                  .toList();
-            } else {
-              setState(() {
-                items = filteredItems;
-                isLoading = false;
-              });
-              if (widget.category == "ALL") {
-                List<Item> filteredItems =
-                    firstRecordset.map((item) => Item.fromJson(item)).toList();
-                if (widget.searchQuery.isNotEmpty) {
-                  filteredItems = filteredItems
-                      .where((item) => item.itemname
-                          .toLowerCase()
-                          .contains(widget.searchQuery.toLowerCase()))
-                      .toList();
-                }
-                setState(() {
-                  items = filteredItems;
-                  isLoading = false;
-                });
-              }
-            }
-          } else {
-            print('Invalid recordsets format in SharedPreferences data');
-          }
-        } else {
-          print('Missing or invalid recordsets key in SharedPreferences data');
-        }
-      } else {
-        setState(() {
-          items =
-              []; // Clear items list if SharedPreferences doesn't contain 'items' key
-          isLoading = false;
-        });
-        print('No data found in SharedPreferences');
-      }
-    } catch (e) {
-      print('Error fetching items from SharedPreferences: $e');
-    }
-  }
-
   Future<void> fetchItems() async {
-    String ipAddress = AppConfig.serverIPAddress;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
     ;
     const Duration timeoutDuration = Duration(seconds: 5);
     String url = 'http://$ipAddress:8080/api/items';
@@ -145,7 +84,6 @@ class _ItemWidgetState extends State<ItemWidget> {
       }
     } catch (e) {
       print('Error fetching items: $e');
-      fetchItemsFromSharedPreferences();
     }
     try {
       final response = await http
@@ -154,10 +92,8 @@ class _ItemWidgetState extends State<ItemWidget> {
           )
           .timeout(Duration(seconds: 5));
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        String jsonData = json.encode(data);
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('items', jsonData);
+        // final Map<String, dynamic> data = json.decode(response.body);
+        // String jsonData = json.encode(data);
       } else {
         print('Failed to connect to server');
       }
@@ -180,7 +116,7 @@ class _ItemWidgetState extends State<ItemWidget> {
 
   void _myFunction() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? ipAddress = prefs.getString('ipAddress');
+    String? ipAddress = prefs.getString('ipAddress');
     if (ipAddress != "") {
       print('IP Address: $ipAddress');
       try {
@@ -197,22 +133,22 @@ class _ItemWidgetState extends State<ItemWidget> {
           print('Failed to connect to server');
         }
       } catch (e) {
-        print('Errorrrrr connecting to server: $e');
-        Fluttertoast.showToast(
-          msg: "Server problem, Working offline",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 3,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (context) => LoginScreen(),
-        //   ),
+        // print('Errorrrrr connecting to server: $e');
+        // Fluttertoast.showToast(
+        //   msg: "Server problem, Working offline",
+        //   toastLength: Toast.LENGTH_SHORT,
+        //   gravity: ToastGravity.BOTTOM,
+        //   timeInSecForIosWeb: 3,
+        //   backgroundColor: Colors.red,
+        //   textColor: Colors.white,
+        //   fontSize: 16.0,
         // );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => IpScreen(),
+          ),
+        );
       }
     } else {
       print('IP Address not found in SharedPreferences');
@@ -365,23 +301,22 @@ class _ItemWidgetState extends State<ItemWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           Container(
-  padding: EdgeInsets.all(8.0),
-  alignment: Alignment.center,
-  child: Image.network(
-    _getImagePathForItem(item),
-    width: 155,
-    height: 120,
-    errorBuilder: (context, error, stackTrace) {
-      return Image.asset(
-        'images/DEFAULT.png',
-        width: 155,
-        height: 120,
-      );
-    },
-  ),
-),
-
+            Container(
+              padding: EdgeInsets.all(8.0),
+              alignment: Alignment.center,
+              child: Image.network(
+                _getImagePathForItem(item),
+                width: 155,
+                height: 120,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(
+                    'images/DEFAULT.png',
+                    width: 155,
+                    height: 120,
+                  );
+                },
+              ),
+            ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
@@ -432,17 +367,15 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   String _getImagePathForItem(Item item) {
-  if (item.picture_path.trim().isNotEmpty) {
-    return item.picture_path;
-  } else {
-    String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
-    String ipAddress = AppConfig.serverIPAddress;
-    // Construct the URL to fetch the image dynamically from the server
-    return 'http://$ipAddress:8080/api/image/$itemcode';
+    if (item.picture_path.trim().isNotEmpty) {
+      return item.picture_path;
+    } else {
+      String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
+      String ipAddress = AppConfig.serverIPAddress;
+      // Construct the URL to fetch the image dynamically from the server
+      return 'http://$ipAddress:8080/api/image/$itemcode';
+    }
   }
-}
-
-
 }
 
 class Item {

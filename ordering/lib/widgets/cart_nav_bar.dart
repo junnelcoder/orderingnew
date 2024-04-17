@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:ordering/pages/select_table.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../pages/home_page.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -67,7 +68,16 @@ class CartNavBar extends StatelessWidget {
           ),
           InkWell(
             onTap: () {
-              _showConfirmationDialog(context);
+              String label = getActionButtonLabel() as String;
+
+              if (label == 'Select Table') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SelectTablePage()),
+                );
+              } else if (label == 'Save Order') {
+                _showConfirmationDialog(context);
+              }
             },
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -79,23 +89,93 @@ class CartNavBar extends StatelessWidget {
                   bottomLeft: Radius.circular(20),
                 ),
               ),
-              child: Row(
-                children: [
-                  Text(
-                    "Save Order",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              child: FutureBuilder<String>(
+                future: getActionButtonLabel(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator(); // Return a loading indicator
+                  } else if (snapshot.hasError) {
+                    return Text(
+                        'Error: ${snapshot.error}'); // Return an error message widget
+                  } else {
+                    String label = snapshot.data ?? 'Select Table';
+                    if (label == 'Select Table') {
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SelectTablePage()),
+                          );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(20),
+                              bottomRight: Radius.circular(20),
+                              bottomLeft: Radius.circular(20),
+                            ),
+                          ),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    } else if (label == 'Save Order') {
+                      return InkWell(
+                        onTap: () {
+                          _showConfirmationDialog(context);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.only(
+                              topRight: Radius.circular(20),
+                              bottomRight: Radius.circular(20),
+                              bottomLeft: Radius.circular(20),
+                            ),
+                          ),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    } else {
+                      return Text('Unknown label: $label');
+                    }
+                  }
+                },
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<String> getActionButtonLabel() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // await prefs.setString('selectedTblBool', "true");
+    String? selectedTablesString = prefs.getString('selectedTables');
+    if (selectedTablesString != null) {
+      selectTableShared();
+    }
+    return selectedTablesString?.isNotEmpty ?? false
+        ? 'Save Order'
+        : 'Select Table';
   }
 
   Future<void> _showConfirmationDialog(BuildContext context) async {
@@ -192,80 +272,80 @@ class CartNavBar extends StatelessWidget {
       } else {
         print('Selected indexes string is null.');
       }
-      
-           
     } catch (e) {
       print('Error occupying tables: $e');
     }
-    
   }
 
   Future<void> saveOrderToDatabase(
-  List<Map<String, dynamic>> cartItems, BuildContext context) async {
-  try {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? ipAddress = prefs.getString('ipAddress'); 
-    String? selectedTablesString = prefs.getString('selectedTables');
-    String? selectedService = prefs.getString('selectedService'); 
-    String serviceValue = '';
-    switch(selectedService) {
-      case 'Dine In':
-        serviceValue = 'DI';
-        break;
-      case 'Take Out':
-        serviceValue = 'TO';
-        break;
-      case 'Delivery':
-        serviceValue = 'DE';
-        break;
-      case 'Pick Up':
-        serviceValue = 'PU';
-        break;
-      default:
-        serviceValue = ''; // Default value or handle other cases
-    }
-    var apiUrl = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
+      List<Map<String, dynamic>> cartItems, BuildContext context) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? ipAddress = prefs.getString('ipAddress');
+      String? selectedTablesString = prefs.getString('selectedTables');
+      String? selectedService = prefs.getString('selectedService');
+      String serviceValue = '';
+      switch (selectedService) {
+        case 'Dine In':
+          serviceValue = 'DI';
+          break;
+        case 'Take Out':
+          serviceValue = 'TO';
+          break;
+        case 'Delivery':
+          serviceValue = 'DE';
+          break;
+        case 'Pick Up':
+          serviceValue = 'PU';
+          break;
+        default:
+          serviceValue = 'DI';
+      }
+      var apiUrl = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
 
-    var response = await http.post(
-      apiUrl,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode({
-        'cartItems': cartItems.map((item) => jsonEncode(item)).toList(),
-        'selectedTablesString': selectedTablesString,
-        'switchValue': serviceValue, 
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      Fluttertoast.showToast(
-        msg: "Order placed successfully",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
+      var response = await http.post(
+        apiUrl,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'cartItems': cartItems.map((item) => jsonEncode(item)).toList(),
+          'selectedTablesString': selectedTablesString,
+          'switchValue': serviceValue,
+        }),
       );
-      await prefs.remove('cartItems');
-      await prefs.remove('selectedService');
 
-      sendSelectedIndexToServer();
-      
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
-    } else {
-      print('Failed to save order. Status code: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: "Order placed successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+        await prefs.remove('cartItems');
+        await prefs.remove('selectedService');
+
+        sendSelectedIndexToServer();
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
+      } else {
+        print('Failed to save order. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error saving order: $e');
     }
-  } catch (e) {
-    print('Error saving order: $e');
   }
 }
 
-
+Future<void> selectTableShared() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('selectedTblBool', "true");
 }
 
 class CartPage extends StatefulWidget {

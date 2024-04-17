@@ -30,7 +30,6 @@ class _HomePageState extends State<HomePage> {
     loadSelectedService();
     selectedFromShared();
 
-    // saveSelectedService('Dine In');
     setState(() {
       selectedService = 'Dine In';
     });
@@ -51,7 +50,6 @@ class _HomePageState extends State<HomePage> {
   void _toggleSwitch(bool newValue) {
     setState(() {
       _isSwitchOn = newValue;
-      // Save switch value to local storage
       saveSwitchValueToShared(newValue);
     });
   }
@@ -263,67 +261,66 @@ class _HomePageState extends State<HomePage> {
             FloatingActionButton.extended(
               onPressed: () {
                 showDialog(
-  context: context,
-  builder: (BuildContext context) {
-    return AlertDialog(
-      title: Text('Select Service'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          InkWell(
-            onTap: () {
-              setState(() {
-                selectedService = 'Dine In';
-              });
-              saveSelectedService('Dine In');
-              Navigator.pop(context);
-            },
-            child: ListTile(
-              title: Text('Dine In'),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              setState(() {
-                selectedService = 'Take Out';
-              });
-              saveSelectedService('Take Out');
-              Navigator.pop(context);
-            },
-            child: ListTile(
-              title: Text('Take Out'),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              setState(() {
-                selectedService = 'Pick Up';
-              });
-              saveSelectedService('Pick Up');
-              Navigator.pop(context);
-            },
-            child: ListTile(
-              title: Text('Pick Up'),
-            ),
-          ),
-          InkWell(
-            onTap: () {
-              setState(() {
-                selectedService = 'Delivery';
-              });
-              saveSelectedService('Delivery');
-              Navigator.pop(context);
-            },
-            child: ListTile(
-              title: Text('Delivery'),
-            ),
-          ),
-        ],
-      ),
-    );
-  },
-);
-
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Select Service'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                selectedService = 'Dine In';
+                              });
+                              saveSelectedService('Dine In');
+                              Navigator.pop(context);
+                            },
+                            child: ListTile(
+                              title: Text('Dine In'),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                selectedService = 'Take Out';
+                              });
+                              saveSelectedService('Take Out');
+                              Navigator.pop(context);
+                            },
+                            child: ListTile(
+                              title: Text('Take Out'),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                selectedService = 'Pick Up';
+                              });
+                              saveSelectedService('Pick Up');
+                              Navigator.pop(context);
+                            },
+                            child: ListTile(
+                              title: Text('Pick Up'),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                selectedService = 'Delivery';
+                              });
+                              saveSelectedService('Delivery');
+                              Navigator.pop(context);
+                            },
+                            child: ListTile(
+                              title: Text('Delivery'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
               },
               label: Text(selectedService), // Use selected service text
               icon: Icon(Icons.room_service),

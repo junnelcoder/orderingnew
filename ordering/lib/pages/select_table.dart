@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ordering/pages/cart_page.dart';
 import 'package:ordering/pages/home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -28,16 +29,24 @@ class _SelectTablePageState extends State<SelectTablePage> {
     fetchDataFromServer();
     selectedFromShared();
   }
-Future<void> saveSelectedTables2(String table) async {
+
+  Future<void> saveSelectedTables2(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedTables2', table);
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => HomePage()));
+    String? temp = prefs.getString('selectedTblBool');
+    if (temp == "true") {
+      await prefs.setString('selectedTblBool', "false");
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CartPage()));
+    } else {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => HomePage()));
+    }
   }
+
   Future<void> saveSelectedTables(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedTables', table);
-    
   }
 
   Future<void> selectedFromShared() async {
@@ -91,36 +100,37 @@ Future<void> saveSelectedTables2(String table) async {
           _tableStatus[int.parse(transNum)] = TableStatus.RESERVED;
         });
         tableNumbersJson.sort((a, b) {
-  final String? tblNoA = a['tbl_no'];
-  final String? tblNoB = b['tbl_no'];
-  if (tblNoA == null && tblNoB == null) {
-    return 0;
-  } else if (tblNoA == null) {
-    return -1; 
-  } else if (tblNoB == null) {
-    return 1; 
-  }
+          final String? tblNoA = a['trans_no'];
+          final String? tblNoB = b['trans_no'];
+          if (tblNoA == null && tblNoB == null) {
+            return 0;
+          } else if (tblNoA == null) {
+            return -1;
+          } else if (tblNoB == null) {
+            return 1;
+          }
 
-  final int? numA = int.tryParse(tblNoA.replaceAll(RegExp(r'[^0-9]'), ''));
-  final int? numB = int.tryParse(tblNoB.replaceAll(RegExp(r'[^0-9]'), ''));
+          final int? numA =
+              int.tryParse(tblNoA.replaceAll(RegExp(r'[^0-9]'), ''));
+          final int? numB =
+              int.tryParse(tblNoB.replaceAll(RegExp(r'[^0-9]'), ''));
 
-  if (numA == null && numB == null) {
-    return 0; 
-  } else if (numA == null) {
-    return -1; 
-  } else if (numB == null) {
-    return 1; 
-  }
+          if (numA == null && numB == null) {
+            return 0;
+          } else if (numA == null) {
+            return -1;
+          } else if (numB == null) {
+            return 1;
+          }
 
-  return numA.compareTo(numB); 
-});
+          return numA.compareTo(numB);
+        });
 
-
-for (int i = 0; i < tableNumbersJson.length; i++) {
-  tableNumbersArr.add(tableNumbersJson[i]['tbl_no']!);
-  tableTransNumbArr.add(tableNumbersJson[i]['trans_no']!);
-  tableOccupiedArr.add(tableNumbersJson[i]['occupied']!);
-}
+        for (int i = 0; i < tableNumbersJson.length; i++) {
+          tableNumbersArr.add(tableNumbersJson[i]['tbl_no']!);
+          tableTransNumbArr.add(tableNumbersJson[i]['trans_no']!);
+          tableOccupiedArr.add(tableNumbersJson[i]['occupied']!);
+        }
         setState(() {});
       } else {
         print('Failed to fetch data. Status Code: ${response.statusCode}');
@@ -218,22 +228,21 @@ for (int i = 0; i < tableNumbersJson.length; i++) {
                 itemBuilder: (context, index) {
                   final tableNumber = tableNumbersArr[index];
                   final transNumber = tableTransNumbArr[index];
-                 final ifOccupied = int.parse(tableOccupiedArr[index]);
-final tableStatus = ifOccupied == 1 ? TableStatus.RESERVED : TableStatus.AVAILABLE;
-                  final isSelected =
-                      _tempSelectedTables.contains(tableNumber);
+                  final ifOccupied = int.parse(tableOccupiedArr[index]);
+                  final tableStatus = ifOccupied == 1
+                      ? TableStatus.RESERVED
+                      : TableStatus.AVAILABLE;
+                  final isSelected = _tempSelectedTables.contains(tableNumber);
                   final isSelectedFromPrefs =
                       _selectedTables.contains(alreadySelectedTable);
 
                   return GestureDetector(
                     onTap: () {
                       setState(() {
-                       
                         if (tableStatus != TableStatus.AVAILABLE) {
                           return;
                         }
-                        if (_tempSelectedTables
-                            .contains(tableNumber)) {
+                        if (_tempSelectedTables.contains(tableNumber)) {
                           removeFromShared();
                           _tempSelectedTables.remove(tableNumber);
                         } else {
@@ -271,9 +280,7 @@ final tableStatus = ifOccupied == 1 ? TableStatus.RESERVED : TableStatus.AVAILAB
                           if (isSelected || isSelectedFromPrefs)
                             Container(
                               color: Colors.black54.withOpacity(0.5),
-                              child: Center(
-                               
-                              ),
+                              child: Center(),
                             ),
                         ],
                       ),

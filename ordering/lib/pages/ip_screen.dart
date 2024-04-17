@@ -5,7 +5,6 @@ import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
-import '../pages/select_table.dart';
 
 class IpScreen extends StatefulWidget {
   const IpScreen({Key? key}) : super(key: key);
@@ -18,7 +17,7 @@ class _IpScreenState extends State<IpScreen> {
   void getSavedIpAddress() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    _ipAddressController.text = "192.168.3.121";
+    _ipAddressController.text = "192.168.3.101";
     if (ipAddress != null) {
       setState(() {
         // _ipAddressController.text = ipAddress;
@@ -30,7 +29,6 @@ class _IpScreenState extends State<IpScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
     if (ipAddress != null) {
-      print('IP Address: $ipAddress');
       try {
         final response =
             // await http.get(Uri.parse('http://192.168.5.102:8080/api/ipConn'));
@@ -39,7 +37,6 @@ class _IpScreenState extends State<IpScreen> {
           String serverResponse = response.body;
           print('Server response: $serverResponse');
           AppConfig.serverIPAddress = ipAddress;
-          // Navigate to LoginScreen
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -52,12 +49,12 @@ class _IpScreenState extends State<IpScreen> {
       } catch (e) {
         print('Error connecting to server: $e');
         Fluttertoast.showToast(
-          msg: "Local IP Address migth be changed",
+          msg: "Server error",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIosWeb: 3,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
+          backgroundColor: const Color.fromARGB(255, 112, 109, 109),
+          textColor: const Color.fromARGB(255, 0, 0, 0),
           fontSize: 16.0,
         );
       }

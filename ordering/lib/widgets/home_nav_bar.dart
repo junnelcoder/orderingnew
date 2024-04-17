@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -116,19 +115,28 @@ class _HomeNavBarState extends State<HomeNavBar> {
                         alignment: Alignment.centerRight,
                         children: [
                           Icon(
-                            widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                            color: widget.isDarkMode ? Colors.white : Colors.black,
+                            widget.isDarkMode
+                                ? Icons.dark_mode
+                                : Icons.light_mode,
+                            color:
+                                widget.isDarkMode ? Colors.white : Colors.black,
                           ),
                           Container(
                             width: 30,
                             height: 30,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: widget.isDarkMode ? Colors.black : Colors.white,
+                              color: widget.isDarkMode
+                                  ? Colors.black
+                                  : Colors.white,
                             ),
                             child: Icon(
-                              widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                              color: widget.isDarkMode ? Colors.white : Colors.black,
+                              widget.isDarkMode
+                                  ? Icons.light_mode
+                                  : Icons.dark_mode,
+                              color: widget.isDarkMode
+                                  ? Colors.white
+                                  : Colors.black,
                             ),
                           ),
                         ],
@@ -145,7 +153,8 @@ class _HomeNavBarState extends State<HomeNavBar> {
                       Container(
                         padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: widget.isDarkMode ? Colors.white : Colors.black,
+                          color:
+                              widget.isDarkMode ? Colors.white : Colors.black,
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
@@ -157,7 +166,8 @@ class _HomeNavBarState extends State<HomeNavBar> {
                         ),
                         child: Icon(
                           Icons.assignment_add,
-                          color: widget.isDarkMode ? Colors.black : Colors.white,
+                          color:
+                              widget.isDarkMode ? Colors.black : Colors.white,
                           size: 40,
                         ),
                       ),
@@ -193,13 +203,15 @@ class _HomeNavBarState extends State<HomeNavBar> {
                           ignoring: !_canInteractWithSwitch,
                           child: Switch(
                             value: _someFunctionalitySwitchValue,
-                            onChanged: _canInteractWithSwitch ? (value) {
-                              setState(() {
-                                _someFunctionalitySwitchValue = value;
-                                _saveSwitchValueToStorage(value);
-                                widget.onSwitchChanged(value);
-                              });
-                            } : null,
+                            onChanged: _canInteractWithSwitch
+                                ? (value) {
+                                    setState(() {
+                                      _someFunctionalitySwitchValue = value;
+                                      _saveSwitchValueToStorage(value);
+                                      widget.onSwitchChanged(value);
+                                    });
+                                  }
+                                : null,
                             activeTrackColor: Colors.black,
                             activeColor: Colors.white,
                           ),
@@ -210,7 +222,8 @@ class _HomeNavBarState extends State<HomeNavBar> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: widget.isDarkMode ? Colors.white : Colors.black,
+                          color:
+                              widget.isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
                     ],

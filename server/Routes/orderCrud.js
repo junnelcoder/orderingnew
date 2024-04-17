@@ -136,9 +136,7 @@ router.post('/add-notes-to-cart', async (req, res) => {
 router.post('/add-to-cart', async (req, res) => {
   try {
     const { cartItems, selectedTablesString, switchValue } = req.body;
-    console.log("switchValue");
-    console.log(selectedTablesString);
-    console.log("switchValue");
+
 
     let subtotalAmount = 0;
     let totalAmount = 0;
@@ -208,11 +206,13 @@ router.post('/add-to-cart', async (req, res) => {
         .input('division', sql.VarChar, division)
         .input('section', sql.VarChar, section)
         .input('brand', sql.VarChar, brand)
-        .input('close_status', sql.TinyInt, closeStatusInt);
+        .input('close_status', sql.TinyInt, closeStatusInt)
+        .input('table_no', sql.VarChar, selectedTablesString) 
+        .input('order_service', sql.VarChar, switchValue);
 
       await request.query(`
-        INSERT INTO [dbo].[so_detail] (pa_id, so_number, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status)
-        VALUES (@pa_id, @so_number, @machine_id, @trans_date, @itemcode, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @subtotal, @total, @department, @uom, @vatable, @tran_time, @division, @section, @brand, @close_status)
+        INSERT INTO [dbo].[so_detail] (pa_id, so_number, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status,table_no, order_service)
+        VALUES (@pa_id, @so_number, @machine_id, @trans_date, @itemcode, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @subtotal, @total, @department, @uom, @vatable, @tran_time, @division, @section, @brand, @close_status,@table_no, @order_service) 
       `);
     }
 

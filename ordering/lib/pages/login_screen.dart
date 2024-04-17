@@ -22,7 +22,6 @@ String? _selectedUsername;
 void saveUsernameToSharedPreferences(String username) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setString('username', username);
-  print(username);
 }
 
 class _LoginPageState extends State<LoginScreen> {
@@ -83,6 +82,12 @@ class _LoginPageState extends State<LoginScreen> {
         print('Failed to load users: ${response.statusCode}');
       }
     } catch (e) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IpScreen(),
+        ),
+      );
       print('Error fetching users: $e');
       Fluttertoast.showToast(
         msg: "Error fetching users",
