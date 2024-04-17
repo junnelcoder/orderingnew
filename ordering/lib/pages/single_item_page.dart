@@ -7,6 +7,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../widgets/item_widget.dart';
 import 'package:ordering/pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../pages/config.dart';
 
 final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -266,9 +267,16 @@ class _SingleItemPageState extends State<SingleItemPage> {
               ),
               SizedBox(height: 20),
               Center(
-                child: Image.asset(
+                child: Image.network(
                   _getImagePathForItem(widget.item),
                   height: MediaQuery.of(context).size.height / 2.5,
+                  errorBuilder: (context, error, stackTrace) {
+      return Image.asset(
+        'images/DEFAULT.png',
+        width: 155,
+        height: 120,
+      );
+    },
                 ),
               ),
               SizedBox(height: 10),
@@ -465,50 +473,17 @@ class _SingleItemPageState extends State<SingleItemPage> {
       ),
     );
   }
-
-  String _getImagePathForItem(Item item) {
-    if (item.picture_path.trim().isNotEmpty) {
-      return item.picture_path;
-    } else {
-      String itemName = item.itemname.trim().toUpperCase().replaceAll(' ', '_');
-
-      List<String> imageFiles = [
-        '25SL',
-        '50SL',
-        '75SL',
-        '100SL',
-        'BANGSILOG',
-        'BLACKCOFFEE',
-        'CAPPUCCINO',
-        'CHICKSILOG',
-        'CHOCOMT',
-        'COKE1L',
-        'COKEINCAN',
-        'DEFAULT',
-        'ESPRESSO',
-        'HOTCHOCO',
-        'HOTSILOG',
-        'LESSICE',
-        'MATCHAMT',
-        'NOICE',
-        'NOSUGAR',
-        'OREOMT',
-        'REDVELVETMT',
-        'ROYALINCAN',
-        'SISIG',
-        'SPRITEINCAN',
-        'TAPSILOG',
-      ];
-
-      for (String imageFileName in imageFiles) {
-        if (itemName.contains(imageFileName)) {
-          return 'images/${imageFileName.toUpperCase()}.png';
-        }
-      }
-
-      return 'images/DEFAULT.png';
-    }
+String _getImagePathForItem(Item item) {
+  if (item.picture_path.trim().isNotEmpty) {
+    return item.picture_path;
+  } else {
+    String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
+    String ipAddress = AppConfig.serverIPAddress;
+    // Construct the URL to fetch the image dynamically from the server
+    return 'http://$ipAddress:8080/api/image/$itemcode';
   }
+}
+  
 }
 
 class SingleItemNavBar extends StatelessWidget {

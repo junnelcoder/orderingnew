@@ -365,22 +365,23 @@ class _ItemWidgetState extends State<ItemWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: EdgeInsets.all(8.0),
-              alignment: Alignment.center,
-              child: Image.asset(
-                _getImagePathForItem(item),
-                width: 155,
-                height: 120,
-                errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'images/DEFAULT.png',
-                    width: 155,
-                    height: 120,
-                  );
-                },
-              ),
-            ),
+           Container(
+  padding: EdgeInsets.all(8.0),
+  alignment: Alignment.center,
+  child: Image.network(
+    _getImagePathForItem(item),
+    width: 155,
+    height: 120,
+    errorBuilder: (context, error, stackTrace) {
+      return Image.asset(
+        'images/DEFAULT.png',
+        width: 155,
+        height: 120,
+      );
+    },
+  ),
+),
+
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
@@ -431,48 +432,17 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   String _getImagePathForItem(Item item) {
-    if (item.picture_path.trim().isNotEmpty) {
-      return item.picture_path;
-    } else {
-      String itemName = item.itemname.trim().toUpperCase().replaceAll(' ', '_');
-
-      List<String> imageFiles = [
-        '25SL',
-        '50SL',
-        '75SL',
-        '100SL',
-        'BANGSILOG',
-        'BLACKCOFFEE',
-        'CAPPUCCINO',
-        'CHICKSILOG',
-        'CHOCOMT',
-        'COKE1L',
-        'COKEINCAN',
-        'DEFAULT',
-        'ESPRESSO',
-        'HOTCHOCO',
-        'HOTSILOG',
-        'LESSICE',
-        'MATCHAMT',
-        'NOICE',
-        'NOSUGAR',
-        'OREOMT',
-        'REDVELVETMT',
-        'ROYALINCAN',
-        'SISIG',
-        'SPRITEINCAN',
-        'TAPSILOG',
-      ];
-
-      for (String imageFileName in imageFiles) {
-        if (itemName.contains(imageFileName)) {
-          return 'images/${imageFileName.toUpperCase()}.png';
-        }
-      }
-
-      return 'images/DEFAULT.png';
-    }
+  if (item.picture_path.trim().isNotEmpty) {
+    return item.picture_path;
+  } else {
+    String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
+    String ipAddress = AppConfig.serverIPAddress;
+    // Construct the URL to fetch the image dynamically from the server
+    return 'http://$ipAddress:8080/api/image/$itemcode';
   }
+}
+
+
 }
 
 class Item {
