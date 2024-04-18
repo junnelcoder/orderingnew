@@ -41,7 +41,6 @@ class CartNavBar extends StatelessWidget {
           final switchValue = snapshot.data;
           // Check if switchValue is "QS", if yes, display the text field
           final bool displayTextField = switchValue?[0] == 'QS';
-          print("displayTextField $displayTextField $switchValue");
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 15),
             height: displayTextField ? 200 : 160,
@@ -101,7 +100,6 @@ class CartNavBar extends StatelessWidget {
                         String switchValue =
                             await _loadSwitchValueFromStorage();
                         String label = await getActionButtonLabel();
-                        print("labeelll $label");
                         if (switchValue == 'QS') {
                           label = "Save Order";
                           if (label == 'Save Order') {
@@ -185,12 +183,14 @@ class CartNavBar extends StatelessWidget {
   Future<String> getActionButtonLabel() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? selectedTablesString = prefs.getString('selectedTables');
-    print(selectedTablesString);
+    String? temp = prefs.getString('switchValue') ?? '';
     if (selectedTablesString != null) {
       selectTableShared();
       return 'Save Order';
+    } else if (selectedTablesString == null && temp == "QS") {
+      selectTableShared();
+      return 'Save Order';
     } else {
-      print("select");
       return 'Select Table';
     }
   }
@@ -329,11 +329,9 @@ class CartNavBar extends StatelessWidget {
         default:
           serviceValue = 'DI';
       }
-      print("CustName $custName");
       if (custName != "") {
         selectedTablesString = "QS-" + custName;
         selectedTablesString = selectedTablesString.toUpperCase();
-        print("result $selectedTablesString");
       }
       var apiUrl = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
 
