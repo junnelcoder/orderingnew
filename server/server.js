@@ -31,15 +31,15 @@ app.use('/api', crud);
 // Endpoint to serve images based on itemcode
 app.get('/api/image/:itemcode', (req, res) => {
   const itemcode = req.params.itemcode;
-  // const currentDirectory = process.cwd();
-  const imagePath = path.join(__dirname, 'images', `${itemcode}.png`);
+  const currentDirectory = process.cwd();
+  const imagePath = path.join(currentDirectory, 'images', `${itemcode}.png`);
   res.sendFile(imagePath);
 });
 
 const config = {
   user: 'sa',
   password: 'zankojt@2024',
-  server: 'DESKTOP-6s6clho\\SQLEXPRESS2014',
+  server: 'DESKTOP-EIR2A8B\\SQLEXPRESS2014',
   database: 'restopos45',
   options: {
     encrypt: false,
