@@ -16,24 +16,12 @@ class _CartPageState extends State<CartPage> {
   List<Map<String, dynamic>> cartItems = [];
   Map<String, dynamic>? notesData;
   List<String> notesList = ['No notes added'];
-  TextEditingController _textFieldController = TextEditingController();
-  late SharedPreferences prefs;
 
   @override
   void initState() {
     super.initState();
-    _initSharedPreferences();
     _fetchCartItems();
     _fetchNotes();
-  }
-
-  Future<void> _saveCustomerName(String customerName) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('customerName', customerName);
-  }
-
-  Future<void> _initSharedPreferences() async {
-    prefs = await SharedPreferences.getInstance();
   }
 
   Future<void> _fetchCartItems() async {
@@ -512,21 +500,6 @@ class _CartPageState extends State<CartPage> {
                     },
                   ),
           ),
-          if (prefs.getString('switchValue') != 'FNB')
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-              ),
-              child: TextField(
-                controller: _textFieldController,
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Enter Customer Name',
-                ),
-              ),
-            ),
         ],
       ),
       bottomNavigationBar: cartItems.isNotEmpty

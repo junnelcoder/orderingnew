@@ -9,9 +9,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 class CartNavBar extends StatelessWidget {
   final List<Map<String, dynamic>> cartItems;
   final Function(List<Map<String, dynamic>>) updateCartItems;
+  final TextEditingController _customerNameController = TextEditingController();
+
   final VoidCallback fetchCartItems;
 
-  const CartNavBar({
+  CartNavBar({
     Key? key,
     required this.cartItems,
     required this.updateCartItems,
@@ -28,157 +30,188 @@ class CartNavBar extends StatelessWidget {
           .reduce((value, element) => value + element);
     }
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15),
-      height: 90,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.4),
-            spreadRadius: 1,
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Total Price:",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 23,
-                  fontWeight: FontWeight.w500,
+    return FutureBuilder<List<String>>(
+      future: _loadData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          final switchValue = snapshot.data;
+          // Check if switchValue is "QS", if yes, display the text field
+          final bool displayTextField = switchValue?[0] == 'QS';
+          print("displayTextField $displayTextField $switchValue");
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: 15),
+            height: displayTextField ? 200 : 160,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  spreadRadius: 1,
+                  blurRadius: 8,
                 ),
-              ),
-              SizedBox(height: 1),
-              Text(
-                "\₱${totalAmount.toStringAsFixed(2)}",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          InkWell(
-            onTap: () {
-              String label = getActionButtonLabel() as String;
-
-              if (label == 'Select Table') {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SelectTablePage()),
-                );
-              } else if (label == 'Save Order') {
-                _showConfirmationDialog(context);
-              }
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(20),
-                  bottomRight: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
-                ),
-              ),
-              child: FutureBuilder<String>(
-                future: getActionButtonLabel(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator(); // Return a loading indicator
-                  } else if (snapshot.hasError) {
-                    return Text(
-                        'Error: ${snapshot.error}'); // Return an error message widget
-                  } else {
-                    String label = snapshot.data ?? 'Select Table';
-                    if (label == 'Select Table') {
-                      return InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => SelectTablePage()),
-                          );
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.only(
-                              topRight: Radius.circular(20),
-                              bottomRight: Radius.circular(20),
-                              bottomLeft: Radius.circular(20),
-                            ),
-                          ),
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    } else if (label == 'Save Order') {
-                      return InkWell(
-                        onTap: () {
-                          _showConfirmationDialog(context);
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.only(
-                              topRight: Radius.circular(20),
-                              bottomRight: Radius.circular(20),
-                              bottomLeft: Radius.circular(20),
-                            ),
-                          ),
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    } else {
-                      return Text('Unknown label: $label');
-                    }
-                  }
-                },
-              ),
+              ],
             ),
-          ),
-        ],
-      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (displayTextField)
+                  TextField(
+                    controller: _customerNameController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter Customer Name Here*',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    ),
+                  ),
+                SizedBox(height: 5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Total Price:",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 23,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 1),
+                        Text(
+                          "\₱${totalAmount.toStringAsFixed(2)}",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    InkWell(
+                      onTap: () async {
+                        String switchValue =
+                            await _loadSwitchValueFromStorage();
+                        String label = await getActionButtonLabel();
+                        print("labeelll $label");
+                        if (switchValue == 'QS') {
+                          label = "Save Order";
+                          if (label == 'Save Order') {
+                            _showConfirmationDialog(context);
+                          }
+                        } else if (switchValue == 'FNB') {
+                          if (label == 'Save Order') {
+                            _showConfirmationDialog(context);
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => SelectTablePage()),
+                            );
+                          }
+                        } else {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //       builder: (context) => SelectTablePage()),
+                          // );
+                        }
+                      },
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
+                            bottomLeft: Radius.circular(20),
+                          ),
+                        ),
+                        child: FutureBuilder<String>(
+                          future: getActionButtonLabel(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return CircularProgressIndicator();
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else {
+                              String label = snapshot.data!;
+                              return Text(
+                                label,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }
+      },
     );
+  }
+
+  Future<List<String>> _loadData() async {
+    final switchValueFuture = _loadSwitchValueFromStorage();
+    final actionButtonLabelFuture = getActionButtonLabel();
+    final switchValue = await switchValueFuture;
+    final actionButtonLabel = await actionButtonLabelFuture;
+    return [switchValue, actionButtonLabel];
+  }
+
+  Future<String> _loadSwitchValueFromStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('switchValue') ?? '';
   }
 
   Future<String> getActionButtonLabel() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    // await prefs.setString('selectedTblBool', "true");
     String? selectedTablesString = prefs.getString('selectedTables');
+    print(selectedTablesString);
     if (selectedTablesString != null) {
       selectTableShared();
+      return 'Save Order';
+    } else {
+      print("select");
+      return 'Select Table';
     }
-    return selectedTablesString?.isNotEmpty ?? false
-        ? 'Save Order'
-        : 'Select Table';
   }
 
   Future<void> _showConfirmationDialog(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String switchValue = prefs.getString('switchValue') ?? '';
+
+    if (switchValue == 'QS') {
+      String customerName = _customerNameController.text.trim();
+      if (customerName.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please enter the customer name.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
+    }
+
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -209,22 +242,16 @@ class CartNavBar extends StatelessWidget {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text(
-                'Cancel',
-                style: TextStyle(fontSize: 20, color: Colors.black),
-              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              child: Text('Cancel'),
             ),
             TextButton(
-              child: Text(
-                'Confirm',
-                style: TextStyle(fontSize: 20, color: Colors.red),
-              ),
               onPressed: () {
                 Navigator.of(context).pop();
-                saveOrderToDatabase(cartItems, context);
+                saveOrderToDatabase(
+                    cartItems, context, _customerNameController.text);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -232,6 +259,7 @@ class CartNavBar extends StatelessWidget {
                   ),
                 );
               },
+              child: Text('Confirm'),
             ),
           ],
         );
@@ -277,8 +305,8 @@ class CartNavBar extends StatelessWidget {
     }
   }
 
-  Future<void> saveOrderToDatabase(
-      List<Map<String, dynamic>> cartItems, BuildContext context) async {
+  Future<void> saveOrderToDatabase(List<Map<String, dynamic>> cartItems,
+      BuildContext context, String custName) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? ipAddress = prefs.getString('ipAddress');
@@ -300,6 +328,12 @@ class CartNavBar extends StatelessWidget {
           break;
         default:
           serviceValue = 'DI';
+      }
+      print("CustName $custName");
+      if (custName != "") {
+        selectedTablesString = "QS-" + custName;
+        selectedTablesString = selectedTablesString.toUpperCase();
+        print("result $selectedTablesString");
       }
       var apiUrl = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
 
