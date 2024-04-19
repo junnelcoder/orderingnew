@@ -132,8 +132,11 @@ class _CartPageState extends State<CartPage> {
     int currentQuantity = int.parse(cartItems[index]['qty'].toString());
     int newQuantity = currentQuantity - 1;
 
-    if (newQuantity >= 1) {
+    if (newQuantity >= 0) {
       await _updateCartItemQuantity(index, newQuantity);
+      if (newQuantity == 0){
+        _removeCartItem(index);
+      }
     }
   }
 

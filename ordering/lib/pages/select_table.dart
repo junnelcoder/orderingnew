@@ -37,7 +37,7 @@ class _SelectTablePageState extends State<SelectTablePage> {
     if (temp == "true") {
       await prefs.setString('selectedTblBool', "false");
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => CartPage()));
+          context, MaterialPageRoute(builder: (context) => HomePage()));
     } else {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
