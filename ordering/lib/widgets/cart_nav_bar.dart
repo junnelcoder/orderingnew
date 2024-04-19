@@ -9,15 +9,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 class CartNavBar extends StatelessWidget {
   final List<Map<String, dynamic>> cartItems;
   final Function(List<Map<String, dynamic>>) updateCartItems;
-  final TextEditingController _customerNameController = TextEditingController();
-
-  final VoidCallback fetchCartItems;
 
   CartNavBar({
     Key? key,
     required this.cartItems,
     required this.updateCartItems,
-    required this.fetchCartItems,
   }) : super(key: key);
 
   @override
@@ -57,19 +53,6 @@ class CartNavBar extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (displayTextField)
-                  TextField(
-                    controller: _customerNameController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter Customer Name Here*',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      contentPadding:
-                          EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                    ),
-                  ),
-                SizedBox(height: 5),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -196,21 +179,24 @@ class CartNavBar extends StatelessWidget {
   }
 
   Future<void> _showConfirmationDialog(BuildContext context) async {
+    TextEditingController _customerNameController = TextEditingController();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String switchValue = prefs.getString('switchValue') ?? '';
 
-    if (switchValue == 'QS') {
-      String customerName = _customerNameController.text.trim();
-      if (customerName.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Please enter the customer name.'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-        return;
-      }
-    }
+    bool displayTextField = switchValue == 'QS'; // Check if switchValue is 'QS'
+    Widget textFieldWidget = displayTextField
+        ? TextField(
+            controller: _customerNameController,
+            decoration: InputDecoration(
+              hintText: 'Enter Customer Name Here*',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            ),
+          )
+        : SizedBox(); // Hide the text field if switchValue is not 'QS'
 
     return showDialog<void>(
       context: context,
@@ -237,6 +223,8 @@ class CartNavBar extends StatelessWidget {
                   'This action cannot be undone.',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
+                SizedBox(height: 20),
+                textFieldWidget, // Display the text field based on the switchValue
               ],
             ),
           ),
@@ -249,6 +237,15 @@ class CartNavBar extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
+                String customerName = _customerNameController.text.trim();
+                if (displayTextField && customerName.isEmpty) {
+                  Fluttertoast.showToast(
+                    msg: 'Please enter the customer name.',
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                  );
+                  return;
+                }
                 Navigator.of(context).pop();
                 saveOrderToDatabase(
                     cartItems, context, _customerNameController.text);
@@ -449,7 +446,6 @@ class _CartPageState extends State<CartPage> {
           ? CartNavBar(
               cartItems: cartItems,
               updateCartItems: _updateCartItems,
-              fetchCartItems: _fetchCartItems,
             )
           : null,
     );
