@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/cart_nav_bar.dart';
 import 'config.dart';
+import 'delete_cart_page.dart';
 import 'home_page.dart';
 
 class CartPage extends StatefulWidget {
@@ -207,11 +208,31 @@ class _CartPageState extends State<CartPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "Order List",
-          style: TextStyle(
-            fontSize: 30,
-          ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Order List",
+              style: TextStyle(
+                fontSize: 30,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => DeleteCartPage()),
+                );
+              },
+              child: Text(
+                "Cancel Order",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
         ),
         automaticallyImplyLeading: false,
         leading: InkWell(
