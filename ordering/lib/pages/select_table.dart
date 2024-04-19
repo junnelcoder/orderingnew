@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ordering/pages/cart_page.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ordering/pages/home_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -42,6 +42,17 @@ class _SelectTablePageState extends State<SelectTablePage> {
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => HomePage()));
     }
+  }
+
+  Future<void> isOccupied(String tableNum) async {
+    Fluttertoast.showToast(
+      msg: '$tableNum is already occupied',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.greenAccent,
+      textColor: Colors.white,
+    );
   }
 
   Future<void> saveSelectedTables(String table) async {
@@ -240,6 +251,7 @@ class _SelectTablePageState extends State<SelectTablePage> {
                     onTap: () {
                       setState(() {
                         if (tableStatus != TableStatus.AVAILABLE) {
+                          isOccupied(tableNumber);
                           return;
                         }
                         if (_tempSelectedTables.contains(tableNumber)) {

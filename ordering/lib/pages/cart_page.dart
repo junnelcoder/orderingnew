@@ -134,7 +134,7 @@ class _CartPageState extends State<CartPage> {
 
     if (newQuantity >= 0) {
       await _updateCartItemQuantity(index, newQuantity);
-      if (newQuantity == 0){
+      if (newQuantity == 0) {
         _removeCartItem(index);
       }
     }
@@ -509,7 +509,6 @@ class _CartPageState extends State<CartPage> {
           ? CartNavBar(
               cartItems: cartItems,
               updateCartItems: (_) {},
-              fetchCartItems: () {},
             )
           : null,
     );
