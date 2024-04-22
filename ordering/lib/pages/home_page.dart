@@ -7,13 +7,14 @@ import '../widgets/home_nav_bar.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   List<String> categories = [];
   late TextEditingController _searchController;
   bool isDarkMode = false;
@@ -25,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    WidgetsBinding.instance?.addObserver(this);
     fetchCategories();
     checkSwitchValue();
     loadSelectedService();
@@ -38,7 +40,26 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _searchController.dispose();
+    WidgetsBinding.instance?.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      _clearSharedPreferences();
+    }
+  }
+
+  void _clearSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    await prefs.clear();
+    print("app closed");
+    if (ipAddress != null) {
+      await prefs.setString('ipAddress', ipAddress);
+    }
   }
 
   void _toggleDarkMode() {
@@ -235,104 +256,104 @@ class _HomePageState extends State<HomePage> {
           onSwitchChanged: _toggleSwitch,
         ),
 
-floatingActionButton: Align(
-  alignment: Alignment.bottomRight,
-  child: Column(
-    mainAxisAlignment: MainAxisAlignment.end,
-    crossAxisAlignment: CrossAxisAlignment.end,
-    children: [
-      AnimatedOpacity(
-        opacity: _isSwitchOn ? 1.0 : 0.0,
-        duration: Duration(milliseconds: 500),
-        child: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SelectTablePage()),
-            );
-          },
-          label: Text(labelText),
-          icon: Icon(Icons.table_chart),
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          elevation: 4.0,
-        ),
-      ),
-      SizedBox(height: 10),
-      FloatingActionButton.extended(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Select Service'),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          selectedService = 'Dine In';
-                        });
-                        saveSelectedService('Dine In');
-                        Navigator.pop(context);
-                      },
-                      child: ListTile(
-                        title: Text('Dine In'),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          selectedService = 'Take Out';
-                        });
-                        saveSelectedService('Take Out');
-                        Navigator.pop(context);
-                      },
-                      child: ListTile(
-                        title: Text('Take Out'),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          selectedService = 'Pick Up';
-                        });
-                        saveSelectedService('Pick Up');
-                        Navigator.pop(context);
-                      },
-                      child: ListTile(
-                        title: Text('Pick Up'),
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        setState(() {
-                          selectedService = 'Delivery';
-                        });
-                        saveSelectedService('Delivery');
-                        Navigator.pop(context);
-                      },
-                      child: ListTile(
-                        title: Text('Delivery'),
-                      ),
-                    ),
-                  ],
+        floatingActionButton: Align(
+          alignment: Alignment.bottomRight,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              AnimatedOpacity(
+                opacity: _isSwitchOn ? 1.0 : 0.0,
+                duration: Duration(milliseconds: 500),
+                child: FloatingActionButton.extended(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => SelectTablePage()),
+                    );
+                  },
+                  label: Text(labelText),
+                  icon: Icon(Icons.table_chart),
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  elevation: 4.0,
                 ),
-              );
-            },
-          );
-        },
-        label: Text(selectedService),
-        icon: Icon(Icons.room_service),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 4.0,
-      ),
-    ],
-  ),
-),
-
+              ),
+              SizedBox(height: 10),
+              FloatingActionButton.extended(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Select Service'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectedService = 'Dine In';
+                                });
+                                saveSelectedService('Dine In');
+                                Navigator.pop(context);
+                              },
+                              child: ListTile(
+                                title: Text('Dine In'),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectedService = 'Take Out';
+                                });
+                                saveSelectedService('Take Out');
+                                Navigator.pop(context);
+                              },
+                              child: ListTile(
+                                title: Text('Take Out'),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectedService = 'Pick Up';
+                                });
+                                saveSelectedService('Pick Up');
+                                Navigator.pop(context);
+                              },
+                              child: ListTile(
+                                title: Text('Pick Up'),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectedService = 'Delivery';
+                                });
+                                saveSelectedService('Delivery');
+                                Navigator.pop(context);
+                              },
+                              child: ListTile(
+                                title: Text('Delivery'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+                label: Text(selectedService),
+                icon: Icon(Icons.room_service),
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                elevation: 4.0,
+              ),
+            ],
+          ),
+        ),
 
         // Kung hindi naka-QS, huwag ipakita ang floating button
       ),

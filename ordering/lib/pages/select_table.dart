@@ -12,7 +12,8 @@ class SelectTablePage extends StatefulWidget {
   _SelectTablePageState createState() => _SelectTablePageState();
 }
 
-class _SelectTablePageState extends State<SelectTablePage> {
+class _SelectTablePageState extends State<SelectTablePage>
+    with WidgetsBindingObserver {
   List<int> _selectedTables = [];
   List<String> _tempSelectedTables = [];
   Map<int, TableStatus> _tableStatus = Map();
@@ -26,8 +27,33 @@ class _SelectTablePageState extends State<SelectTablePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
     fetchDataFromServer();
     selectedFromShared();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      _clearSharedPreferences();
+    }
+  }
+
+  void _clearSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    await prefs.clear();
+    print("app closed");
+    if (ipAddress != null) {
+      await prefs.setString('ipAddress', ipAddress);
+    }
   }
 
   Future<void> saveSelectedTables2(String table) async {

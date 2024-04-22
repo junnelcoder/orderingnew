@@ -20,7 +20,8 @@ class SingleItemPage extends StatefulWidget {
   _SingleItemPageState createState() => _SingleItemPageState();
 }
 
-class _SingleItemPageState extends State<SingleItemPage> {
+class _SingleItemPageState extends State<SingleItemPage>
+    with WidgetsBindingObserver {
   int quantity = 1;
   List<String> selectedNotes = [];
 
@@ -28,6 +29,36 @@ class _SingleItemPageState extends State<SingleItemPage> {
     setState(() {
       quantity++;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance?.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      _clearSharedPreferences();
+    }
+  }
+
+  void _clearSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    await prefs.clear();
+    print("app closed");
+    if (ipAddress != null) {
+      await prefs.setString('ipAddress', ipAddress);
+    }
   }
 
   void decrementQuantity() {
@@ -271,12 +302,12 @@ class _SingleItemPageState extends State<SingleItemPage> {
                   _getImagePathForItem(widget.item),
                   height: MediaQuery.of(context).size.height / 2.5,
                   errorBuilder: (context, error, stackTrace) {
-      return Image.asset(
-        'images/DEFAULT.png',
-        width: 155,
-        height: 120,
-      );
-    },
+                    return Image.asset(
+                      'images/DEFAULT.png',
+                      width: 155,
+                      height: 120,
+                    );
+                  },
                 ),
               ),
               SizedBox(height: 10),
@@ -473,17 +504,17 @@ class _SingleItemPageState extends State<SingleItemPage> {
       ),
     );
   }
-String _getImagePathForItem(Item item) {
-  if (item.picture_path.trim().isNotEmpty) {
-    return item.picture_path;
-  } else {
-    String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
-    String ipAddress = AppConfig.serverIPAddress;
-    // Construct the URL to fetch the image dynamically from the server
-    return 'http://$ipAddress:8080/api/image/$itemcode';
+
+  String _getImagePathForItem(Item item) {
+    if (item.picture_path.trim().isNotEmpty) {
+      return item.picture_path;
+    } else {
+      String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
+      String ipAddress = AppConfig.serverIPAddress;
+      // Construct the URL to fetch the image dynamically from the server
+      return 'http://$ipAddress:8080/api/image/$itemcode';
+    }
   }
-}
-  
 }
 
 class SingleItemNavBar extends StatelessWidget {

@@ -28,6 +28,13 @@ class _HomeNavBarState extends State<HomeNavBar> {
     super.initState();
     _canInteractWithSwitch = true;
     _loadSwitchValueFromStorage();
+
+    _refreshOnLoad();
+    fetchOpenCartItemsCount();
+  }
+
+  void _refreshOnLoad() {
+    fetchOpenCartItemsCount();
   }
 
   Future<void> _loadSwitchValueFromStorage() async {

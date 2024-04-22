@@ -11,13 +11,39 @@ class DeleteCartPage extends StatefulWidget {
   _DeleteCartPageState createState() => _DeleteCartPageState();
 }
 
-class _DeleteCartPageState extends State<DeleteCartPage> {
+class _DeleteCartPageState extends State<DeleteCartPage>
+    with WidgetsBindingObserver {
   List<Map<String, dynamic>> cartItems = [];
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
     _fetchCartItems();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      _clearSharedPreferences();
+    }
+  }
+
+  void _clearSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    await prefs.clear();
+    print("app closed");
+    if (ipAddress != null) {
+      await prefs.setString('ipAddress', ipAddress);
+    }
   }
 
   Future<void> _fetchCartItems() async {

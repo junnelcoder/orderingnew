@@ -13,7 +13,7 @@ class CartPage extends StatefulWidget {
   _CartPageState createState() => _CartPageState();
 }
 
-class _CartPageState extends State<CartPage> {
+class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   List<Map<String, dynamic>> cartItems = [];
   Map<String, dynamic>? notesData;
   List<String> notesList = ['No notes added'];
@@ -21,8 +21,33 @@ class _CartPageState extends State<CartPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
     _fetchCartItems();
     _fetchNotes();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.paused) {
+      _clearSharedPreferences();
+    }
+  }
+
+  void _clearSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    await prefs.clear();
+    print("app closed");
+    if (ipAddress != null) {
+      await prefs.setString('ipAddress', ipAddress);
+    }
   }
 
   Future<void> _fetchCartItems() async {
