@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:ordering/pages/cart_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config.dart';
 import 'home_page.dart';
@@ -18,13 +19,13 @@ class _DeleteCartPageState extends State<DeleteCartPage>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _fetchCartItems();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -39,10 +40,11 @@ class _DeleteCartPageState extends State<DeleteCartPage>
   void _clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
+    String? uname = prefs.getString('username');
     await prefs.clear();
-    print("app closed");
-    if (ipAddress != null) {
+    if (ipAddress != null && uname != null) {
       await prefs.setString('ipAddress', ipAddress);
+      await prefs.setString('username', uname);
     }
   }
 
@@ -63,11 +65,11 @@ class _DeleteCartPageState extends State<DeleteCartPage>
     }
   }
 
-  void navigateToHomePage() {
+  void navigateToCartPage() {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => HomePage(),
+        builder: (context) => CartPage(),
       ),
     );
   }
@@ -109,7 +111,7 @@ class _DeleteCartPageState extends State<DeleteCartPage>
         automaticallyImplyLeading: false,
         leading: InkWell(
           onTap: () {
-            navigateToHomePage();
+            navigateToCartPage();
           },
           child: Padding(
             padding: EdgeInsets.all(8.0),

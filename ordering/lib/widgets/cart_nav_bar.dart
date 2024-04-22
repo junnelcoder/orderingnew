@@ -39,7 +39,7 @@ class CartNavBar extends StatelessWidget {
           final bool displayTextField = switchValue?[0] == 'QS';
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 15),
-            height: displayTextField ? 200 : 160,
+            height: 90,
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
