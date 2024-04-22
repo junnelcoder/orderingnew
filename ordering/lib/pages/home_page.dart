@@ -26,7 +26,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     fetchCategories();
     checkSwitchValue();
     loadSelectedService();
@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     _searchController.dispose();
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -55,10 +55,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void _clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
+    String? uname = prefs.getString('username');
     await prefs.clear();
-    print("app closed");
-    if (ipAddress != null) {
+    if (ipAddress != null && uname != null) {
       await prefs.setString('ipAddress', ipAddress);
+      await prefs.setString('username', uname);
     }
   }
 

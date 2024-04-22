@@ -21,14 +21,14 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     _fetchCartItems();
     _fetchNotes();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -43,10 +43,11 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   void _clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
+    String? uname = prefs.getString('username');
     await prefs.clear();
-    print("app closed");
-    if (ipAddress != null) {
+    if (ipAddress != null && uname != null) {
       await prefs.setString('ipAddress', ipAddress);
+      await prefs.setString('username', uname);
     }
   }
 
