@@ -180,7 +180,7 @@ class _SelectTablePageState extends State<SelectTablePage>
 
   @override
   Widget build(BuildContext context) {
-    final crossAxisCount = MediaQuery.of(context).size.width ~/ 80;
+    final crossAxisCount = 4; // Set cross axis count to 4 for 4 tables in a row
 
     return Scaffold(
       appBar: AppBar(),
