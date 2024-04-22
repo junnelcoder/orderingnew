@@ -232,7 +232,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   tabs: filteredCategories
                       .map<Tab>((category) => Tab(text: category))
                       .toList(),
+                  unselectedLabelColor: isDarkMode
+                      ? Colors.grey
+                      : Colors.grey, // Set unselected tab color based on mode
+                  labelColor: isDarkMode
+                      ? Colors.white
+                      : Colors.black, // Set selected tab color based on mode
                 ),
+
                 Flexible(
                   flex: 1,
                   child: TabBarView(
@@ -265,7 +272,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             children: [
               AnimatedOpacity(
                 opacity: _isSwitchOn ? 1.0 : 0.0,
-                duration: Duration(milliseconds: 500),
+                duration: Duration(milliseconds: 200),
                 child: FloatingActionButton.extended(
                   onPressed: () {
                     Navigator.push(
@@ -276,7 +283,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   },
                   label: Text(labelText),
                   icon: Icon(Icons.table_chart),
-                  backgroundColor: Colors.black,
+                  backgroundColor: Colors.orange.withOpacity(0.85),
                   foregroundColor: Colors.white,
                   elevation: 4.0,
                 ),
@@ -348,7 +355,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 },
                 label: Text(selectedService),
                 icon: Icon(Icons.room_service),
-                backgroundColor: Colors.black,
+                backgroundColor: Colors.blue.withOpacity(0.9),
                 foregroundColor: Colors.white,
                 elevation: 4.0,
               ),

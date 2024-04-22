@@ -22,19 +22,19 @@ class HomeNavBar extends StatefulWidget {
 class _HomeNavBarState extends State<HomeNavBar> {
   late bool _someFunctionalitySwitchValue;
   late bool _canInteractWithSwitch;
+  int? _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
 
   @override
   void initState() {
     super.initState();
     _canInteractWithSwitch = true;
     _loadSwitchValueFromStorage();
-
     _refreshOnLoad();
-    fetchOpenCartItemsCount();
   }
 
-  void _refreshOnLoad() {
-    fetchOpenCartItemsCount();
+  void _refreshOnLoad() async {
+    // Fetch open cart items count and assign it to _openCartItemsCount
+    _openCartItemsCount = await fetchOpenCartItemsCount();
   }
 
   Future<void> _loadSwitchValueFromStorage() async {
@@ -83,164 +83,143 @@ class _HomeNavBarState extends State<HomeNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<int>(
-      future: fetchOpenCartItemsCount(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          int openCartItemsCount = snapshot.data!;
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 15),
-            height: 90,
-            decoration: BoxDecoration(
-              color: widget.isDarkMode ? Colors.black : Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
-                  spreadRadius: 1,
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Stack(
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15),
+      height: 90,
+      decoration: BoxDecoration(
+        color: widget.isDarkMode ? Colors.black : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            spreadRadius: 1,
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Existing code for dark mode toggle button
+          Stack(
+            children: [
+              IconButton(
+                onPressed: () {
+                  widget.toggleDarkMode();
+                },
+                iconSize: 30,
+                padding: EdgeInsets.all(12),
+                constraints: BoxConstraints(),
+                alignment: Alignment.centerRight,
+                icon: Stack(
+                  alignment: Alignment.centerRight,
                   children: [
-                    IconButton(
-                      onPressed: () {
-                        widget.toggleDarkMode();
-                      },
-                      iconSize: 30,
-                      padding: EdgeInsets.all(12),
-                      constraints: BoxConstraints(),
-                      alignment: Alignment.centerRight,
-                      icon: Stack(
-                        alignment: Alignment.centerRight,
-                        children: [
-                          Icon(
-                            widget.isDarkMode
-                                ? Icons.dark_mode
-                                : Icons.light_mode,
-                            color:
-                                widget.isDarkMode ? Colors.white : Colors.black,
-                          ),
-                          Container(
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: widget.isDarkMode
-                                  ? Colors.black
-                                  : Colors.white,
-                            ),
-                            child: Icon(
-                              widget.isDarkMode
-                                  ? Icons.light_mode
-                                  : Icons.dark_mode,
-                              color: widget.isDarkMode
-                                  ? Colors.white
-                                  : Colors.black,
-                            ),
-                          ),
-                        ],
+                    Icon(
+                      widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+                      color: widget.isDarkMode ? Colors.white : Colors.black,
+                    ),
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: widget.isDarkMode ? Colors.black : Colors.white,
+                      ),
+                      child: Icon(
+                        widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                        color: widget.isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                   ],
                 ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushNamed(context, "cartPage");
-                  },
-                  child: Stack(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color:
-                              widget.isDarkMode ? Colors.white : Colors.black,
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.4),
-                              spreadRadius: 1,
-                              blurRadius: 6,
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.assignment_add,
-                          color:
-                              widget.isDarkMode ? Colors.black : Colors.white,
-                          size: 40,
-                        ),
+              ),
+            ],
+          ),
+          // Existing code for cart button
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, "cartPage");
+            },
+            child: Stack(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: widget.isDarkMode ? Colors.white : Colors.red,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.4),
+                        spreadRadius: 1,
+                        blurRadius: 6,
                       ),
-                      if (openCartItemsCount > 0)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Container(
-                            padding: EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.red,
-                            ),
-                            child: Text(
-                              openCartItemsCount.toString(),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                              ),
-                            ),
-                          ),
-                        ),
                     ],
+                  ),
+                  child: Icon(
+                    Icons.assignment_add,
+                    color: widget.isDarkMode ? Colors.black : Colors.white,
+                    size: 40,
                   ),
                 ),
-                Container(
-                  margin: EdgeInsets.only(top: 15),
-                  child: Column(
-                    children: [
-                      Semantics(
-                        key: Key('someFunctionalitySwitch'),
-                        child: IgnorePointer(
-                          ignoring: !_canInteractWithSwitch,
-                          child: Switch(
-                            value: _someFunctionalitySwitchValue,
-                            onChanged: _canInteractWithSwitch
-                                ? (value) {
-                                    setState(() {
-                                      _someFunctionalitySwitchValue = value;
-                                      _saveSwitchValueToStorage(value);
-                                      widget.onSwitchChanged(value);
-                                    });
-                                  }
-                                : null,
-                            activeTrackColor: Colors.black,
-                            activeColor: Colors.white,
-                          ),
-                        ),
+                if (_openCartItemsCount != null && _openCartItemsCount! > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.red,
                       ),
-                      Text(
-                        _someFunctionalitySwitchValue ? 'FNB' : 'QS',
+                      child: Text(
+                        _openCartItemsCount.toString(),
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color:
-                              widget.isDarkMode ? Colors.white : Colors.black,
+                          color: Colors.white,
+                          fontSize: 20,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                )
               ],
             ),
-          );
-        }
-      },
+          ),
+          // Existing code for switch button and label
+          Container(
+            margin: EdgeInsets.only(top: 15),
+            child: Column(
+              children: [
+                Semantics(
+                  key: Key('someFunctionalitySwitch'),
+                  child: IgnorePointer(
+                    ignoring: !_canInteractWithSwitch,
+                    child: Switch(
+                      value: _someFunctionalitySwitchValue,
+                      onChanged: _canInteractWithSwitch
+                          ? (value) {
+                              setState(() {
+                                _someFunctionalitySwitchValue = value;
+                                _saveSwitchValueToStorage(value);
+                                widget.onSwitchChanged(value);
+                              });
+                            }
+                          : null,
+                      activeTrackColor: Colors.grey,
+                      activeColor: Colors.white,
+                    ),
+                  ),
+                ),
+                Text(
+                  _someFunctionalitySwitchValue ? 'FNB' : 'QS',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 }
