@@ -239,7 +239,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       ? Colors.white
                       : Colors.black, // Set selected tab color based on mode
                 ),
-
                 Flexible(
                   flex: 1,
                   child: TabBarView(

@@ -315,8 +315,115 @@ router.post('/add-to-cart', async (req, res) => {
     }
   });
   
-  
-  
-  
+  router.get('/todaysTransactions', async (req, res) => {
+    try {
+        const pool = await sql.connect(config);
+        const result = await pool.request().query(`
+            SELECT
+                [so_number],
+                [machine_id],
+                [trans_date],
+                [pa_id],
+                [subtotal_amount],
+                [total_amount],
+                FORMAT([tran_time], 'HH:mm') AS tran_time,
+                [table_no],
+                [order_service],
+                [close_status],
+                [posted]
+            FROM [restopos45].[dbo].[so_header]
+            WHERE CONVERT(date, tran_time) = CONVERT(date, GETDATE())
+            ORDER BY so_number DESC;      
+        `);
+        res.json(result.recordset);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+router.get('/soDetailData', async (req, res) => {
+  try {
+    const pool = await sql.connect(config); 
+    const result = await pool.request().query('SELECT * FROM dbo.so_detail');
+    res.status(200).json(result.recordset); 
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).send(`Error fetching data: ${error.message}`);
+  }
+});
+
+router.post('/delete-items', async (req, res) => {
+  try {
+    const { trans_no, count } = req.body;
+    console.log('Received data:');
+    console.log('Transaction Number:', trans_no);
+    console.log('Count:', count);
+    const pool = await sql.connect(config);
+    if (count === 1) {
+      const fetchRequest = pool.request()
+        .input('trans_no', sql.BigInt, trans_no);
+      const fetchResult = await fetchRequest.query(`
+        SELECT [so_number] FROM [dbo].[so_detail]
+        WHERE [trans_no] = @trans_no
+      `);
+
+      if (fetchResult.recordset.length === 0) {
+        res.status(404).json({ message: 'Transaction not found' });
+      } else {
+        const so_number = fetchResult.recordset[0].so_number;
+        const deleteRequest = pool.request()
+          .input('so_number', sql.VarChar, so_number);
+        await deleteRequest.query(`
+          DELETE FROM [dbo].[so_detail]
+          WHERE [so_number] = @so_number
+        `);
+        console.log(`Deleted all rows with so_number: ${so_number}`);
+        const request = pool.request()
+        .input('so_number', sql.VarChar, so_number);
+        await request.query(`
+          DELETE FROM [dbo].[so_header]
+          WHERE [so_number] = @so_number
+        `);
+        console.log(`Deleted row with trans_no: ${trans_no}`);
+        res.status(200).json({ message: 'Items deleted successfully' });
+      }
+    } else {
+      
+
+
+      const fetchRequest = pool.request()
+        .input('trans_no', sql.BigInt, trans_no);
+      const fetchResult = await fetchRequest.query(`
+        SELECT [so_number] FROM [dbo].[so_detail]
+        WHERE [trans_no] = @trans_no
+      `);
+
+      if (fetchResult.recordset.length === 0) {
+        res.status(404).json({ message: 'Transaction not found' });
+      } else {
+        const so_number = fetchResult.recordset[0].so_number;
+        const deleteRequest = pool.request()
+          .input('trans_no', sql.VarChar, trans_no);
+        await deleteRequest.query(`
+          DELETE FROM [dbo].[so_detail]
+          WHERE [trans_no] = @trans_no
+        `);
+        console.log(`Deleted all rows with so_number: ${so_number}`);
+        res.status(200).json({ message: 'Items deleted successfully' });
+      }
+
+
+
+
+    }
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+
+
 
 module.exports = router;

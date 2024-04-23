@@ -14,11 +14,13 @@
     "axios": "^1.6.7",
     "express": "^4.18.2",
     "ip": "^2.0.1",
+    "moment-timezone": "^0.5.45",
     "mssql": "^10.0.2"
   },
-  "bin" : "server.js",
-    "pkg":{
-      "assets":["node_modules/**/*"
+  "bin": "server.js",
+  "pkg": {
+    "assets": [
+      "node_modules/**/*"
     ]
-    }
+  }
 }
