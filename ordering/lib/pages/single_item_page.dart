@@ -303,12 +303,13 @@ class _SingleItemPageState extends State<SingleItemPage>
                   _getImagePathForItem(widget.item),
                   height: MediaQuery.of(context).size.height / 2.5,
                   errorBuilder: (context, error, stackTrace) {
-                    return Image.asset(
-                      'images/DEFAULT.png',
-                      width: 155,
-                      height: 120,
-                    );
-                  },
+                  return Icon(
+                    Icons.fastfood,
+                    size: 200,
+                    color: Colors.black, // Use error color from the theme
+                  );
+                },
+
                 ),
               ),
               SizedBox(height: 10),

@@ -87,7 +87,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
       padding: EdgeInsets.symmetric(horizontal: 15),
       height: 90,
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? Colors.black : Colors.white,
+        color: widget.isDarkMode ? Colors.grey.withOpacity(0.1) : Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.4),
@@ -113,23 +113,19 @@ class _HomeNavBarState extends State<HomeNavBar> {
                 icon: Stack(
                   alignment: Alignment.centerRight,
                   children: [
-                    Icon(
-                      widget.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                      color: widget.isDarkMode ? Colors.white : Colors.black,
-                    ),
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: widget.isDarkMode ? Colors.black : Colors.white,
-                      ),
-                      child: Icon(
-                        widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                        color: widget.isDarkMode ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ],
+    Icon(
+      widget.isDarkMode ? Icons.light_mode : Icons.dark_mode ,
+      color: widget.isDarkMode ? Colors.white : Colors.black,
+    ),
+    SizedBox(width: 8), // Add some space between the icons
+    Visibility(
+      visible: widget.isDarkMode, // Only show the second icon when in dark mode
+      child: Icon(
+        Icons.light_mode,
+        color: Colors.white,
+      ),
+    ),
+  ],
                 ),
               ),
             ],
@@ -144,7 +140,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: widget.isDarkMode ? Colors.white : Colors.red,
+                    color: widget.isDarkMode ? Colors.grey : Colors.black,
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
@@ -156,7 +152,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                   ),
                   child: Icon(
                     Icons.assignment_add,
-                    color: widget.isDarkMode ? Colors.black : Colors.white,
+                    color:  Colors.white,
                     size: 40,
                   ),
                 ),
@@ -202,7 +198,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                               });
                             }
                           : null,
-                      activeTrackColor: Colors.grey,
+                      activeTrackColor: widget.isDarkMode ? Colors.grey :Colors.black ,
                       activeColor: Colors.white,
                     ),
                   ),

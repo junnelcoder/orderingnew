@@ -8,6 +8,7 @@ import 'package:shimmer/shimmer.dart';
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
+import 'home_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ItemWidget extends StatefulWidget {
@@ -31,6 +32,7 @@ class _ItemWidgetState extends State<ItemWidget> {
   late List<Item> items = [];
   bool isLoading = true;
   bool isConnected = true;
+  bool isDarkMode = false;
 
   @override
   void initState() {
@@ -283,7 +285,7 @@ class _ItemWidgetState extends State<ItemWidget> {
 
   Widget buildItemCard(BuildContext context, Item item) {
     return Card(
-      color: Colors.white,
+      color: widget.isDarkMode ? Colors.grey.withOpacity(0.6) : Colors.white.withOpacity(0.85),
       margin: EdgeInsets.all(8.0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20.0),
@@ -309,12 +311,13 @@ class _ItemWidgetState extends State<ItemWidget> {
                 width: 155,
                 height: 120,
                 errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'images/DEFAULT.png',
-                    width: 155,
-                    height: 120,
+                  return Icon(
+                    Icons.fastfood,
+                    size: 120,
+                    color: widget.isDarkMode ? Colors.white : Colors.black, // Use error color from the theme
                   );
                 },
+
               ),
             ),
             Padding(
@@ -324,7 +327,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                 style: TextStyle(
                   fontSize: 16.0,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: widget.isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.85),
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -336,7 +339,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                 "${item.itemcode}",
                 style: TextStyle(
                   fontSize: 14.0,
-                  color: Colors.black,
+                  color: widget.isDarkMode ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.85),
                 ),
               ),
             ),
@@ -350,12 +353,13 @@ class _ItemWidgetState extends State<ItemWidget> {
                     style: TextStyle(
                       fontSize: 14.0,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: widget.isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.85),
                     ),
                   ),
                   Icon(
                     CupertinoIcons.plus,
                     size: 25,
+                    color: widget.isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.85),
                   ),
                 ],
               ),
