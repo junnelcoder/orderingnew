@@ -103,7 +103,6 @@ class _DeleteCartPageState extends State<DeleteCartPage>
         await prefs.setString('count', countString);
         print('Filtered item: $count');
         String transNoToDelete = '';
-
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -114,15 +113,61 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                   children: filteredItem.map((item) {
                     return Dismissible(
                       key: UniqueKey(),
+                      direction: DismissDirection.endToStart,
                       background: Container(
                         color: Colors.red,
-                        child: Icon(Icons.delete),
-                        alignment: Alignment.centerRight,
-                        padding: EdgeInsets.only(right: 20.0),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text(
+                                'Delete',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Icon(
+                                Icons.delete,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
+                      confirmDismiss: (direction) async {
+                        return await showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Confirm"),
+                              content: Text(
+                                  "Are you sure you want to delete this item?"),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(false),
+                                  child: Text("Cancel"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(true);
+                                  },
+                                  child: Text("Delete"),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                       onDismissed: (direction) {
-                        print('Item swiped: ${item['itemname']}');
-                        deleteOn(item['trans_no'], count);
+                        if (direction == DismissDirection.endToStart) {
+                          print('Item swiped to the left: ${item['trans_no']}');
+                          deleteOn(item['trans_no'], count);
+                        }
                       },
                       child: ListTile(
                         title: Text('${item['itemname']}'),
@@ -138,15 +183,40 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                 TextButton(
                   child: Text('Delete Transaction'),
                   onPressed: () async {
-                    for (var item in filteredItem) {
-                      transNoToDelete = item['trans_no'];
-                      print('All button clicked $transNoToDelete ff');
-                      count = 888;
-                      SharedPreferences prefs =
-                          await SharedPreferences.getInstance();
-                      String countString = count.toString();
-                      await prefs.setString('count', countString);
-                      deleteOn(transNoToDelete, count);
+                    bool confirmDelete = await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Confirm"),
+                          content: Text(
+                              "Are you sure you want to delete this whole transaction?"),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(true);
+                              },
+                              child: Text("Delete"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+
+                    if (confirmDelete == true) {
+                      for (var item in filteredItem) {
+                        transNoToDelete = item['trans_no'];
+                        print('All button clicked $transNoToDelete ff');
+                        count = 888;
+                        SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
+                        String countString = count.toString();
+                        await prefs.setString('count', countString);
+                        deleteOn(transNoToDelete, count);
+                      }
                     }
                   },
                 ),
@@ -185,12 +255,8 @@ class _DeleteCartPageState extends State<DeleteCartPage>
           List<dynamic> filteredData = responseData
               .where((item) => item['pa_id'].trim() == uname)
               .toList();
-
-          print("$uname Filtered Data: $filteredData");
-
           await prefs.setStringList('filteredData',
               filteredData.map((item) => json.encode(item)).toList());
-          print('Filtered data saved to SharedPreferences');
           _fetchCartItems();
         } else {
           print('Username is null');
@@ -211,7 +277,6 @@ class _DeleteCartPageState extends State<DeleteCartPage>
   Future<void> _fetchCartItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? cartItemsString = prefs.getStringList('filteredData');
-    print("cart $cartItemsString");
     if (cartItemsString != null) {
       setState(() {
         cartItems = cartItemsString
@@ -285,7 +350,6 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                       Map<String, dynamic> item = cartItems[index];
                       return GestureDetector(
                         onTap: () {
-                          print('Item clicked: ${item['so_number']}');
                           showModal(item['so_number']);
                         },
                         child: Padding(
