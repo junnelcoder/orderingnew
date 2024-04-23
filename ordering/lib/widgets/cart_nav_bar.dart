@@ -34,9 +34,6 @@ class CartNavBar extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else {
-          final switchValue = snapshot.data;
-          // Check if switchValue is "QS", if yes, display the text field
-          final bool displayTextField = switchValue?[0] == 'QS';
           return Container(
             padding: EdgeInsets.symmetric(horizontal: 15),
             height: 90,

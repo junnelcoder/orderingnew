@@ -3,7 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ordering/pages/cart_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'config.dart';
 import 'package:http/http.dart' as http;
 
 class DeleteCartPage extends StatefulWidget {
@@ -51,6 +50,9 @@ class _DeleteCartPageState extends State<DeleteCartPage>
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
     final url = Uri.parse('http://$ipAddress:8080/api/delete-items');
+    String? temp = prefs.getString('count');
+    count = int.parse(temp!);
+    print(count);
     try {
       final response = await http.post(
         url,
@@ -65,6 +67,14 @@ class _DeleteCartPageState extends State<DeleteCartPage>
 
       if (response.statusCode == 200) {
         print('Deleted successfully');
+        count--;
+        if (count == 0) {
+          Navigator.of(context).pop();
+        } else if (count == 887) {
+          Navigator.of(context).pop();
+        }
+        String countString = count.toString();
+        await prefs.setString('count', countString);
         setState(() {});
       } else {
         print('HTTP Error: ${response.statusCode}');
@@ -84,13 +94,15 @@ class _DeleteCartPageState extends State<DeleteCartPage>
 
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body);
-
-        // Filter data where the category is not "notes"
         List<dynamic> filteredItem = data.where((item) {
           return item['so_number'] == id && item['category'] != 'notes';
         }).toList();
+        SharedPreferences prefs = await SharedPreferences.getInstance();
         int count = filteredItem.length;
+        String countString = count.toString();
+        await prefs.setString('count', countString);
         print('Filtered item: $count');
+        String transNoToDelete = '';
 
         showDialog(
           context: context,
@@ -124,17 +136,32 @@ class _DeleteCartPageState extends State<DeleteCartPage>
               ),
               actions: <Widget>[
                 TextButton(
+                  child: Text('Delete Transaction'),
+                  onPressed: () async {
+                    for (var item in filteredItem) {
+                      transNoToDelete = item['trans_no'];
+                      print('All button clicked $transNoToDelete ff');
+                      count = 888;
+                      SharedPreferences prefs =
+                          await SharedPreferences.getInstance();
+                      String countString = count.toString();
+                      await prefs.setString('count', countString);
+                      deleteOn(transNoToDelete, count);
+                    }
+                  },
+                ),
+                TextButton(
                   child: Text('Close'),
                   onPressed: () {
                     Navigator.of(context).pop();
-
-                    setState(() {});
                   },
                 ),
               ],
             );
           },
-        );
+        ).then((_) {
+          retrievePunched();
+        });
       } else {
         print('HTTP Error: ${response.statusCode}');
       }
