@@ -103,130 +103,178 @@ class _DeleteCartPageState extends State<DeleteCartPage>
         await prefs.setString('count', countString);
         print('Filtered item: $count');
         String transNoToDelete = '';
-        showDialog(
+        showCustomContainer(id);
+      } else {
+        print('HTTP Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
+  }
+
+  void showCustomContainer(String id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    final url = Uri.parse('http://$ipAddress:8080/api/soDetailData');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = jsonDecode(response.body);
+        List<dynamic> filteredItem = data.where((item) {
+          return item['so_number'] == id && item['category'] != 'notes';
+        }).toList();
+        int count = filteredItem.length;
+        String countString = count.toString();
+        await prefs.setString('count', countString);
+        print('Filtered item: $count');
+        String transNoToDelete = '';
+
+        showModalBottomSheet(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Transaction Details'),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: filteredItem.map((item) {
-                    return Dismissible(
-                      key: UniqueKey(),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        color: Colors.red,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text(
-                                'Delete',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16.0,
-                                ),
+            return Container(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Transaction Details',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredItem.length,
+                      itemBuilder: (context, index) {
+                        Map<String, dynamic> item = filteredItem[index];
+                        return Dismissible(
+                          key: UniqueKey(),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            color: Colors.red,
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    'Delete',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                  ),
+                                ],
                               ),
-                              SizedBox(width: 10),
-                              Icon(
-                                Icons.delete,
-                                color: Colors.white,
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-                      confirmDismiss: (direction) async {
-                        return await showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text("Confirm"),
-                              content: Text(
-                                  "Are you sure you want to delete this item?"),
-                              actions: <Widget>[
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(false),
-                                  child: Text("Cancel"),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop(true);
-                                  },
-                                  child: Text("Delete"),
-                                ),
-                              ],
+                          confirmDismiss: (direction) async {
+                            return await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text("Confirm"),
+                                  content: Text(
+                                      "Are you sure you want to delete this item?"),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: Text("Cancel"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(true);
+                                      },
+                                      child: Text("Delete"),
+                                    ),
+                                  ],
+                                );
+                              },
                             );
                           },
+                          onDismissed: (direction) {
+                            if (direction == DismissDirection.endToStart) {
+                              print(
+                                  'Item swiped to the left: ${item['trans_no']}');
+                              deleteOn(item['trans_no'], count);
+                            }
+                          },
+                          child: ListTile(
+                            title: Text('${item['itemname']}'),
+                            subtitle: Text(
+                              "Unit Price: ₱${double.parse(item['unitprice']?.toString() ?? '0').toStringAsFixed(2)}",
+                            ),
+                          ),
                         );
                       },
-                      onDismissed: (direction) {
-                        if (direction == DismissDirection.endToStart) {
-                          print('Item swiped to the left: ${item['trans_no']}');
-                          deleteOn(item['trans_no'], count);
-                        }
-                      },
-                      child: ListTile(
-                        title: Text('${item['itemname']}'),
-                        subtitle: Text(
-                          "Unit Price: ₱${double.parse(item['unitprice']?.toString() ?? '0').toStringAsFixed(2)}",
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('Delete Transaction'),
-                  onPressed: () async {
-                    bool confirmDelete = await showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text("Confirm"),
-                          content: Text(
-                              "Are you sure you want to delete this whole transaction?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: Text("Cancel"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop(true);
-                              },
-                              child: Text("Delete"),
-                            ),
-                          ],
-                        );
-                      },
-                    );
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () async {
+                          bool confirmDelete = await showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text("Confirm"),
+                                content: Text(
+                                    "Are you sure you want to delete this whole transaction?"),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: Text("Cancel"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(true);
+                                    },
+                                    child: Text("Delete"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
 
-                    if (confirmDelete == true) {
-                      for (var item in filteredItem) {
-                        transNoToDelete = item['trans_no'];
-                        print('All button clicked $transNoToDelete ff');
-                        count = 888;
-                        SharedPreferences prefs =
-                            await SharedPreferences.getInstance();
-                        String countString = count.toString();
-                        await prefs.setString('count', countString);
-                        deleteOn(transNoToDelete, count);
-                      }
-                    }
-                  },
-                ),
-                TextButton(
-                  child: Text('Close'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
+                          if (confirmDelete == true) {
+                            for (var item in filteredItem) {
+                              transNoToDelete = item['trans_no'];
+                              print('All button clicked $transNoToDelete ff');
+                              count = 888;
+                              String countString = count.toString();
+                              await prefs.setString('count', countString);
+                              deleteOn(transNoToDelete, count);
+                            }
+                          }
+                        },
+                        child: Text('Delete Transaction'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Close'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             );
           },
         ).then((_) {
