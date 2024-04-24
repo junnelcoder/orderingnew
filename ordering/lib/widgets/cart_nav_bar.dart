@@ -184,6 +184,7 @@ class CartNavBar extends StatelessWidget {
     Widget textFieldWidget = displayTextField
         ? TextField(
             controller: _customerNameController,
+            maxLength: 7,
             decoration: InputDecoration(
               hintText: 'Enter Customer Name Here*',
               border: OutlineInputBorder(
