@@ -263,13 +263,19 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                             }
                           }
                         },
-                        child: Text('Delete Transaction'),
+                        child: Text(
+                          'Delete Transaction',
+                          style: TextStyle(fontSize: 20), // Adjust the font size as needed
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
-                        child: Text('Close'),
+                        child: Text(
+                          'Close',
+                          style: TextStyle(fontSize: 20), // Adjust the font size as needed
+                        ),
                       ),
                     ],
                   ),
@@ -349,25 +355,39 @@ class _DeleteCartPageState extends State<DeleteCartPage>
     return Scaffold(
       appBar: AppBar(
         title: FutureBuilder<String?>(
-          future: _getUsername(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text('Transactions Loading...');
-            } else {
-              if (snapshot.hasData) {
-                String username = snapshot.data!;
-                return Text(
-                  "Transactions of $username",
-                  style: TextStyle(
-                    fontSize: 20,
-                  ),
-                );
-              } else {
-                return Text('Transactions');
-              }
-            }
-          },
-        ),
+  future: _getUsername(),
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return Text('Transactions Loading...');
+    } else {
+      if (snapshot.hasData) {
+        String username = snapshot.data!;
+        return RichText(
+          text: TextSpan(
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.black, // Set default color for all text
+            ),
+            children: [
+              TextSpan(
+                text: "Transactions of ",
+              ),
+              TextSpan(
+                text: username,
+                style: TextStyle(
+                  color: Colors.blue, // Set the color for the username here
+                ),
+              ),
+            ],
+          ),
+        );
+      } else {
+        return Text('Transactions');
+      }
+    }
+  },
+),
+
         automaticallyImplyLeading: false,
         leading: InkWell(
           onTap: () {
