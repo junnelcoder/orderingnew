@@ -58,22 +58,19 @@ class _SelectTablePageState extends State<SelectTablePage>
   }
 
   Future<void> saveSelectedTables2(String table) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selectedTables2', table);
-    String? temp = prefs.getString('selectedTblBool');
-    if (temp == "true") {
-      await prefs.setString('selectedTblBool', "false");
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HomePage()));
-    } else {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HomePage()));
-    }
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('selectedTables2', table);
+  String? temp = prefs.getString('selectedTblBool');
+  if (temp == "true") {
+    await prefs.setString('selectedTblBool', "false");
   }
+  Navigator.pop(context); // Go back to the previous page
+}
+
 
   Future<void> isOccupied(String tableNum) async {
     Fluttertoast.showToast(
-      msg: '$tableNum is already occupied',
+      msg: '$tableNum is already occupied', 
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
