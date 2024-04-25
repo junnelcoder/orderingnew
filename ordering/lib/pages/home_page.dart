@@ -253,6 +253,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               searchQuery: _searchController.text,
                               isDarkMode: isDarkMode,
                               toggleDarkMode: _toggleDarkMode,
+                              onItemAdded: _updateCartItemCount,
                             ))
                         .toList(),
                   ),
@@ -370,5 +371,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // Kung hindi naka-QS, huwag ipakita ang floating button
       ),
     );
+  }
+  void _updateCartItemCount() {
+    setState(() {
+      // Refresh the state to update the item count in the HomeNavBar
+    });
   }
 }

@@ -2,6 +2,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:ordering/pages/home_page.dart';
 import 'package:ordering/pages/ip_screen.dart';
 import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
@@ -10,18 +11,20 @@ import '../pages/config.dart';
 import 'dart:async';
 import 'home_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 class ItemWidget extends StatefulWidget {
   final String category;
   final String searchQuery;
   final bool isDarkMode; // Add this parameter
   final VoidCallback toggleDarkMode; // Toggle function
-
+  final VoidCallback onItemAdded;
   const ItemWidget({
     required this.category,
     required this.searchQuery,
     required this.isDarkMode, // Add this parameter
     required this.toggleDarkMode,
+    required this.onItemAdded,
   });
 
   @override
@@ -285,7 +288,9 @@ class _ItemWidgetState extends State<ItemWidget> {
 
   Widget buildItemCard(BuildContext context, Item item) {
     return Card(
-      color: widget.isDarkMode ? Colors.grey.withOpacity(0.6) : Colors.white.withOpacity(0.85),
+      color: widget.isDarkMode
+          ? Colors.grey.withOpacity(0.6)
+          : Colors.white.withOpacity(0.85),
       margin: EdgeInsets.all(8.0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20.0),
@@ -314,10 +319,11 @@ class _ItemWidgetState extends State<ItemWidget> {
                   return Icon(
                     Icons.fastfood,
                     size: 120,
-                    color: widget.isDarkMode ? Colors.white : Colors.black, // Use error color from the theme
+                    color: widget.isDarkMode
+                        ? Colors.white
+                        : Colors.black, // Use error color from the theme
                   );
                 },
-
               ),
             ),
             Padding(
@@ -327,7 +333,9 @@ class _ItemWidgetState extends State<ItemWidget> {
                 style: TextStyle(
                   fontSize: 16.0,
                   fontWeight: FontWeight.bold,
-                  color: widget.isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.85),
+                  color: widget.isDarkMode
+                      ? Colors.white.withOpacity(0.7)
+                      : Colors.black.withOpacity(0.85),
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -339,7 +347,9 @@ class _ItemWidgetState extends State<ItemWidget> {
                 "${item.itemcode}",
                 style: TextStyle(
                   fontSize: 14.0,
-                  color: widget.isDarkMode ? Colors.white.withOpacity(0.8) : Colors.black.withOpacity(0.85),
+                  color: widget.isDarkMode
+                      ? Colors.white.withOpacity(0.8)
+                      : Colors.black.withOpacity(0.85),
                 ),
               ),
             ),
@@ -353,13 +363,30 @@ class _ItemWidgetState extends State<ItemWidget> {
                     style: TextStyle(
                       fontSize: 14.0,
                       fontWeight: FontWeight.bold,
-                      color: widget.isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.85),
+                      color: widget.isDarkMode
+                          ? Colors.white.withOpacity(0.7)
+                          : Colors.black.withOpacity(0.85),
                     ),
                   ),
-                  Icon(
-                    CupertinoIcons.plus,
-                    size: 25,
-                    color: widget.isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.85),
+                  InkWell(
+                    onTap: () {
+                      // Implement your quick add functionality here
+                      // For example, you can show a snackbar
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Added ${item.itemname}'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      _saveItemToLocal(item); // Save item to local storage
+                    },
+                    child: Icon(
+                      CupertinoIcons.plus,
+                      size: 25,
+                      color: widget.isDarkMode
+                          ? Colors.white.withOpacity(0.7)
+                          : Colors.black.withOpacity(0.85),
+                    ),
                   ),
                 ],
               ),
@@ -379,6 +406,62 @@ class _ItemWidgetState extends State<ItemWidget> {
       // Construct the URL to fetch the image dynamically from the server
       return 'http://$ipAddress:8080/api/image/$itemcode';
     }
+  }
+
+  Future<void> _saveItemToLocal(Item item) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String>? cartItems = prefs.getStringList('cartItems') ?? [];
+      String? storedUsername = prefs.getString('username');
+      // Generate a unique identifier for the main item
+      String mainItemId = UniqueKey().toString();
+      String terminalId = await _fetchTerminalId();
+      var mainItemDetails = {
+        'id': mainItemId,
+        'pa_id': storedUsername,
+        'machine_id': terminalId.toString(),
+        'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        'itemcode': item.itemcode,
+        'itemname': item.itemname,
+        'category': item.category,
+        'qty': '1',
+        'unitprice': item.unitPrice.toString(),
+        'markup': item.markup.toString(),
+        'sellingprice': item.sellingprice.toString(),
+        'department': item.department,
+        'uom': item.uom,
+        'vatable': item.vatable,
+        'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
+        'division': item.division,
+        'section': item.section,
+        'close_status': item.close_status.toString(),
+        'picture_path': item.picture_path,
+        'brand': item.brand,
+        'subtotal': item.sellingprice.toString(),
+        'total': item.sellingprice.toString(),
+      };
+
+      cartItems.add(json.encode(mainItemDetails));
+
+      await prefs.setStringList('cartItems', cartItems);
+      print('Cart Items: $cartItems');
+      // Update the state of HomeNavBar widget
+      widget.onItemAdded();
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => HomePage(),
+      //   ),
+      // );
+    } catch (e) {
+      print('Error saving item to local storage: $e');
+      throw Exception('Failed to save item to local storage');
+    }
+  }
+
+  Future<String> _fetchTerminalId() async {
+    // Implement your logic to fetch terminal ID
+    return 'Terminal123'; // Dummy terminal ID for demonstration
   }
 }
 

@@ -38,6 +38,12 @@ class _HomeNavBarState extends State<HomeNavBar> {
     _openCartItemsCount = await fetchOpenCartItemsCount();
   }
 
+  void _updateOpenCartItemsCount(int count) {
+  setState(() {
+    _openCartItemsCount = count;
+  });
+}
+
   Future<void> _loadSwitchValueFromStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? cartItems = prefs.getStringList('cartItems');
