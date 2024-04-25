@@ -24,6 +24,7 @@ class _SelectTablePageState extends State<SelectTablePage>
   List<String> tableOccupiedArr = [];
   List<String> tableNotOccupiedArr = [];
   String alreadySelectedTable = "";
+  bool isDarkMode = false;
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class _SelectTablePageState extends State<SelectTablePage>
     WidgetsBinding.instance.addObserver(this);
     fetchDataFromServer();
     selectedFromShared();
+    _fetchThemeMode();
   }
 
   @override
@@ -47,6 +49,16 @@ class _SelectTablePageState extends State<SelectTablePage>
     }
   }
 
+  Future<void> _fetchThemeMode() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? themeMode = prefs.getString('isDarkMode');
+    if (themeMode != null && themeMode == 'true') {
+      setState(() {
+        isDarkMode = true;
+      });
+    }
+  }
+
   void _clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
@@ -59,25 +71,22 @@ class _SelectTablePageState extends State<SelectTablePage>
   }
 
   Future<void> saveSelectedTables2(String table) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('selectedTables2', table);
-  String? currentPage = prefs.getString('currentPage');
-  
-  if (currentPage == "cartPage") {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => CartPage()));
-  } else {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => HomePage()));
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedTables2', table);
+    String? currentPage = prefs.getString('currentPage');
+
+    if (currentPage == "cartPage") {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CartPage()));
+    } else {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => HomePage()));
+    }
   }
-}
-
-
-
 
   Future<void> isOccupied(String tableNum) async {
     Fluttertoast.showToast(
-      msg: '$tableNum is already occupied', 
+      msg: '$tableNum is already occupied',
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
@@ -126,8 +135,6 @@ class _SelectTablePageState extends State<SelectTablePage>
           final occ = tableData['occupied'];
           tableNumbersJson
               .add({'tbl_no': tableNum, 'trans_no': transNum, 'occupied': occ});
-          // tableNumbersArr.add(tableNum);
-          // tableNotOccupiedArr.add(transNum);
           _tableStatus[int.parse(transNum)] = TableStatus.AVAILABLE;
         });
 
@@ -137,8 +144,6 @@ class _SelectTablePageState extends State<SelectTablePage>
           final occ = tableData['occupied'];
           tableNumbersJson
               .add({'tbl_no': tableNum, 'trans_no': transNum, 'occupied': occ});
-          // tableNumbersArr.add(tableNum);
-          // tableOccupiedArr.add(transNum);
           _tableStatus[int.parse(transNum)] = TableStatus.RESERVED;
         });
         tableNumbersJson.sort((a, b) {
@@ -182,50 +187,47 @@ class _SelectTablePageState extends State<SelectTablePage>
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  final crossAxisCount = 4; // Set cross axis count to 4 for 4 tables in a row
+  @override
+  Widget build(BuildContext context) {
+    final crossAxisCount = 4;
 
-  return Scaffold(
-    appBar: AppBar(
-      backgroundColor: Colors.white, // Change background color of the AppBar
-      leading: Padding(
-        padding: const EdgeInsets.all(8.0), // Add padding to the IconButton
-        child: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.black, // Change color of the icon
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
           ),
-          onPressed: () {
-            Navigator.pop(context); // Add navigation functionality here
-          },
         ),
       ),
-    ),
-    body: Padding(
-      padding: const EdgeInsets.all(7.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Select a Table',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 20.0,
-              fontWeight: FontWeight.bold,
+      body: Padding(
+        padding: const EdgeInsets.all(7.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Select a Table',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
             ),
-          ),
             SizedBox(height: 10.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Row(
                   children: [
-                    Container(
-                      width: 10.0,
-                      height: 10.0,
-                      color: Colors.red,
-                    ),
+                    Container(width: 10.0, height: 10),
                     SizedBox(width: 5.0),
                     Text(
                       'OCCUPIED',
@@ -333,7 +335,6 @@ Widget build(BuildContext context) {
                               ),
                             ],
                           ),
-                          //
                           if (isSelected || isSelectedFromPrefs)
                             Container(
                               color: Colors.black54.withOpacity(0.5),
@@ -346,7 +347,6 @@ Widget build(BuildContext context) {
                 },
               ),
             ),
-            SizedBox(height: 20.0),
           ],
         ),
       ),

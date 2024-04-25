@@ -32,6 +32,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     loadSelectedService();
     selectedFromShared();
     _storeCurrentPage('homePage');
+    _fetchThemeMode();
     setState(() {
       selectedService = 'Dine In';
     });
@@ -49,6 +50,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused) {
       _clearSharedPreferences();
+    }
+  }
+
+  Future<void> _fetchThemeMode() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? themeMode = prefs.getString('isDarkMode');
+    if (themeMode != null && themeMode == 'true') {
+      setState(() {
+        isDarkMode = true; // Enable dark mode if themeMode is true
+      });
     }
   }
 

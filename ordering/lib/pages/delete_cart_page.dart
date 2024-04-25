@@ -12,12 +12,14 @@ class DeleteCartPage extends StatefulWidget {
 class _DeleteCartPageState extends State<DeleteCartPage>
     with WidgetsBindingObserver {
   List<Map<String, dynamic>> cartItems = [];
+  bool isDarkMode = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     retrievePunched();
+    _fetchThemeMode();
   }
 
   @override
@@ -31,6 +33,16 @@ class _DeleteCartPageState extends State<DeleteCartPage>
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused) {
       _clearSharedPreferences();
+    }
+  }
+
+  Future<void> _fetchThemeMode() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? themeMode = prefs.getString('isDarkMode');
+    if (themeMode != null && themeMode == 'true') {
+      setState(() {
+        isDarkMode = true;
+      });
     }
   }
 
@@ -359,7 +371,7 @@ class _DeleteCartPageState extends State<DeleteCartPage>
           future: _getUsername(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text('Transactions Loading...');
+              return Text('Transactions of ...');
             } else {
               if (snapshot.hasData) {
                 String username = snapshot.data!;
@@ -429,7 +441,10 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                           child: Container(
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDarkMode
+                                  ? const Color.fromARGB(255, 0, 0,
+                                      0) // Black background for dark mode
+                                  : Colors.white, // Default white background
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
@@ -459,6 +474,9 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.06,
                                               fontWeight: FontWeight.bold,
+                                              color: isDarkMode
+                                                  ? Colors.white
+                                                  : Colors.black,
                                             ),
                                           ),
                                           Text(
@@ -467,6 +485,9 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                                 : '',
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.04,
+                                              color: isDarkMode
+                                                  ? Colors.white
+                                                  : Colors.black,
                                             ),
                                           ),
                                           Text(
@@ -474,7 +495,9 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.08,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.black,
+                                              color: isDarkMode
+                                                  ? Colors.white
+                                                  : Colors.black,
                                             ),
                                           ),
                                         ],

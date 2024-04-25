@@ -40,7 +40,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     String? themeMode = prefs.getString('isDarkMode');
     if (themeMode != null && themeMode == 'true') {
       setState(() {
-        isDarkMode = true; // Enable dark mode if themeMode is true
+        isDarkMode = true;
       });
     }
   }
