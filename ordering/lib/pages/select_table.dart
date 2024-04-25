@@ -182,25 +182,39 @@ class _SelectTablePageState extends State<SelectTablePage>
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final crossAxisCount = 4; // Set cross axis count to 4 for 4 tables in a row
+@override
+Widget build(BuildContext context) {
+  final crossAxisCount = 4; // Set cross axis count to 4 for 4 tables in a row
 
-    return Scaffold(
-      appBar: AppBar(),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Select a Table',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-              ),
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Colors.white, // Change background color of the AppBar
+      leading: Padding(
+        padding: const EdgeInsets.all(8.0), // Add padding to the IconButton
+        child: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.black, // Change color of the icon
+          ),
+          onPressed: () {
+            Navigator.pop(context); // Add navigation functionality here
+          },
+        ),
+      ),
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(7.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Select a Table',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20.0,
+              fontWeight: FontWeight.bold,
             ),
+          ),
             SizedBox(height: 10.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
