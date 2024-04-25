@@ -31,7 +31,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     checkSwitchValue();
     loadSelectedService();
     selectedFromShared();
-
+    _storeCurrentPage('homePage');
     setState(() {
       selectedService = 'Dine In';
     });
@@ -76,6 +76,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
   }
 
+  Future<void> _storeCurrentPage(String pageName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('currentPage', pageName);
+  }
+  
   Future<void> selectedFromShared() async {
     final prefs = await SharedPreferences.getInstance();
     String? temp = prefs.getString('selectedTables');

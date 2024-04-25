@@ -24,6 +24,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _fetchCartItems();
     _fetchNotes();
+    _storeCurrentPage('cartPage');
   }
 
   @override
@@ -51,6 +52,11 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _storeCurrentPage(String pageName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('currentPage', pageName);
+  }
+  
   Future<void> _fetchCartItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? cartItemsString = prefs.getStringList('cartItems');

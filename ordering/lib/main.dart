@@ -4,6 +4,7 @@ import 'pages/ip_screen.dart';
 import 'pages/login_screen.dart'; // Import the login screen
 import 'pages/cart_page.dart';
 import 'pages/home_page.dart';
+import 'pages/select_table.dart';
 
 void main() {
   runApp(MyApp());
@@ -33,6 +34,8 @@ class _MyAppState extends State<MyApp> {
         "ipScreenState": (context) => IpScreen(),
         "/": (context) => HomePage(),
         "cartPage": (context) => CartPage(),
+        "table": (context) => SelectTablePage(),
+        
       },
     );
   }

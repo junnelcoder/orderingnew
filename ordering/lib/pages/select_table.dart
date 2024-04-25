@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ordering/pages/home_page.dart';
+import 'package:ordering/pages/cart_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -60,12 +61,18 @@ class _SelectTablePageState extends State<SelectTablePage>
   Future<void> saveSelectedTables2(String table) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('selectedTables2', table);
-  String? temp = prefs.getString('selectedTblBool');
-  if (temp == "true") {
-    await prefs.setString('selectedTblBool', "false");
+  String? currentPage = prefs.getString('currentPage');
+  
+  if (currentPage == "cartPage") {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => CartPage()));
+  } else {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => HomePage()));
   }
-  Navigator.pop(context); // Go back to the previous page
 }
+
+
 
 
   Future<void> isOccupied(String tableNum) async {

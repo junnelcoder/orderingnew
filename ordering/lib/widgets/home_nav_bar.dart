@@ -22,7 +22,8 @@ class HomeNavBar extends StatefulWidget {
 class _HomeNavBarState extends State<HomeNavBar> {
   late bool _someFunctionalitySwitchValue;
   late bool _canInteractWithSwitch;
-  int? _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
+  int?
+      _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
 
   @override
   void initState() {
@@ -113,19 +114,20 @@ class _HomeNavBarState extends State<HomeNavBar> {
                 icon: Stack(
                   alignment: Alignment.centerRight,
                   children: [
-    Icon(
-      widget.isDarkMode ? Icons.light_mode : Icons.dark_mode ,
-      color: widget.isDarkMode ? Colors.white : Colors.black,
-    ),
-    SizedBox(width: 8), // Add some space between the icons
-    Visibility(
-      visible: widget.isDarkMode, // Only show the second icon when in dark mode
-      child: Icon(
-        Icons.light_mode,
-        color: Colors.white,
-      ),
-    ),
-  ],
+                    Icon(
+                      widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                      color: widget.isDarkMode ? Colors.white : Colors.black,
+                    ),
+                    SizedBox(width: 8), // Add some space between the icons
+                    Visibility(
+                      visible: widget
+                          .isDarkMode, // Only show the second icon when in dark mode
+                      child: Icon(
+                        Icons.light_mode,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -152,7 +154,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                   ),
                   child: Icon(
                     Icons.assignment_add,
-                    color:  Colors.white,
+                    color: Colors.white,
                     size: 40,
                   ),
                 ),
@@ -198,7 +200,8 @@ class _HomeNavBarState extends State<HomeNavBar> {
                               });
                             }
                           : null,
-                      activeTrackColor: widget.isDarkMode ? Colors.grey :Colors.black ,
+                      activeTrackColor:
+                          widget.isDarkMode ? Colors.grey : Colors.black,
                       activeColor: Colors.white,
                     ),
                   ),

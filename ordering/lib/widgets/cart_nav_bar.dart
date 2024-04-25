@@ -244,7 +244,7 @@ class CartNavBar extends StatelessWidget {
                   );
                   return;
                 }
-                Navigator.of(context).pop();
+                // Navigator.of(context).pop();
                 saveOrderToDatabase(
                     cartItems, context, _customerNameController.text);
                 Navigator.pushReplacement(
