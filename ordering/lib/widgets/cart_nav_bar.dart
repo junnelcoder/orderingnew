@@ -1,158 +1,159 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import 'package:ordering/pages/select_table.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../pages/home_page.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:ordering/pages/select_table.dart';
 
-class CartNavBar extends StatelessWidget {
+class CartNavBar extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
   final Function(List<Map<String, dynamic>>) updateCartItems;
+  final bool isDarkMode;
 
   CartNavBar({
     Key? key,
     required this.cartItems,
     required this.updateCartItems,
+    required this.isDarkMode,
   }) : super(key: key);
+
+  @override
+  _CartNavBarState createState() => _CartNavBarState();
+}
+
+class _CartNavBarState extends State<CartNavBar> {
+  bool _isDarkMode = false;
+
+  @override
+  void initState() {
+    _loadDarkModePreference();
+    super.initState();
+  }
+
+  Future<void> _loadDarkModePreference() async {
+    setState(() {
+      _isDarkMode = widget.isDarkMode;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     double totalAmount = 0;
 
-    if (cartItems.isNotEmpty) {
-      totalAmount = cartItems
+    if (widget.cartItems.isNotEmpty) {
+      totalAmount = widget.cartItems
           .map((item) => double.parse(item['total'].toString()))
           .reduce((value, element) => value + element);
     }
+    Color backgroundColor = _isDarkMode ? Colors.black : Colors.white;
+    Color textColor = _isDarkMode ? Colors.white : Colors.black;
 
-    return FutureBuilder<List<String>>(
-      future: _loadData(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          return Container(
-            padding: EdgeInsets.symmetric(horizontal: 15),
-            height: 90,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
-                  spreadRadius: 1,
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Total Price:",
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15),
+      height: 90,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            spreadRadius: 1,
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Total Price:",
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 23,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 1),
+                  Text(
+                    "\₱${totalAmount.toStringAsFixed(2)}",
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: () async {
+                  String switchValue = await _loadSwitchValueFromStorage();
+                  String label = await getActionButtonLabel();
+                  if (switchValue == 'QS') {
+                    label = "Save Order";
+                    if (label == 'Save Order') {
+                      _showConfirmationDialog(context);
+                    }
+                  } else if (switchValue == 'FNB') {
+                    if (label == 'Save Order') {
+                      _showConfirmationDialog(context);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SelectTablePage()),
+                      );
+                    }
+                  } else {
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //       builder: (context) => SelectTablePage()),
+                    // );
+                  }
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
+                      bottomLeft: Radius.circular(20),
+                    ),
+                  ),
+                  child: FutureBuilder<String>(
+                    future: getActionButtonLabel(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator();
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        String label = snapshot.data!;
+                        return Text(
+                          label,
                           style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 23,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 1),
-                        Text(
-                          "\₱${totalAmount.toStringAsFixed(2)}",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 30,
+                            color: Colors.white,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
-                        ),
-                      ],
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        String switchValue =
-                            await _loadSwitchValueFromStorage();
-                        String label = await getActionButtonLabel();
-                        if (switchValue == 'QS') {
-                          label = "Save Order";
-                          if (label == 'Save Order') {
-                            _showConfirmationDialog(context);
-                          }
-                        } else if (switchValue == 'FNB') {
-                          if (label == 'Save Order') {
-                            _showConfirmationDialog(context);
-                          } else {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => SelectTablePage()),
-                            );
-                          }
-                        } else {
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //       builder: (context) => SelectTablePage()),
-                          // );
-                        }
-                      },
-                      child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(20),
-                            bottomRight: Radius.circular(20),
-                            bottomLeft: Radius.circular(20),
-                          ),
-                        ),
-                        child: FutureBuilder<String>(
-                          future: getActionButtonLabel(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return CircularProgressIndicator();
-                            } else if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            } else {
-                              String label = snapshot.data!;
-                              return Text(
-                                label,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
+                        );
+                      }
+                    },
+                  ),
                 ),
-              ],
-            ),
-          );
-        }
-      },
+              ),
+            ],
+          ),
+        ],
+      ),
     );
-  }
-
-  Future<List<String>> _loadData() async {
-    final switchValueFuture = _loadSwitchValueFromStorage();
-    final actionButtonLabelFuture = getActionButtonLabel();
-    final switchValue = await switchValueFuture;
-    final actionButtonLabel = await actionButtonLabelFuture;
-    return [switchValue, actionButtonLabel];
   }
 
   Future<String> _loadSwitchValueFromStorage() async {
@@ -246,7 +247,7 @@ class CartNavBar extends StatelessWidget {
                 }
                 // Navigator.of(context).pop();
                 saveOrderToDatabase(
-                    cartItems, context, _customerNameController.text);
+                    widget.cartItems, context, _customerNameController.text);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -368,11 +369,11 @@ class CartNavBar extends StatelessWidget {
       print('Error saving order: $e');
     }
   }
-}
 
-Future<void> selectTableShared() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setString('selectedTblBool', "true");
+  Future<void> selectTableShared() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedTblBool', "true");
+  }
 }
 
 class CartPage extends StatefulWidget {
@@ -407,45 +408,50 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  void _updateCartItems(List<Map<String, dynamic>> updatedItems) {
+  void _updateCartItems(List<Map<String, dynamic>> updatedItems) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('cartItems', jsonEncode(updatedItems));
+
     setState(() {
       cartItems = updatedItems;
     });
   }
 
-  Future<void> _fetchCartItems() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? cartItemsString = prefs.getString('cartItems');
-    if (cartItemsString != null) {
-      cartItemsString = cartItemsString.replaceAll('[', '');
-      cartItemsString = cartItemsString.replaceAll(']', '');
-      cartItemsString = cartItemsString.replaceAll('\\', '');
-
-      List<dynamic> parsedItems = jsonDecode('[$cartItemsString]');
-      List<Map<String, dynamic>> items = List<Map<String, dynamic>>.from(
-          parsedItems.map((item) => jsonDecode(item)));
-
-      setState(() {
-        cartItems = items;
-      });
-    }
-  }
-
+  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Cart'),
       ),
-      body: Center(
-        child: Text('Your cart items here'),
-      ),
-      bottomNavigationBar: cartItems.isNotEmpty
-          ? CartNavBar(
-              cartItems: cartItems,
-              updateCartItems: _updateCartItems,
+      body: cartItems.isNotEmpty
+          ? Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: cartItems.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(cartItems[index]['itemName']),
+                        subtitle: Text(cartItems[index]['quantity']
+                            .toString()), // Display quantity
+                        trailing: Text(
+                          '₱${cartItems[index]['total'].toString()}',
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                CartNavBar(
+                  cartItems: cartItems,
+                  updateCartItems: _updateCartItems,
+                  isDarkMode: false, // Set isDarkMode to false initially
+                ),
+              ],
             )
-          : null,
+          : Center(
+              child: Text('Your cart is empty.'),
+            ),
     );
   }
 }

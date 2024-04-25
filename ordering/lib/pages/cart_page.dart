@@ -14,6 +14,7 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
+  bool isDarkMode = false; // Default to false for light mode
   List<Map<String, dynamic>> cartItems = [];
   Map<String, dynamic>? notesData;
   List<String> notesList = ['No notes added'];
@@ -22,6 +23,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _fetchThemeMode(); // Fetch theme mode from SharedPreferences
     _fetchCartItems();
     _fetchNotes();
     _storeCurrentPage('cartPage');
@@ -33,22 +35,13 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused) {
-      _clearSharedPreferences();
-    }
-  }
-
-  void _clearSharedPreferences() async {
+  Future<void> _fetchThemeMode() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? ipAddress = prefs.getString('ipAddress');
-    String? uname = prefs.getString('username');
-    await prefs.clear();
-    if (ipAddress != null && uname != null) {
-      await prefs.setString('ipAddress', ipAddress);
-      await prefs.setString('username', uname);
+    String? themeMode = prefs.getString('isDarkMode');
+    if (themeMode != null && themeMode == 'true') {
+      setState(() {
+        isDarkMode = true; // Enable dark mode if themeMode is true
+      });
     }
   }
 
@@ -56,7 +49,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('currentPage', pageName);
   }
-  
+
   Future<void> _fetchCartItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? cartItemsString = prefs.getStringList('cartItems');
@@ -247,6 +240,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
               "Order List",
               style: TextStyle(
                 fontSize: 30,
+                color: isDarkMode ? Colors.white : Colors.black,
               ),
             ),
             TextButton(
@@ -260,7 +254,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 "Cancel Order",
                 style: TextStyle(
                   fontSize: 18,
-                  color: Colors.black,
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
               ),
             ),
@@ -275,10 +269,11 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             padding: EdgeInsets.all(8.0),
             child: Icon(
               Icons.arrow_back_ios,
-              color: Colors.black,
+              color: isDarkMode ? Colors.white : Colors.black,
             ),
           ),
         ),
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
       ),
       body: Column(
         children: [
@@ -287,7 +282,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                 ? Center(
                     child: Text(
                       'No orders yet',
-                      style: TextStyle(fontSize: 20),
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: isDarkMode ? Colors.white : Colors.black,
+                      ),
                     ),
                   )
                 : ListView.builder(
@@ -562,8 +560,10 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
           ? CartNavBar(
               cartItems: cartItems,
               updateCartItems: (_) {},
+              isDarkMode: isDarkMode, // Pass isDarkMode to the bottom nav bar
             )
           : null,
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
     );
   }
 }

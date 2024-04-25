@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:ordering/pages/cart_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -102,7 +101,6 @@ class _DeleteCartPageState extends State<DeleteCartPage>
         String countString = count.toString();
         await prefs.setString('count', countString);
         print('Filtered item: $count');
-        String transNoToDelete = '';
         showCustomContainer(id);
       } else {
         print('HTTP Error: ${response.statusCode}');
@@ -265,7 +263,8 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                         },
                         child: Text(
                           'Delete Transaction',
-                          style: TextStyle(fontSize: 20), // Adjust the font size as needed
+                          style: TextStyle(
+                              fontSize: 20), // Adjust the font size as needed
                         ),
                       ),
                       TextButton(
@@ -274,7 +273,8 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                         },
                         child: Text(
                           'Close',
-                          style: TextStyle(fontSize: 20), // Adjust the font size as needed
+                          style: TextStyle(
+                              fontSize: 20), // Adjust the font size as needed
                         ),
                       ),
                     ],
@@ -341,12 +341,13 @@ class _DeleteCartPageState extends State<DeleteCartPage>
   }
 
   void navigateToCartPage() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CartPage(),
-      ),
-    );
+    // Navigator.pushReplacement(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => CartPage(),
+    //   ),
+    // );
+    Navigator.pop(context);
   }
 
   @override
@@ -355,39 +356,39 @@ class _DeleteCartPageState extends State<DeleteCartPage>
     return Scaffold(
       appBar: AppBar(
         title: FutureBuilder<String?>(
-  future: _getUsername(),
-  builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return Text('Transactions Loading...');
-    } else {
-      if (snapshot.hasData) {
-        String username = snapshot.data!;
-        return RichText(
-          text: TextSpan(
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.black, // Set default color for all text
-            ),
-            children: [
-              TextSpan(
-                text: "Transactions of ",
-              ),
-              TextSpan(
-                text: username,
-                style: TextStyle(
-                  color: Colors.blue, // Set the color for the username here
-                ),
-              ),
-            ],
-          ),
-        );
-      } else {
-        return Text('Transactions');
-      }
-    }
-  },
-),
-
+          future: _getUsername(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Text('Transactions Loading...');
+            } else {
+              if (snapshot.hasData) {
+                String username = snapshot.data!;
+                return RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.black, // Set default color for all text
+                    ),
+                    children: [
+                      TextSpan(
+                        text: "Transactions of ",
+                      ),
+                      TextSpan(
+                        text: username,
+                        style: TextStyle(
+                          color: Colors
+                              .blue, // Set the color for the username here
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return Text('Transactions');
+              }
+            }
+          },
+        ),
         automaticallyImplyLeading: false,
         leading: InkWell(
           onTap: () {

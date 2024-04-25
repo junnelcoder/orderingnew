@@ -63,9 +63,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  void _toggleDarkMode() {
+  void _toggleDarkMode() async {
+    isDarkMode = !isDarkMode;
+    String theme = isDarkMode.toString();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('isDarkMode', theme);
+    String? temp = prefs.getString('isDarkMode');
+    print("theme $temp");
     setState(() {
-      isDarkMode = !isDarkMode;
+      temp;
     });
   }
 
@@ -80,7 +86,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('currentPage', pageName);
   }
-  
+
   Future<void> selectedFromShared() async {
     final prefs = await SharedPreferences.getInstance();
     String? temp = prefs.getString('selectedTables');
@@ -174,7 +180,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     return DefaultTabController(
       length: filteredCategories.length,
       child: Scaffold(
-        backgroundColor: isDarkMode ? Colors.black.withOpacity(0.8) : Colors.white,
+        backgroundColor:
+            isDarkMode ? Colors.black.withOpacity(0.8) : Colors.white,
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.only(top: 20),
@@ -288,7 +295,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   },
                   label: Text(labelText),
                   icon: Icon(Icons.table_chart),
-                  backgroundColor: isDarkMode ? Colors.grey.withOpacity(0.85) : Colors.orange.withOpacity(0.85),
+                  backgroundColor: isDarkMode
+                      ? Colors.grey.withOpacity(0.85)
+                      : Colors.orange.withOpacity(0.85),
                   foregroundColor: Colors.white,
                   elevation: 4.0,
                 ),
@@ -360,7 +369,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 },
                 label: Text(selectedService),
                 icon: Icon(Icons.room_service),
-                backgroundColor: isDarkMode ? Colors.grey.withOpacity(0.85) : Colors.blue.withOpacity(0.85),
+                backgroundColor: isDarkMode
+                    ? Colors.grey.withOpacity(0.85)
+                    : Colors.blue.withOpacity(0.85),
                 foregroundColor: Colors.white,
                 elevation: 4.0,
               ),
@@ -372,6 +383,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       ),
     );
   }
+
   void _updateCartItemCount() {
     setState(() {
       // Refresh the state to update the item count in the HomeNavBar

@@ -2,14 +2,12 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
-import 'package:ordering/pages/home_page.dart';
 import 'package:ordering/pages/ip_screen.dart';
 import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
 import '../pages/single_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
-import 'home_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 

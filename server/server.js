@@ -39,7 +39,7 @@ app.get('/api/image/:itemcode', (req, res) => {
 const config = {
   user: 'sa',
   password: 'zankojt@2024',
-  server: 'DESKTOP-eir2a8b\\SQLEXPRESS2014',
+  server: 'DESKTOP-6s6clho\\SQLEXPRESS2014',
   database: 'restopos45',
   options: {
     encrypt: false,
