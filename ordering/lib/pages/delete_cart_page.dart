@@ -146,61 +146,113 @@ class _DeleteCartPageState extends State<DeleteCartPage>
         showModalBottomSheet(
           context: context,
           builder: (BuildContext context) {
-            return Container(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Transaction Details',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+            return Material(
+              color: isDarkMode
+                  ? Colors.grey
+                  : Colors.white, // Set the background color to red
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Transaction Details',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 16),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: filteredItem.length,
-                      itemBuilder: (context, index) {
-                        Map<String, dynamic> item = filteredItem[index];
-                        return Dismissible(
-                          key: UniqueKey(),
-                          direction: DismissDirection.endToStart,
-                          background: Container(
-                            color: Colors.red,
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    'Delete',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0,
+                    SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: filteredItem.length,
+                        itemBuilder: (context, index) {
+                          Map<String, dynamic> item = filteredItem[index];
+                          return Dismissible(
+                            key: UniqueKey(),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              color: isDarkMode
+                                  ? Colors.black.withOpacity(0.4)
+                                  : Colors.red,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 20.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      'Delete',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16.0,
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: 10),
-                                  Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                  ),
-                                ],
+                                    SizedBox(width: 10),
+                                    Icon(
+                                      Icons.delete,
+                                      color: Colors.white,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          confirmDismiss: (direction) async {
-                            return await showDialog(
+                            confirmDismiss: (direction) async {
+                              return await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: Text("Confirm"),
+                                    content: Text(
+                                        "Are you sure you want to delete this item?"),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: Text("Cancel"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(true);
+                                        },
+                                        child: Text("Delete"),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            onDismissed: (direction) {
+                              if (direction == DismissDirection.endToStart) {
+                                print(
+                                    'Item swiped to the left: ${item['trans_no']}');
+                                deleteOn(item['trans_no'], count);
+                              }
+                            },
+                            child: ListTile(
+                              title: Text('${item['itemname']}'),
+                              subtitle: Text(
+                                "Unit Price: ₱${double.parse(item['unitprice']?.toString() ?? '0').toStringAsFixed(2)}",
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () async {
+                            bool confirmDelete = await showDialog(
                               context: context,
                               builder: (BuildContext context) {
                                 return AlertDialog(
                                   title: Text("Confirm"),
                                   content: Text(
-                                      "Are you sure you want to delete this item?"),
+                                      "Are you sure you want to delete this whole transaction?"),
                                   actions: <Widget>[
                                     TextButton(
                                       onPressed: () =>
@@ -217,83 +269,42 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                 );
                               },
                             );
-                          },
-                          onDismissed: (direction) {
-                            if (direction == DismissDirection.endToStart) {
-                              print(
-                                  'Item swiped to the left: ${item['trans_no']}');
-                              deleteOn(item['trans_no'], count);
-                            }
-                          },
-                          child: ListTile(
-                            title: Text('${item['itemname']}'),
-                            subtitle: Text(
-                              "Unit Price: ₱${double.parse(item['unitprice']?.toString() ?? '0').toStringAsFixed(2)}",
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () async {
-                          bool confirmDelete = await showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text("Confirm"),
-                                content: Text(
-                                    "Are you sure you want to delete this whole transaction?"),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(false),
-                                    child: Text("Cancel"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(true);
-                                    },
-                                    child: Text("Delete"),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
 
-                          if (confirmDelete == true) {
-                            for (var item in filteredItem) {
-                              transNoToDelete = item['trans_no'];
-                              print('All button clicked $transNoToDelete ff');
-                              count = 888;
-                              String countString = count.toString();
-                              await prefs.setString('count', countString);
-                              deleteOn(transNoToDelete, count);
+                            if (confirmDelete == true) {
+                              for (var item in filteredItem) {
+                                transNoToDelete = item['trans_no'];
+                                print('All button clicked $transNoToDelete ff');
+                                count = 888;
+                                String countString = count.toString();
+                                await prefs.setString('count', countString);
+                                deleteOn(transNoToDelete, count);
+                              }
                             }
-                          }
-                        },
-                        child: Text(
-                          'Delete Transaction',
-                          style: TextStyle(
-                              fontSize: 20), // Adjust the font size as needed
+                          },
+                          child: Text(
+                            'Delete Transaction',
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: Colors
+                                    .black), // Adjust the font size as needed
+                          ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          'Close',
-                          style: TextStyle(
-                              fontSize: 20), // Adjust the font size as needed
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'Close',
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: Colors
+                                    .black), // Adjust the font size as needed
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -382,7 +393,9 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                   text: TextSpan(
                     style: TextStyle(
                       fontSize: 20,
-                      color: isDarkMode ? Colors.white : Colors.black, // Set default color for all text
+                      color: isDarkMode
+                          ? Colors.white
+                          : Colors.black, // Set default color for all text
                     ),
                     children: [
                       TextSpan(
@@ -391,7 +404,10 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                       TextSpan(
                         text: username,
                         style: TextStyle(
-                          color: isDarkMode ? Colors.grey : Colors.blue, // Set the color for the username here
+                          color: isDarkMode
+                              ? Colors.grey
+                              : Colors
+                                  .blue, // Set the color for the username here
                         ),
                       ),
                     ],
@@ -444,18 +460,19 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                             width: double.infinity,
                             decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? Colors.grey.withOpacity(0.4)// Black background for dark mode
+                                  ? Colors.grey.withOpacity(
+                                      0.4) // Black background for dark mode
                                   : Colors.white, // Default white background
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
-                                    color: isDarkMode
-                                        ? Colors.white.withOpacity(0)
-                                        : Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 3,
-                                    blurRadius: 10,
-                                    offset: Offset(0, 3),
-                                  )
+                                  color: isDarkMode
+                                      ? Colors.white.withOpacity(0)
+                                      : Colors.grey.withOpacity(0.5),
+                                  spreadRadius: 3,
+                                  blurRadius: 10,
+                                  offset: Offset(0, 3),
+                                )
                               ],
                             ),
                             child: Column(
@@ -471,8 +488,10 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                             MainAxisAlignment.spaceAround,
                                         children: [
                                           Text(
-                                            "so_number: ${item['so_number']}" != null
-                                                ? "so_number: ${item['so_number']}".toString()
+                                            "so_number: ${item['so_number']}" !=
+                                                    null
+                                                ? "so_number: ${item['so_number']}"
+                                                    .toString()
                                                 : '',
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.07,
@@ -483,8 +502,10 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                             ),
                                           ),
                                           Text(
-                                            "so_number: ${item['tran_time']}" != null
-                                                ? "transact time: ${item['tran_time']}".toString()
+                                            "so_number: ${item['tran_time']}" !=
+                                                    null
+                                                ? "transact time: ${item['tran_time']}"
+                                                    .toString()
                                                 : '',
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.06,
@@ -519,7 +540,6 @@ class _DeleteCartPageState extends State<DeleteCartPage>
           ),
         ],
       ),
-       
       backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
     );
   }

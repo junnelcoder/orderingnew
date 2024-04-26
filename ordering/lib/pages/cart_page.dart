@@ -407,12 +407,14 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                                               style: TextStyle(
                                                 fontSize: screenWidth * 0.06,
                                                 fontWeight: FontWeight.bold,
+                                                color: isDarkMode ? Colors.black.withOpacity(0.7) : Colors.black
                                               ),
                                             ),
                                             Text(
                                               item['category'],
                                               style: TextStyle(
                                                 fontSize: screenWidth * 0.04,
+                                                color: isDarkMode ? Colors.white : Colors.black
                                               ),
                                             ),
                                             Text(
@@ -420,7 +422,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                                               style: TextStyle(
                                                 fontSize: screenWidth * 0.07,
                                                 fontWeight: FontWeight.bold,
-                                                color: Colors.black,
+                                                color: isDarkMode ? Colors.white : Colors.black,
                                               ),
                                             ),
                                           ],

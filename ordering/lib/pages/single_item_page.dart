@@ -285,7 +285,7 @@ class _SingleItemPageState extends State<SingleItemPage>
 
   @override
   Widget build(BuildContext context) {
-    Color _backgroundColor = isDarkMode ? Colors.black : Colors.white;
+    Color _backgroundColor = isDarkMode ? Color(0xFF222222) : Colors.white;
     Color _textColor = isDarkMode ? Colors.white : Colors.black;
     Color _buttonColor = isDarkMode ? Colors.white : Colors.black;
     Color _buttonTextColor = isDarkMode ? Colors.black : Colors.white;
@@ -405,75 +405,83 @@ class _SingleItemPageState extends State<SingleItemPage>
                       var selected = await showModalBottomSheet<List<String>>(
                         context: context,
                         builder: (BuildContext context) {
-                          return Container(
-                            height: MediaQuery.of(context).size.height / 3,
-                            child: Column(
-                              children: [
-                                SizedBox(height: 10),
-                                Text(
-                                  'Select note(s)',
-                                  style: TextStyle(
-                                    color: _textColor,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
+                          return Material(
+                            // Wrap the Container with Material
+                            color: isDarkMode ? Colors.grey : Colors.white, // Set the background color to red
+                            child: Container(
+                              height: MediaQuery.of(context).size.height / 3,
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Select note(s)',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(height: 10),
-                                Expanded(
-                                  child:
-                                      FutureBuilder<List<Map<String, dynamic>>>(
-                                    future: fetchNoteItems(),
-                                    builder: (BuildContext context,
-                                        AsyncSnapshot<
-                                                List<Map<String, dynamic>>>
-                                            snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return Center(
-                                          child: CircularProgressIndicator(),
-                                        );
-                                      } else if (snapshot.hasError) {
-                                        return Text('Error: ${snapshot.error}');
-                                      } else {
-                                        List<Map<String, dynamic>> noteItems =
-                                            snapshot.data!;
-                                        return ListView.builder(
-                                          itemCount: noteItems.length,
-                                          itemBuilder: (context, index) {
-                                            return StatefulBuilder(
-                                              builder: (context, setState) {
-                                                return CheckboxListTile(
-                                                  title: Text(noteItems[index]
-                                                      ['itemname']),
-                                                  value: selectedNotes.contains(
-                                                      noteItems[index]
-                                                          ['itemname']),
-                                                  onChanged: (bool? value) {
-                                                    setState(() {
-                                                      if (value != null) {
-                                                        if (value) {
-                                                          selectedNotes.add(
-                                                              noteItems[index]
-                                                                  ['itemname']);
-                                                        } else {
-                                                          selectedNotes.remove(
-                                                              noteItems[index]
-                                                                  ['itemname']);
+                                  SizedBox(height: 10),
+                                  Expanded(
+                                    child: FutureBuilder<
+                                        List<Map<String, dynamic>>>(
+                                      future: fetchNoteItems(),
+                                      builder: (BuildContext context,
+                                          AsyncSnapshot<
+                                                  List<Map<String, dynamic>>>
+                                              snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                            child: CircularProgressIndicator(),
+                                          );
+                                        } else if (snapshot.hasError) {
+                                          return Text(
+                                              'Error: ${snapshot.error}');
+                                        } else {
+                                          List<Map<String, dynamic>> noteItems =
+                                              snapshot.data!;
+                                          return ListView.builder(
+                                            itemCount: noteItems.length,
+                                            itemBuilder: (context, index) {
+                                              return StatefulBuilder(
+                                                builder: (context, setState) {
+                                                  return CheckboxListTile(
+                                                    title: Text(noteItems[index]
+                                                        ['itemname']),
+                                                    value:
+                                                        selectedNotes.contains(
+                                                            noteItems[index]
+                                                                ['itemname']),
+                                                    onChanged: (bool? value) {
+                                                      setState(() {
+                                                        if (value != null) {
+                                                          if (value) {
+                                                            selectedNotes.add(
+                                                                noteItems[index]
+                                                                    [
+                                                                    'itemname']);
+                                                          } else {
+                                                            selectedNotes.remove(
+                                                                noteItems[index]
+                                                                    [
+                                                                    'itemname']);
+                                                          }
                                                         }
-                                                      }
-                                                    });
-                                                  },
-                                                  tristate: false,
-                                                );
-                                              },
-                                            );
-                                          },
-                                        );
-                                      }
-                                    },
+                                                      });
+                                                    },
+                                                    tristate: false,
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          );
+                                        }
+                                      },
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -505,7 +513,12 @@ class _SingleItemPageState extends State<SingleItemPage>
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Icon(Icons.keyboard_arrow_down),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            color: isDarkMode
+                                ? Colors.white
+                                : Colors.black, // Set the color to red
+                          ),
                         ],
                       ),
                     ),
@@ -557,11 +570,14 @@ class SingleItemNavBar extends StatelessWidget {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color:
-            isDarkMode ? Colors.black : Colors.white, // Apply dark mode color
+        color: isDarkMode
+            ? Color(0xFF222222)
+            : Colors.white, // Apply dark mode color
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: isDarkMode
+                ? Colors.grey.withOpacity(0.4)
+                : Colors.black.withOpacity(0.4),
             spreadRadius: 1,
             blurRadius: 8,
           ),
