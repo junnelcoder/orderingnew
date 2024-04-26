@@ -18,14 +18,14 @@ class ItemWidget extends StatefulWidget {
   final bool isDarkMode; // Add this parameter
   final VoidCallback toggleDarkMode; // Toggle function
   final VoidCallback onItemAdded;
-  final ValueChanged<int> updateCartItemsCount;
+  // final ValueChanged<int> updateCartItemsCount;
   const ItemWidget({
     required this.category,
     required this.searchQuery,
     required this.isDarkMode, // Add this parameter
     required this.toggleDarkMode,
     required this.onItemAdded,
-    required this.updateCartItemsCount,
+    // required this.updateCartItemsCount,
   });
 
   @override
@@ -444,10 +444,10 @@ class _ItemWidgetState extends State<ItemWidget> {
       };
 
       cartItems.add(json.encode(mainItemDetails));
-      cartCount++; // Increment cart count
-      widget.updateCartItemsCount(cartCount);
-      await prefs.setStringList('cartItems', cartItems);
-      print('Cart Items: $cartItems');
+      // cartCount++; // Increment cart count
+      // widget.updateCartItemsCount(cartCount);
+      // await prefs.setStringList('cartItems', cartItems);
+      // print('Cart Items: $cartItems');
       // Update the state of HomeNavBar widget
       // widget.onItemAdded();
       // Navigator.pushReplacement(

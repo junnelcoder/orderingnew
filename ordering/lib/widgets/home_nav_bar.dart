@@ -7,13 +7,13 @@ class HomeNavBar extends StatefulWidget {
   final bool isDarkMode;
   final bool isSwitchOn;
   final VoidCallback toggleDarkMode;
-  final ValueChanged<bool> onSwitchChanged;
+  // final ValueChanged<bool> onSwitchChanged;
 
   const HomeNavBar({
     required this.isDarkMode,
     required this.isSwitchOn,
     required this.toggleDarkMode,
-    required this.onSwitchChanged,
+    // required this.onSwitchChanged, required updateCartItemsCount,
   });
 
   @override
@@ -31,7 +31,13 @@ class _HomeNavBarState extends State<HomeNavBar> {
     _canInteractWithSwitch = true;
     _loadSwitchValueFromStorage();
     _refreshOnLoad();
+    // _updateOpenCartItemsCount(cartCount);
   }
+void updateCartItemsCount(int count) {
+  setState(() {
+    _openCartItemsCount = count;
+  });
+}
 
   void _refreshOnLoad() async {
     // Fetch open cart items count and assign it to _openCartItemsCount
@@ -58,7 +64,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
       setState(() {
         _someFunctionalitySwitchValue = value;
         _saveSwitchValueToStorage(value);
-        widget.onSwitchChanged(value);
+        // widget.onSwitchChanged(value);
       });
     }
   }
