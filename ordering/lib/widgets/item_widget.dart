@@ -373,8 +373,9 @@ class _ItemWidgetState extends State<ItemWidget> {
                       // For example, you can show a snackbar
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Added ${item.itemname}'),
+                          content: Text("Check Order List, Added ${item.itemname}"),
                           duration: Duration(seconds: 2),
+                          backgroundColor: Colors.green,
                         ),
                       );
                       _saveItemToLocal(item); // Save item to local storage
@@ -446,12 +447,12 @@ class _ItemWidgetState extends State<ItemWidget> {
       print('Cart Items: $cartItems');
       // Update the state of HomeNavBar widget
       // widget.onItemAdded();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => HomePage(),
+      //   ),
+      // );
     } catch (e) {
       print('Error saving item to local storage: $e');
       throw Exception('Failed to save item to local storage');
