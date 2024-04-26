@@ -271,7 +271,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               isDarkMode: isDarkMode,
                               toggleDarkMode: _toggleDarkMode,
                               onItemAdded: _updateCartItemCount,
-                              // updateCartItemsCount: (int cartCount) {},
                             ))
                         .toList(),
                   ),
@@ -285,7 +284,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           isSwitchOn: _isSwitchOn,
           toggleDarkMode: _toggleDarkMode,
           onSwitchChanged: _toggleSwitch,
-  // updateCartItemsCount: updateCartItemsCount,
         ),
 
         floatingActionButton: Align(
