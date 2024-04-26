@@ -2,6 +2,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:ordering/pages/home_page.dart';
 import 'package:ordering/pages/ip_screen.dart';
 import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
@@ -287,13 +288,13 @@ class _ItemWidgetState extends State<ItemWidget> {
   Widget buildItemCard(BuildContext context, Item item) {
     return Card(
       color: widget.isDarkMode
-          ? Colors.grey.withOpacity(0.6)
+          ? Colors.grey.withOpacity(0.7)
           : Colors.white.withOpacity(0.85),
       margin: EdgeInsets.all(8.0),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20.0),
       ),
-      elevation: 4.0,
+      elevation: widget.isDarkMode ? 2 : 5.0,
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -444,13 +445,13 @@ class _ItemWidgetState extends State<ItemWidget> {
       await prefs.setStringList('cartItems', cartItems);
       print('Cart Items: $cartItems');
       // Update the state of HomeNavBar widget
-      widget.onItemAdded();
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => HomePage(),
-      //   ),
-      // );
+      // widget.onItemAdded();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+        ),
+      );
     } catch (e) {
       print('Error saving item to local storage: $e');
       throw Exception('Failed to save item to local storage');

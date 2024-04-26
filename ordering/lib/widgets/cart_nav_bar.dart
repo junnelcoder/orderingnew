@@ -46,7 +46,7 @@ class _CartNavBarState extends State<CartNavBar> {
           .map((item) => double.parse(item['total'].toString()))
           .reduce((value, element) => value + element);
     }
-    Color backgroundColor = _isDarkMode ? Colors.black : Colors.white;
+    Color backgroundColor = _isDarkMode ? Color(0xFF222222) : Colors.white;
     Color textColor = _isDarkMode ? Colors.white : Colors.black;
 
     return Container(
@@ -56,7 +56,7 @@ class _CartNavBarState extends State<CartNavBar> {
         color: backgroundColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: widget.isDarkMode ? Colors.grey.withOpacity(0.4) : Colors.black.withOpacity(0.4),
             spreadRadius: 1,
             blurRadius: 8,
           ),
@@ -120,7 +120,7 @@ class _CartNavBarState extends State<CartNavBar> {
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                   decoration: BoxDecoration(
-                    color: Colors.black,
+                    color: _isDarkMode ?Colors.grey.withOpacity(0.5) : Colors.black,
                     borderRadius: BorderRadius.only(
                       topRight: Radius.circular(20),
                       bottomRight: Radius.circular(20),

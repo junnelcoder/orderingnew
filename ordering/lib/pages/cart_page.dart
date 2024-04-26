@@ -273,7 +273,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             ),
           ),
         ),
-        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+        backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
       ),
       body: Column(
         children: [
@@ -340,7 +340,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                           background: Container(
                             alignment: Alignment.centerRight,
                             padding: EdgeInsets.only(right: 20.0),
-                            color: Colors.red,
+                            color: isDarkMode
+                                ? Colors.grey.withOpacity(0.2)
+                                : Colors.red,
                             child: Icon(Icons.delete, color: Colors.white),
                           ),
                           child: Padding(
@@ -351,11 +353,15 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                             child: Container(
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: isDarkMode
+                                    ? Colors.grey.withOpacity(0.7)
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
+                                    color: isDarkMode
+                                        ? Colors.white.withOpacity(0)
+                                        : Colors.grey.withOpacity(0.5),
                                     spreadRadius: 3,
                                     blurRadius: 10,
                                     offset: Offset(0, 3),
@@ -377,10 +383,13 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                                           width: screenWidth * 0.35,
                                           errorBuilder:
                                               (context, error, stackTrace) {
-                                            return Image.asset(
-                                              'images/DEFAULT.png',
-                                              width: 155,
-                                              height: 120,
+                                            return Icon(
+                                              Icons.fastfood,
+                                              size: 100,
+                                              color: isDarkMode
+                                                  ? Colors.white
+                                                  : Colors
+                                                      .black, // Use error color from the theme
                                             );
                                           },
                                         ),
@@ -409,7 +418,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                                             Text(
                                               "₱${double.parse(item['total']).toStringAsFixed(2)}",
                                               style: TextStyle(
-                                                fontSize: screenWidth * 0.08,
+                                                fontSize: screenWidth * 0.07,
                                                 fontWeight: FontWeight.bold,
                                                 color: Colors.black,
                                               ),
@@ -420,9 +429,9 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                                       SizedBox(width: 10),
                                       Container(
                                         padding:
-                                            EdgeInsets.all(screenWidth * 0.015),
+                                            EdgeInsets.all(screenWidth * 0.004),
                                         decoration: BoxDecoration(
-                                          color: Colors.black,
+                                          color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.black,
                                           borderRadius:
                                               BorderRadius.circular(10),
                                         ),
@@ -474,7 +483,8 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                                           "Added notes:",
                                           style: TextStyle(
                                             fontSize: screenWidth * 0.04 * 1.3,
-                                            color: Colors.grey,
+                                            color: isDarkMode? Colors.white : Colors.grey,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                         ...notesList.map(
@@ -482,18 +492,18 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                                             children: [
                                               Expanded(
                                                 child: Text(
-                                                  "- $note",
+                                                  "     - $note",
                                                   style: TextStyle(
                                                     fontSize:
                                                         screenWidth * 0.04,
-                                                    color: Colors.grey,
+                                                    color: isDarkMode? Colors.white : Colors.grey,
                                                   ),
                                                 ),
                                               ),
                                               IconButton(
                                                 icon: Icon(
                                                   Icons.clear,
-                                                  color: Colors.red,
+                                                  color: isDarkMode ?Colors.black : Colors.red,
                                                 ),
                                                 onPressed: () {
                                                   String cartItemId =
@@ -515,11 +525,12 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                                         if (unselectedNotes.isNotEmpty)
                                           DropdownButton<String>(
                                             hint: Text(
-                                              "Select a note",
+                                              "Select a note --",
                                               style: TextStyle(
-                                                fontSize: 23,
-                                                fontWeight: FontWeight
-                                                    .bold, // Add fontWeight if desired
+                                                fontSize: 20,
+                                                // fontWeight: FontWeight
+                                                //     .bold, 
+                                                    color: isDarkMode ? Colors.white : Colors.grey,// Add fontWeight if desired
                                               ),
                                             ),
                                             value: null,
@@ -536,6 +547,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
                                                     value: item['itemname'],
                                                     child: Text(item['itemname']
                                                         .trim()),
+                                                        
                                                   ),
                                                 )
                                                 .toList(),
@@ -563,7 +575,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
               isDarkMode: isDarkMode, // Pass isDarkMode to the bottom nav bar
             )
           : null,
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
     );
   }
 }

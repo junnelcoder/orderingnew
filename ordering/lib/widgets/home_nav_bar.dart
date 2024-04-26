@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class HomeNavBar extends StatefulWidget {
   final bool isDarkMode;
@@ -39,10 +40,30 @@ class _HomeNavBarState extends State<HomeNavBar> {
   }
 
   void _updateOpenCartItemsCount(int count) {
-  setState(() {
-    _openCartItemsCount = count;
-  });
+    setState(() {
+      _openCartItemsCount = count;
+    });
+  }
+
+  void _setSomeFunctionalitySwitchValue(bool value, BuildContext context) {
+  if (!_canInteractWithSwitch) {
+    // If switch interaction is disabled, show toast message
+    Fluttertoast.showToast(
+      msg: 'Finish transaction first before switching',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+    );
+  } else {
+    setState(() {
+      _someFunctionalitySwitchValue = value;
+      _saveSwitchValueToStorage(value);
+      widget.onSwitchChanged(value);
+    });
+  }
 }
+
 
   Future<void> _loadSwitchValueFromStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -94,12 +115,12 @@ class _HomeNavBarState extends State<HomeNavBar> {
       padding: EdgeInsets.symmetric(horizontal: 15),
       height: 90,
       decoration: BoxDecoration(
-        color: widget.isDarkMode ? Colors.grey.withOpacity(0.1) : Colors.white,
+        color: widget.isDarkMode ? Color(0xFF222222) : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: widget.isDarkMode ? Colors.grey.withOpacity(0.4) : Colors.black.withOpacity(0.4),
             spreadRadius: 1,
-            blurRadius: 8,
+            blurRadius: widget.isDarkMode ? 10 : 25,
           ),
         ],
       ),
@@ -152,7 +173,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
+                        color: widget.isDarkMode ? Colors.grey.withOpacity(0) : Colors.black.withOpacity(0.4),
                         spreadRadius: 1,
                         blurRadius: 6,
                       ),
@@ -197,15 +218,19 @@ class _HomeNavBarState extends State<HomeNavBar> {
                     ignoring: !_canInteractWithSwitch,
                     child: Switch(
                       value: _someFunctionalitySwitchValue,
-                      onChanged: _canInteractWithSwitch
-                          ? (value) {
-                              setState(() {
-                                _someFunctionalitySwitchValue = value;
-                                _saveSwitchValueToStorage(value);
-                                widget.onSwitchChanged(value);
-                              });
-                            }
-                          : null,
+                      onChanged: (value) {
+                        _setSomeFunctionalitySwitchValue(value, context);
+                      },
+
+                      // onChanged: _canInteractWithSwitch
+                      //     ? (value) {
+                      //         setState(() {
+                      //           _someFunctionalitySwitchValue = value;
+                      //           _saveSwitchValueToStorage(value);
+                      //           widget.onSwitchChanged(value);
+                      //         });
+                      //       }
+                      //     : null,
                       activeTrackColor:
                           widget.isDarkMode ? Colors.grey : Colors.black,
                       activeColor: Colors.white,

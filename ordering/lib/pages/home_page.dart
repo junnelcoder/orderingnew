@@ -192,7 +192,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       length: filteredCategories.length,
       child: Scaffold(
         backgroundColor:
-            isDarkMode ? Colors.black.withOpacity(0.8) : Colors.white,
+            isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
         body: SafeArea(
           child: Padding(
             padding: EdgeInsets.only(top: 20),

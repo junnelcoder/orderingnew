@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:ordering/widgets/cart_nav_bar.dart';
+import 'package:ordering/widgets/home_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -367,6 +369,7 @@ class _DeleteCartPageState extends State<DeleteCartPage>
     final screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
         title: FutureBuilder<String?>(
           future: _getUsername(),
           builder: (context, snapshot) {
@@ -379,7 +382,7 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                   text: TextSpan(
                     style: TextStyle(
                       fontSize: 20,
-                      color: Colors.black, // Set default color for all text
+                      color: isDarkMode ? Colors.white : Colors.black, // Set default color for all text
                     ),
                     children: [
                       TextSpan(
@@ -388,8 +391,7 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                       TextSpan(
                         text: username,
                         style: TextStyle(
-                          color: Colors
-                              .blue, // Set the color for the username here
+                          color: isDarkMode ? Colors.grey : Colors.blue, // Set the color for the username here
                         ),
                       ),
                     ],
@@ -410,7 +412,7 @@ class _DeleteCartPageState extends State<DeleteCartPage>
             padding: EdgeInsets.all(8.0),
             child: Icon(
               Icons.arrow_back_ios,
-              color: Colors.black,
+              color: isDarkMode ? Colors.white : Colors.black,
             ),
           ),
         ),
@@ -442,17 +444,18 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                             width: double.infinity,
                             decoration: BoxDecoration(
                               color: isDarkMode
-                                  ? const Color.fromARGB(255, 0, 0,
-                                      0) // Black background for dark mode
+                                  ? Colors.grey.withOpacity(0.4)// Black background for dark mode
                                   : Colors.white, // Default white background
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 3,
-                                  blurRadius: 10,
-                                  offset: Offset(0, 3),
-                                )
+                                    color: isDarkMode
+                                        ? Colors.white.withOpacity(0)
+                                        : Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 3,
+                                    blurRadius: 10,
+                                    offset: Offset(0, 3),
+                                  )
                               ],
                             ),
                             child: Column(
@@ -468,33 +471,33 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                             MainAxisAlignment.spaceAround,
                                         children: [
                                           Text(
-                                            item['so_number'] != null
-                                                ? item['so_number'].toString()
+                                            "so_number: ${item['so_number']}" != null
+                                                ? "so_number: ${item['so_number']}".toString()
+                                                : '',
+                                            style: TextStyle(
+                                              fontSize: screenWidth * 0.07,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDarkMode
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                            ),
+                                          ),
+                                          Text(
+                                            "so_number: ${item['tran_time']}" != null
+                                                ? "transact time: ${item['tran_time']}".toString()
                                                 : '',
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.06,
-                                              fontWeight: FontWeight.bold,
                                               color: isDarkMode
                                                   ? Colors.white
                                                   : Colors.black,
                                             ),
                                           ),
                                           Text(
-                                            item['tran_time'] != null
-                                                ? item['tran_time'].toString()
-                                                : '',
+                                            "total: ₱${double.parse(item['total_amount']?.toString() ?? '0').toStringAsFixed(2)}",
                                             style: TextStyle(
-                                              fontSize: screenWidth * 0.04,
-                                              color: isDarkMode
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                            ),
-                                          ),
-                                          Text(
-                                            "₱${double.parse(item['total_amount']?.toString() ?? '0').toStringAsFixed(2)}",
-                                            style: TextStyle(
-                                              fontSize: screenWidth * 0.08,
-                                              fontWeight: FontWeight.bold,
+                                              fontSize: screenWidth * 0.06,
+                                              // fontWeight: FontWeight.bold,
                                               color: isDarkMode
                                                   ? Colors.white
                                                   : Colors.black,
@@ -516,6 +519,8 @@ class _DeleteCartPageState extends State<DeleteCartPage>
           ),
         ],
       ),
+       
+      backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
     );
   }
 }
