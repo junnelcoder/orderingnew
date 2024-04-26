@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:ordering/widgets/cart_nav_bar.dart';
-import 'package:ordering/widgets/home_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -488,6 +486,7 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                             MainAxisAlignment.spaceAround,
                                         children: [
                                           Text(
+                                            // ignore: unnecessary_null_comparison
                                             "so_number: ${item['so_number']}" !=
                                                     null
                                                 ? "so_number: ${item['so_number']}"
@@ -502,6 +501,7 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                             ),
                                           ),
                                           Text(
+                                            // ignore: unnecessary_null_comparison
                                             "so_number: ${item['tran_time']}" !=
                                                     null
                                                 ? "transact time: ${item['tran_time']}"

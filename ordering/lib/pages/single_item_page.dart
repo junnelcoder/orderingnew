@@ -287,8 +287,8 @@ class _SingleItemPageState extends State<SingleItemPage>
   Widget build(BuildContext context) {
     Color _backgroundColor = isDarkMode ? Color(0xFF222222) : Colors.white;
     Color _textColor = isDarkMode ? Colors.white : Colors.black;
-    Color _buttonColor = isDarkMode ? Colors.white : Colors.black;
-    Color _buttonTextColor = isDarkMode ? Colors.black : Colors.white;
+    // Color _buttonColor = isDarkMode ? Colors.white : Colors.black;
+    // Color _buttonTextColor = isDarkMode ? Colors.black : Colors.white;
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: _backgroundColor,
@@ -407,7 +407,10 @@ class _SingleItemPageState extends State<SingleItemPage>
                         builder: (BuildContext context) {
                           return Material(
                             // Wrap the Container with Material
-                            color: isDarkMode ? Colors.grey : Colors.white, // Set the background color to red
+                            color: isDarkMode
+                                ? Colors.grey
+                                : Colors
+                                    .white, // Set the background color to red
                             child: Container(
                               height: MediaQuery.of(context).size.height / 3,
                               child: Column(

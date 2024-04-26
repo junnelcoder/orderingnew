@@ -7,7 +7,6 @@ import '../widgets/home_nav_bar.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/services.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -80,7 +79,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('isDarkMode', theme);
     String? temp = prefs.getString('isDarkMode');
-    print("theme $temp");
     setState(() {
       temp;
     });
@@ -297,22 +295,24 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               AnimatedOpacity(
                 opacity: _isSwitchOn ? 1.0 : 0.0,
                 duration: Duration(milliseconds: 200),
-                child: FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => SelectTablePage()),
-                    );
-                  },
-                  label: Text(labelText),
-                  icon: Icon(Icons.table_chart),
-                  backgroundColor: isDarkMode
-                      ? Colors.grey.withOpacity(0.85)
-                      : Colors.orange.withOpacity(0.85),
-                  foregroundColor: Colors.white,
-                  elevation: 4.0,
-                ),
+                child: _isSwitchOn
+                    ? FloatingActionButton.extended(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SelectTablePage()),
+                          );
+                        },
+                        label: Text(labelText),
+                        icon: Icon(Icons.table_chart),
+                        backgroundColor: isDarkMode
+                            ? Colors.grey.withOpacity(0.85)
+                            : Colors.orange.withOpacity(0.85),
+                        foregroundColor: Colors.white,
+                        elevation: 4.0,
+                      )
+                    : SizedBox(),
               ),
               SizedBox(height: 10),
               FloatingActionButton.extended(

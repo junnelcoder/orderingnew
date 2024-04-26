@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:ordering/widgets/home_nav_bar.dart';
+// import 'package:ordering/widgets/home_nav_bar.dart';
 import 'pages/ip_screen.dart';
 import 'pages/login_screen.dart'; // Import the login screen
 import 'pages/cart_page.dart';
@@ -36,7 +36,6 @@ class _MyAppState extends State<MyApp> {
         "/": (context) => HomePage(),
         "cartPage": (context) => CartPage(),
         "table": (context) => SelectTablePage(),
-        
       },
     );
   }
