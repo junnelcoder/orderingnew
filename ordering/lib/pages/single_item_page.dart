@@ -321,8 +321,10 @@ class _SingleItemPageState extends State<SingleItemPage>
                   errorBuilder: (context, error, stackTrace) {
                     return Icon(
                       Icons.fastfood,
-                      size: 400,
-                      color: _backgroundColor, // Use error color from the theme
+                      size: 300,
+                      color: isDarkMode
+                              ? Colors.white
+                              : Colors.black, // Use error color from the theme
                     );
                   },
                 ),
