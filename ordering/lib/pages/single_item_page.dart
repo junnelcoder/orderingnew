@@ -22,6 +22,7 @@ class SingleItemPage extends StatefulWidget {
 
 class _SingleItemPageState extends State<SingleItemPage>
     with WidgetsBindingObserver {
+  bool isDarkMode = false;
   int quantity = 1;
   List<String> selectedNotes = [];
 
@@ -35,6 +36,7 @@ class _SingleItemPageState extends State<SingleItemPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _fetchThemeMode();
   }
 
   @override
@@ -48,6 +50,16 @@ class _SingleItemPageState extends State<SingleItemPage>
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused) {
       _clearSharedPreferences();
+    }
+  }
+
+  Future<void> _fetchThemeMode() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? themeMode = prefs.getString('isDarkMode');
+    if (themeMode != null && themeMode == 'true') {
+      setState(() {
+        isDarkMode = true;
+      });
     }
   }
 
@@ -273,9 +285,13 @@ class _SingleItemPageState extends State<SingleItemPage>
 
   @override
   Widget build(BuildContext context) {
+    Color _backgroundColor = isDarkMode ? Colors.black : Colors.white;
+    Color _textColor = isDarkMode ? Colors.white : Colors.black;
+    Color _buttonColor = isDarkMode ? Colors.white : Colors.black;
+    Color _buttonTextColor = isDarkMode ? Colors.black : Colors.white;
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: Colors.white,
+      backgroundColor: _backgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(15.0),
@@ -291,7 +307,7 @@ class _SingleItemPageState extends State<SingleItemPage>
                     },
                     child: Icon(
                       Icons.arrow_back_ios_new,
-                      color: Colors.black,
+                      color: _textColor,
                       size: 32,
                     ),
                   ),
@@ -306,7 +322,7 @@ class _SingleItemPageState extends State<SingleItemPage>
                     return Icon(
                       Icons.fastfood,
                       size: 400,
-                      color: Colors.black, // Use error color from the theme
+                      color: _backgroundColor, // Use error color from the theme
                     );
                   },
                 ),
@@ -322,7 +338,7 @@ class _SingleItemPageState extends State<SingleItemPage>
                         child: Text(
                           widget.item.itemname,
                           style: TextStyle(
-                            color: Colors.black,
+                            color: _textColor,
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                           ),
@@ -337,12 +353,12 @@ class _SingleItemPageState extends State<SingleItemPage>
                           width: 30,
                           height: 30,
                           decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: _textColor,
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Icon(
                             CupertinoIcons.minus,
-                            color: Colors.white,
+                            color: _backgroundColor,
                             size: 20,
                           ),
                         ),
@@ -351,7 +367,7 @@ class _SingleItemPageState extends State<SingleItemPage>
                       Text(
                         "$quantity",
                         style: TextStyle(
-                          color: Colors.black,
+                          color: _textColor,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -363,12 +379,12 @@ class _SingleItemPageState extends State<SingleItemPage>
                           width: 30,
                           height: 30,
                           decoration: BoxDecoration(
-                            color: Colors.black,
+                            color: _textColor,
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Icon(
                             CupertinoIcons.plus,
-                            color: Colors.white,
+                            color: _backgroundColor,
                             size: 20,
                           ),
                         ),
@@ -379,7 +395,7 @@ class _SingleItemPageState extends State<SingleItemPage>
                   Text(
                     widget.item.itemcode,
                     style: TextStyle(
-                      color: Colors.black,
+                      color: _textColor,
                       fontSize: 18,
                     ),
                   ),
@@ -397,6 +413,7 @@ class _SingleItemPageState extends State<SingleItemPage>
                                 Text(
                                   'Select note(s)',
                                   style: TextStyle(
+                                    color: _textColor,
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -483,6 +500,7 @@ class _SingleItemPageState extends State<SingleItemPage>
                                   : selectedNotes.join(', '),
                               style: TextStyle(
                                 fontSize: 16,
+                                color: _textColor,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -502,6 +520,7 @@ class _SingleItemPageState extends State<SingleItemPage>
         sellingPrice: widget.item.sellingprice,
         quantity: quantity,
         onAddToCart: addToCart,
+        isDarkMode: isDarkMode,
       ),
     );
   }
@@ -522,11 +541,13 @@ class SingleItemNavBar extends StatelessWidget {
   final double sellingPrice;
   final int quantity;
   final Function()? onAddToCart;
+  final bool isDarkMode;
 
   const SingleItemNavBar({
     required this.sellingPrice,
     required this.quantity,
     this.onAddToCart,
+    required this.isDarkMode,
   });
 
   @override
@@ -536,7 +557,8 @@ class SingleItemNavBar extends StatelessWidget {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color:
+            isDarkMode ? Colors.black : Colors.white, // Apply dark mode color
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.4),
@@ -555,7 +577,9 @@ class SingleItemNavBar extends StatelessWidget {
               Text(
                 "Total Price:",
                 style: TextStyle(
-                  color: Colors.black,
+                  color: isDarkMode
+                      ? Colors.white
+                      : Colors.black, // Adjust text color for dark mode
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
                 ),
@@ -564,7 +588,9 @@ class SingleItemNavBar extends StatelessWidget {
               Text(
                 "\₱$formattedTotal",
                 style: TextStyle(
-                  color: Colors.black,
+                  color: isDarkMode
+                      ? Colors.white
+                      : Colors.black, // Adjust text color for dark mode
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
                 ),
@@ -576,7 +602,9 @@ class SingleItemNavBar extends StatelessWidget {
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               decoration: BoxDecoration(
-                color: Colors.black,
+                color: isDarkMode
+                    ? Colors.white
+                    : Colors.black, // Apply dark mode color to button
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(20),
                   bottomRight: Radius.circular(20),
@@ -588,13 +616,17 @@ class SingleItemNavBar extends StatelessWidget {
                   Text(
                     "Add Order",
                     style: TextStyle(
-                      color: Colors.white,
+                      color: isDarkMode
+                          ? Colors.black
+                          : Colors.white, // Adjust text color for dark mode
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   SizedBox(width: 10),
-                  Icon(CupertinoIcons.plus, color: Colors.white, size: 30),
+                  Icon(CupertinoIcons.plus,
+                      color: isDarkMode ? Colors.black : Colors.white,
+                      size: 30),
                 ],
               ),
             ),
