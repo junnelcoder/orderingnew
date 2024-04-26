@@ -271,6 +271,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               isDarkMode: isDarkMode,
                               toggleDarkMode: _toggleDarkMode,
                               onItemAdded: _updateCartItemCount,
+                              updateCartItemsCount: (int cartCount) {},
                             ))
                         .toList(),
                   ),
