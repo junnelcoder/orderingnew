@@ -23,7 +23,8 @@ class HomeNavBar extends StatefulWidget {
 class _HomeNavBarState extends State<HomeNavBar> {
   late bool _someFunctionalitySwitchValue;
   late bool _canInteractWithSwitch;
-  int? _openCartItemsCount;
+  int?
+      _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
 
   @override
   void initState() {

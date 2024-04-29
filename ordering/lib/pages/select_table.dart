@@ -190,10 +190,9 @@ class _SelectTablePageState extends State<SelectTablePage>
   @override
   Widget build(BuildContext context) {
     final crossAxisCount = 4;
-
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: IconButton(
@@ -227,13 +226,17 @@ class _SelectTablePageState extends State<SelectTablePage>
               children: [
                 Row(
                   children: [
-                    Container(width: 10.0, height: 10),
+                    Container(
+                      width: 10.0,
+                      height: 10.0,
+                      color: Colors.red,
+                    ),
                     SizedBox(width: 5.0),
                     Text(
                       'OCCUPIED',
                       style: TextStyle(
                         fontSize: 16.0,
-                        color: Colors.black,
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                   ],
@@ -250,7 +253,7 @@ class _SelectTablePageState extends State<SelectTablePage>
                       'AVAILABLE',
                       style: TextStyle(
                         fontSize: 16.0,
-                        color: Colors.black,
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                   ],
@@ -267,7 +270,7 @@ class _SelectTablePageState extends State<SelectTablePage>
                       'SELECTED',
                       style: TextStyle(
                         fontSize: 16.0,
-                        color: Colors.black,
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
                   ],
@@ -350,6 +353,7 @@ class _SelectTablePageState extends State<SelectTablePage>
           ],
         ),
       ),
+      backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
     );
   }
 }

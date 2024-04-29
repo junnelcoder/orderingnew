@@ -2,7 +2,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
-import 'package:ordering/pages/home_page.dart';
+// import 'package:ordering/pages/home_page.dart';
 import 'package:ordering/pages/ip_screen.dart';
 import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
@@ -12,20 +12,19 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
+//aaaa
 class ItemWidget extends StatefulWidget {
   final String category;
   final String searchQuery;
   final bool isDarkMode; // Add this parameter
   final VoidCallback toggleDarkMode; // Toggle function
   final VoidCallback onItemAdded;
-  final ValueChanged<int> updateCartItemsCount;
   const ItemWidget({
     required this.category,
     required this.searchQuery,
     required this.isDarkMode, // Add this parameter
     required this.toggleDarkMode,
     required this.onItemAdded,
-    required this.updateCartItemsCount,
   });
 
   @override
@@ -33,7 +32,6 @@ class ItemWidget extends StatefulWidget {
 }
 
 class _ItemWidgetState extends State<ItemWidget> {
-  int cartCount = 0;
   late List<Item> items = [];
   bool isLoading = true;
   bool isConnected = true;
@@ -48,6 +46,7 @@ class _ItemWidgetState extends State<ItemWidget> {
   @override
   void didUpdateWidget(covariant ItemWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // Call fetchItems whenever the search query changes
     if (widget.searchQuery != oldWidget.searchQuery) {
       fetchItems();
     }
@@ -398,6 +397,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                         SnackBar(
                           content: Text('Added ${item.itemname}'),
                           duration: Duration(seconds: 2),
+                          backgroundColor: Colors.green,
                         ),
                       );
                       _saveItemToLocal(item); // Save item to local storage
@@ -464,18 +464,17 @@ class _ItemWidgetState extends State<ItemWidget> {
       };
 
       cartItems.add(json.encode(mainItemDetails));
-      cartCount++; // Increment cart count
-      widget.updateCartItemsCount(cartCount);
+
       await prefs.setStringList('cartItems', cartItems);
       print('Cart Items: $cartItems');
       // Update the state of HomeNavBar widget
       // widget.onItemAdded();
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => HomePage(),
+      //   ),
+      // );
     } catch (e) {
       print('Error saving item to local storage: $e');
       throw Exception('Failed to save item to local storage');
