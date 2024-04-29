@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +26,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
   late bool _canInteractWithSwitch;
   int?
       _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
+  List<String>? _cachedCartItems;
 
   @override
   void initState() {
@@ -32,17 +34,40 @@ class _HomeNavBarState extends State<HomeNavBar> {
     _canInteractWithSwitch = true;
     _loadSwitchValueFromStorage();
     _refreshOnLoad();
+    _startPollingForChanges(Duration(milliseconds: 1));
   }
 
   void _refreshOnLoad() async {
-    // Fetch open cart items count and assign it to _openCartItemsCount
     _openCartItemsCount = await fetchOpenCartItemsCount();
   }
 
-  void _updateOpenCartItemsCount(int count) {
-    setState(() {
-      _openCartItemsCount = count;
+  void _startPollingForChanges(Duration interval) {
+    Timer.periodic(interval, (timer) async {
+      bool hasChanges = await _checkForChanges();
+      if (hasChanges) {
+        _refreshOnLoad(); // Refresh the count if changes detected
+      }
     });
+  }
+
+  Future<bool> _checkForChanges() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? currentCartItems = prefs.getStringList('cartItems');
+    if (_listEquals(currentCartItems, _cachedCartItems)) {
+      return false; // No changes detected
+    } else {
+      _cachedCartItems = currentCartItems; // Update cached cart items
+      return true; // Changes detected
+    }
+  }
+
+  bool _listEquals(List<String>? list1, List<String>? list2) {
+    if (list1 == null || list2 == null) return false;
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i] != list2[i]) return false;
+    }
+    return true;
   }
 
   void _setSomeFunctionalitySwitchValue(bool value, BuildContext context) {
