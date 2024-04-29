@@ -7,7 +7,7 @@ const PORT = 8080;
 const http = require('http');
 const ip = require('ip');
 const path = require('path');
-
+const fs = require('fs');
 // Add CORS middleware
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -33,7 +33,18 @@ app.get('/api/image/:itemcode', (req, res) => {
   const itemcode = req.params.itemcode;
   const currentDirectory = process.cwd();
   const imagePath = path.join(currentDirectory, 'images', `${itemcode}.png`);
-  res.sendFile(imagePath);
+
+  // Check if the file exists
+  fs.access(imagePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      // If the file doesn't exist, send the default image
+      const defaultImagePath = path.join(currentDirectory, 'images', 'DEFAULT.png');
+      res.sendFile(defaultImagePath);
+    } else {
+      // If the file exists, send it
+      res.sendFile(imagePath);
+    }
+  });
 });
 
 const config = {
