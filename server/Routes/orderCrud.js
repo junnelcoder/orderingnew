@@ -145,15 +145,16 @@ router.post('/add-to-cart', async (req, res) => {
 
     const pool = await sql.connect(config);
     const updateResult = await pool.request().query(`
-      DECLARE @last_or VARCHAR(20);
-      SELECT @last_or = last_or FROM [dbo].[business_date_res];
-
-      DECLARE @new_or VARCHAR(20);
-      SET @new_or = RIGHT('00000' + CAST(CAST(RIGHT(@last_or, 5) AS INT) + 1 AS VARCHAR), 5);
-
-      UPDATE [dbo].[business_date_res] SET last_or = @new_or;
-
-      SELECT @new_or AS new_or;
+    DECLARE @last_or VARCHAR(20);
+    DECLARE @last_inv VARCHAR(20);
+    DECLARE @new_or VARCHAR(20);
+    DECLARE @new_inv VARCHAR(20);
+    SELECT @last_or = last_or, @last_inv = last_inv FROM [dbo].[business_date_res];
+    SET @new_or = RIGHT('00000000' + CAST(CAST(RIGHT(@last_or, 8) AS INT) + 1 AS VARCHAR), 8);
+    SET @new_inv = RIGHT('00000000' + CAST(CAST(RIGHT(@last_inv, 8) AS INT) + 1 AS VARCHAR), 8);
+    UPDATE [dbo].[business_date_res] SET last_or = @new_or, last_inv = @new_inv;
+    SET @new_or = RIGHT('00000' + CAST(CAST(RIGHT(@last_or, 5) AS INT) + 1 AS VARCHAR), 5);
+    SELECT @new_or AS new_or;
     `);
 
     const newSoNumber = updateResult.recordset[0].new_or;
@@ -450,6 +451,23 @@ router.post('/delete-items', async (req, res) => {
   }
 });
 
+router.get('/get-last_inv', async (req, res) => {
+  try {
+    const pool = await sql.connect(config);
+    const result = await pool
+      .request()
+      .query(`
+        SELECT TOP (1000)
+        RIGHT([last_inv], 3) AS last_inv_digits
+        FROM [restopos45].[dbo].[business_date_res]
+      `);
+    const lastInvDigits = result.recordset;
+    res.json(lastInvDigits);
+  } catch (err) {
+    console.error('Error executing SQL query:', err);
+    res.status(500).json({ error: 'Failed to fetch last_inv digits' });
+  }
+});
 
 
 

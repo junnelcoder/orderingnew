@@ -298,13 +298,34 @@ class _ItemWidgetState extends State<ItemWidget> {
       ),
       elevation: widget.isDarkMode ? 2 : 5.0,
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SingleItemPage(item: item),
-            ),
-          );
+        onTap: () async {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          String? selectedTablesString = prefs.getString('selectedTables');
+          String? switchValue = prefs.getString('switchValue');
+          if (switchValue == "QS") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SingleItemPage(item: item),
+              ),
+            );
+          } else if (selectedTablesString != null &&
+              selectedTablesString.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SingleItemPage(item: item),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('PLease select a table first'),
+                duration: Duration(seconds: 3),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

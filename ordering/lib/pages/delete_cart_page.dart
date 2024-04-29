@@ -504,7 +504,7 @@ class _DeleteCartPageState extends State<DeleteCartPage>
                                             // ignore: unnecessary_null_comparison
                                             "so_number: ${item['tran_time']}" !=
                                                     null
-                                                ? "transact time: ${item['tran_time']}"
+                                                ? "Customer Info: ${item['table_no']}"
                                                     .toString()
                                                 : '',
                                             style: TextStyle(

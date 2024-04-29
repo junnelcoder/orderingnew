@@ -56,7 +56,9 @@ class _CartNavBarState extends State<CartNavBar> {
         color: backgroundColor,
         boxShadow: [
           BoxShadow(
-            color: widget.isDarkMode ? Colors.grey.withOpacity(0.4) : Colors.black.withOpacity(0.4),
+            color: widget.isDarkMode
+                ? Colors.grey.withOpacity(0.4)
+                : Colors.black.withOpacity(0.4),
             spreadRadius: 1,
             blurRadius: 8,
           ),
@@ -120,7 +122,9 @@ class _CartNavBarState extends State<CartNavBar> {
                 child: Container(
                   padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                   decoration: BoxDecoration(
-                    color: _isDarkMode ?Colors.grey.withOpacity(0.5) : Colors.black,
+                    color: _isDarkMode
+                        ? Colors.grey.withOpacity(0.5)
+                        : Colors.black,
                     borderRadius: BorderRadius.only(
                       topRight: Radius.circular(20),
                       bottomRight: Radius.circular(20),
@@ -180,14 +184,39 @@ class _CartNavBarState extends State<CartNavBar> {
     TextEditingController _customerNameController = TextEditingController();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String switchValue = prefs.getString('switchValue') ?? '';
+    String? ipAddress = prefs.getString('ipAddress');
+    String lastInvDigitsString = "";
+    var url = Uri.parse('http://$ipAddress:8080/api/get-last_inv');
+    try {
+      var response = await http.get(url);
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        if (data.isNotEmpty) {
+          var lastInvDigits = data[0]['last_inv_digits'];
+          lastInvDigitsString = lastInvDigits.toString();
+          print(lastInvDigitsString);
+          setState(() {});
+        } else {
+          throw Exception('No data received');
+        }
+      } else {
+        throw Exception('Failed to fetch note items');
+      }
+    } catch (e) {
+      print('Error fetching note items: $e');
+      throw Exception('Failed to fetch note items');
+    }
 
     bool displayTextField = switchValue == 'QS'; // Check if switchValue is 'QS'
     Widget textFieldWidget = displayTextField
         ? TextField(
             controller: _customerNameController,
             maxLength: 7,
+            onTap: () {
+              _customerNameController.clear();
+            },
             decoration: InputDecoration(
-              hintText: 'Enter Customer Name Here*',
+              hintText: 'Enter Customer Name Here* ',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
@@ -195,8 +224,8 @@ class _CartNavBarState extends State<CartNavBar> {
                   EdgeInsets.symmetric(vertical: 10, horizontal: 15),
             ),
           )
-        : SizedBox(); // Hide the text field if switchValue is not 'QS'
-
+        : SizedBox();
+    _customerNameController.text = lastInvDigitsString;
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
