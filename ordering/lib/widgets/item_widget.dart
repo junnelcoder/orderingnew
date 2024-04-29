@@ -287,158 +287,164 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   Widget buildItemCard(BuildContext context, Item item) {
-    return Card(
-      color: widget.isDarkMode
-          ? Colors.grey.withOpacity(0.7)
-          : Colors.white.withOpacity(0.85),
-      margin: EdgeInsets.all(8.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
-      ),
-      elevation: widget.isDarkMode ? 2 : 5.0,
-      child: InkWell(
-        onTap: () async {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          String? selectedTablesString = prefs.getString('selectedTables');
-          String? switchValue = prefs.getString('switchValue');
-          if (switchValue == "QS") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SingleItemPage(item: item),
-              ),
-            );
-          } else if (selectedTablesString != null &&
-              selectedTablesString.isNotEmpty) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SingleItemPage(item: item),
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('PLease select a table first'),
-                duration: Duration(seconds: 3),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: EdgeInsets.all(8.0),
-              alignment: Alignment.center,
-              child: Image.network(
-                _getImagePathForItem(item),
-                width: 155,
-                height: 120,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.fastfood,
-                    size: 120,
-                    color: widget.isDarkMode
-                        ? Colors.white
-                        : Colors.black, // Use error color from the theme
+    return Center(
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.9,
+        child: SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
+          child: Container(
+            decoration: BoxDecoration(
+              color: widget.isDarkMode
+                  ? Colors.grey.withOpacity(0.7)
+                  : Colors.white.withOpacity(0.85),
+              borderRadius: BorderRadius.circular(20.0),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.isDarkMode ? Colors.black : Colors.grey,
+                  blurRadius: 5.0,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            margin: EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8.0),
+            child: InkWell(
+              onTap: () async {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                String? selectedTablesString =
+                    prefs.getString('selectedTables');
+                String? switchValue = prefs.getString('switchValue');
+                if (switchValue == "QS" ||
+                    (selectedTablesString != null &&
+                        selectedTablesString.isNotEmpty)) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SingleItemPage(item: item),
+                    ),
                   );
-                },
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                item.itemname,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                  color: widget.isDarkMode
-                      ? Colors.white.withOpacity(0.7)
-                      : Colors.black.withOpacity(0.85),
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                "${item.itemcode}",
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: widget.isDarkMode
-                      ? Colors.white.withOpacity(0.8)
-                      : Colors.black.withOpacity(0.85),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Please select a table first'),
+                      duration: Duration(seconds: 3),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "\₱${item.sellingprice.toStringAsFixed(2)}",
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.bold,
-                      color: widget.isDarkMode
-                          ? Colors.white.withOpacity(0.7)
-                          : Colors.black.withOpacity(0.85),
+                  Container(
+                    alignment: Alignment.center,
+                    height: 120, // Set a fixed height for the image container
+                    width:
+                        double.infinity, // Ensure image spans the entire width
+                    child: Image.network(
+                      _getImagePathForItem(item),
+                      fit:
+                          BoxFit.cover, // Ensure the image covers the container
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.fastfood,
+                          size: 120,
+                          color:
+                              widget.isDarkMode ? Colors.white : Colors.black,
+                        );
+                      },
                     ),
                   ),
-                  InkWell(
-                    onTap: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      String? selectedTablesString =
-                          prefs.getString('selectedTables');
-                      String? switchValue = prefs.getString('switchValue');
-                      if (switchValue == "QS") {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Added ${item.itemname}'),
-                            duration: Duration(seconds: 2),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                        _saveItemToLocal(item);
-                      } else if (selectedTablesString != null &&
-                          selectedTablesString.isNotEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Added ${item.itemname}'),
-                            duration: Duration(seconds: 1),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                        _saveItemToLocal(item);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('PLease select a table first'),
-                            duration: Duration(seconds: 3),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                      // Implement your quick add functionality here
-                      // For example, you can show a snackbar
-                      // Save item to local storage
-                    },
-                    child: Icon(
-                      CupertinoIcons.plus,
-                      size: 25,
-                      color: widget.isDarkMode
-                          ? Colors.white.withOpacity(0.7)
-                          : Colors.black.withOpacity(0.85),
+                  SizedBox(height: 8.0),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      item.itemname,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: widget.isDarkMode
+                            ? Colors.white.withOpacity(0.7)
+                            : Colors.black.withOpacity(0.85),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      "${item.itemcode}",
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        color: widget.isDarkMode
+                            ? Colors.white.withOpacity(0.8)
+                            : Colors.black.withOpacity(0.85),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 4.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Text(
+                          "\₱${item.sellingprice.toStringAsFixed(2)}",
+                          style: TextStyle(
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.bold,
+                            color: widget.isDarkMode
+                                ? Colors.white.withOpacity(0.7)
+                                : Colors.black.withOpacity(0.85),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: InkWell(
+                          onTap: () async {
+                            final prefs = await SharedPreferences.getInstance();
+                            String? selectedTablesString =
+                                prefs.getString('selectedTables');
+                            String? switchValue =
+                                prefs.getString('switchValue');
+                            if (switchValue == "QS" ||
+                                (selectedTablesString != null &&
+                                    selectedTablesString.isNotEmpty)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Added ${item.itemname}'),
+                                  duration: Duration(seconds: 2),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                              _saveItemToLocal(item);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Please select a table first'),
+                                  duration: Duration(seconds: 3),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                          child: Icon(
+                            CupertinoIcons.plus,
+                            size: 25,
+                            color: widget.isDarkMode
+                                ? Colors.white.withOpacity(0.7)
+                                : Colors.black.withOpacity(0.85),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
