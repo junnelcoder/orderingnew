@@ -302,11 +302,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               await SharedPreferences.getInstance();
                           List<String>? cartItems =
                               prefs.getStringList('cartItems');
-                          if (cartItems!.length >= 1) {
+                          if (cartItems != null && cartItems.length >= 1) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                    'please settle your transactions first'),
+                                    'Please settle your transactions first'),
                                 duration: Duration(seconds: 2),
                                 backgroundColor: Colors.red,
                               ),
