@@ -277,7 +277,6 @@ class _CartNavBarState extends State<CartNavBar> {
                 // Navigator.of(context).pop();
                 saveOrderToDatabase(
                     widget.cartItems, context, _customerNameController.text);
-               
               },
               child: Text('Confirm'),
             ),
@@ -312,11 +311,11 @@ class _CartNavBarState extends State<CartNavBar> {
             await prefs.remove('selectedTables2');
             await prefs.remove('selectedTables');
             Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomePage(),
-                  ),
-                );
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(),
+              ),
+            );
           } else {
             print(
                 'Failed to occupy tables. Status code: ${response.statusCode}');
