@@ -390,17 +390,42 @@ class _ItemWidgetState extends State<ItemWidget> {
                     ),
                   ),
                   InkWell(
-                    onTap: () {
+                    onTap: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      String? selectedTablesString =
+                          prefs.getString('selectedTables');
+                      String? switchValue = prefs.getString('switchValue');
+                      if (switchValue == "QS") {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Added ${item.itemname}'),
+                            duration: Duration(seconds: 2),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                        _saveItemToLocal(item);
+                      } else if (selectedTablesString != null &&
+                          selectedTablesString.isNotEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Added ${item.itemname}'),
+                            duration: Duration(seconds: 1),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                        _saveItemToLocal(item);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('PLease select a table first'),
+                            duration: Duration(seconds: 3),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                       // Implement your quick add functionality here
                       // For example, you can show a snackbar
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Added ${item.itemname}'),
-                          duration: Duration(seconds: 2),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                      _saveItemToLocal(item); // Save item to local storage
+                      // Save item to local storage
                     },
                     child: Icon(
                       CupertinoIcons.plus,

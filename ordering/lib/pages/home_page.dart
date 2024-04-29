@@ -297,12 +297,27 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 duration: Duration(milliseconds: 200),
                 child: _isSwitchOn
                     ? FloatingActionButton.extended(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => SelectTablePage()),
-                          );
+                        onPressed: () async {
+                          SharedPreferences prefs =
+                              await SharedPreferences.getInstance();
+                          List<String>? cartItems =
+                              prefs.getStringList('cartItems');
+                          if (cartItems!.length >= 1) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    'please settle your transactions first'),
+                                duration: Duration(seconds: 2),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => SelectTablePage()),
+                            );
+                          }
                         },
                         label: Text(labelText),
                         icon: Icon(Icons.table_chart),
