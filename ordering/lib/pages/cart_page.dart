@@ -16,11 +16,11 @@ class CartPage extends StatelessWidget {
     );
   }
 }
+
 class _CartPage extends StatefulWidget {
   @override
   _CartPageState createState() => _CartPageState();
 }
-
 
 class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
   bool isDarkMode = false; // Default to false for light mode
@@ -115,7 +115,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
 
   Future<void> _removeCartItem(int index) async {
     String itemId = cartItems[index]['id'];
-    cartItems.removeWhere((item) => item['id'] == itemId);
+    cartItems.removeAt(index);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
         'cartItems', cartItems.map((item) => json.encode(item)).toList());
@@ -174,7 +174,6 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
       }
     }
   }
-  
 
   void _incrementQuantity(int index) async {
     int currentQuantity = int.parse(cartItems[index]['qty'].toString());
@@ -346,6 +345,14 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
                           direction: DismissDirection.endToStart,
                           onDismissed: (direction) {
                             _removeCartItem(index);
+                            // Slide animation
+                            setState(() {
+                              cartItems.removeAt(index);
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text("${item['itemname']} removed"),
+                              duration: Duration(seconds: 2),
+                            ));
                           },
                           background: Container(
                             alignment: Alignment.centerRight,
@@ -602,10 +609,29 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
               isDarkMode: isDarkMode, // Pass isDarkMode to the bottom nav bar
             )
           : null,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.remove('cartItems');
+          setState(() {
+            cartItems.clear();
+          });
+        },
+        label: Text(
+          'All',
+          style: TextStyle(color: Colors.white), // Set text color to white
+        ),
+        icon: Icon(
+          Icons.delete,
+          color: Colors.white, // Set icon color to white
+        ),
+        backgroundColor: Colors.red.withOpacity(0.7),
+      ),
       backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
     );
   }
 }
+
 class BackButtonPage extends StatelessWidget {
   final Widget child;
 
