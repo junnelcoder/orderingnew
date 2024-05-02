@@ -301,7 +301,7 @@ class _ItemWidgetState extends State<ItemWidget> {
               boxShadow: [
                 BoxShadow(
                   color: widget.isDarkMode ? Colors.black : Colors.grey,
-                  blurRadius: 5.0,
+                  blurRadius: widget.isDarkMode ? 0.0 : 5.0,
                   offset: Offset(0, 3),
                 ),
               ],

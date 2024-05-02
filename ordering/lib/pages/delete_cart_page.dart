@@ -4,12 +4,21 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-class DeleteCartPage extends StatefulWidget {
+class DeleteCartPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BackButtonPage(
+      child: _DeleteCartPage(),
+    );
+  }
+}
+
+class _DeleteCartPage extends StatefulWidget {
   @override
   _DeleteCartPageState createState() => _DeleteCartPageState();
 }
 
-class _DeleteCartPageState extends State<DeleteCartPage>
+class _DeleteCartPageState extends State<_DeleteCartPage>
     with WidgetsBindingObserver {
   List<Map<String, dynamic>> cartItems = [];
   bool isDarkMode = false;
@@ -541,6 +550,26 @@ class _DeleteCartPageState extends State<DeleteCartPage>
         ],
       ),
       backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
+    );
+  }
+}
+class BackButtonPage extends StatelessWidget {
+  final Widget child;
+
+  const BackButtonPage({Key? key, required this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        // Check if current page is HomePage, if not, navigate back to HomePage
+        if (ModalRoute.of(context)?.settings.name != '/') {
+          Navigator.pushReplacementNamed(context, '/');
+          return false; // Prevent default back button behavior
+        }
+        return true; // Allow default back button behavior on HomePage
+      },
+      child: child,
     );
   }
 }

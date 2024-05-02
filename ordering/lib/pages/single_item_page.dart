@@ -83,12 +83,7 @@ class _SingleItemPageState extends State<SingleItemPage>
   }
 
   void navigateToHomePage() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HomePage(),
-      ),
-    );
+    Navigator.pop(context);
   }
 
   Future<List<Map<String, dynamic>>> fetchNoteItems() async {

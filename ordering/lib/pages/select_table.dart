@@ -8,12 +8,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum TableStatus { AVAILABLE, OCCUPIED, RESERVED }
 
-class SelectTablePage extends StatefulWidget {
+class SelectTablePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BackButtonPage(
+      child: _SelectTablePage(),
+    );
+  }
+}
+
+class _SelectTablePage extends StatefulWidget {
   @override
   _SelectTablePageState createState() => _SelectTablePageState();
 }
 
-class _SelectTablePageState extends State<SelectTablePage>
+class _SelectTablePageState extends State<_SelectTablePage>
     with WidgetsBindingObserver {
   List<int> _selectedTables = [];
   List<String> _tempSelectedTables = [];
@@ -192,7 +201,7 @@ class _SelectTablePageState extends State<SelectTablePage>
     final crossAxisCount = 4;
     return Scaffold(
       appBar: AppBar(
-      backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
+        backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: IconButton(
@@ -354,6 +363,27 @@ class _SelectTablePageState extends State<SelectTablePage>
         ),
       ),
       backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
+    );
+  }
+}
+
+class BackButtonPage extends StatelessWidget {
+  final Widget child;
+
+  const BackButtonPage({Key? key, required this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        // Check if current page is HomePage, if not, navigate back to HomePage
+        if (ModalRoute.of(context)?.settings.name != '/') {
+          Navigator.pushReplacementNamed(context, '/');
+          return false; // Prevent default back button behavior
+        }
+        return true; // Allow default back button behavior on HomePage
+      },
+      child: child,
     );
   }
 }

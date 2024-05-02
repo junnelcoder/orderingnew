@@ -8,12 +8,21 @@ import 'config.dart';
 import 'delete_cart_page.dart';
 import 'home_page.dart';
 
-class CartPage extends StatefulWidget {
+class CartPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BackButtonPage(
+      child: _CartPage(),
+    );
+  }
+}
+class _CartPage extends StatefulWidget {
   @override
   _CartPageState createState() => _CartPageState();
 }
 
-class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
+
+class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
   bool isDarkMode = false; // Default to false for light mode
   List<Map<String, dynamic>> cartItems = [];
   Map<String, dynamic>? notesData;
@@ -165,6 +174,7 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
       }
     }
   }
+  
 
   void _incrementQuantity(int index) async {
     int currentQuantity = int.parse(cartItems[index]['qty'].toString());
@@ -593,6 +603,26 @@ class _CartPageState extends State<CartPage> with WidgetsBindingObserver {
             )
           : null,
       backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
+    );
+  }
+}
+class BackButtonPage extends StatelessWidget {
+  final Widget child;
+
+  const BackButtonPage({Key? key, required this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        // Check if current page is HomePage, if not, navigate back to HomePage
+        if (ModalRoute.of(context)?.settings.name != '/') {
+          Navigator.pushReplacementNamed(context, '/');
+          return false; // Prevent default back button behavior
+        }
+        return true; // Allow default back button behavior on HomePage
+      },
+      child: child,
     );
   }
 }

@@ -14,6 +14,7 @@ class IpScreen extends StatefulWidget {
 }
 
 class _IpScreenState extends State<IpScreen> {
+  DateTime? currentBackPressTime;
   void getSavedIpAddress() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
@@ -78,7 +79,32 @@ class _IpScreenState extends State<IpScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    return Scaffold(
+
+  return WillPopScope(
+      onWillPop: () async {
+        // If currentBackPressTime is null or elapsed time is more than 2 seconds, exit the app
+        if (currentBackPressTime == null ||
+            DateTime.now().difference(currentBackPressTime!) >
+                Duration(seconds: 2)) {
+          // Update currentBackPressTime
+          currentBackPressTime = DateTime.now();
+          // Show toast message
+          Fluttertoast.showToast(
+            msg: "Press back again to exit",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.red.withOpacity(0.8),
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
+          return false;
+        } else {
+          // If back button is pressed again within 2 seconds, exit the app
+          return true;
+        }
+      },
+    child : Scaffold(
       body: SingleChildScrollView(
         child: Container(
           height: screenHeight,
@@ -207,7 +233,7 @@ class _IpScreenState extends State<IpScreen> {
           ),
         ),
       ),
-    );
+    ),);
   }
 }
 
