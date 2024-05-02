@@ -119,12 +119,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         final List<dynamic> data = json.decode(response.body);
         categories =
             data.where((category) => category != null).cast<String>().toList();
+        // Add 'All' category to the list
+        categories.insert(0, 'All');
         prefs.setStringList('categories', categories);
         setState(() {
           categories = data
               .where((category) => category != null)
               .cast<String>()
               .toList();
+          // Add 'All' category to the list
+          categories.insert(0, 'All');
         });
       } else {
         throw Exception('Failed to fetch categories');
@@ -139,6 +143,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               .where((category) => category != null)
               .cast<String>()
               .toList();
+          categories.insert(0, 'All');
         });
       } else {
         throw Exception('Failed to fetch categories');
@@ -179,15 +184,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     selectedFromShared();
-    List<String> filteredCategories =
-        categories.where((category) => category != 'ALL').toList();
+    List<String> filteredCategories = categories.toList();
+
     String labelText = alreadySelectedTable.isNotEmpty
         ? '$alreadySelectedTable'
         : 'Select Table';
-     return WillPopScope(
+    return WillPopScope(
       onWillPop: () async {
         if (currentBackPressTime == null ||
-            DateTime.now().difference(currentBackPressTime!) > Duration(seconds: 3)) {
+            DateTime.now().difference(currentBackPressTime!) >
+                Duration(seconds: 3)) {
           // If currentBackPressTime is null or elapsed time is more than 2 seconds,
           // update currentBackPressTime and show toast message
           currentBackPressTime = DateTime.now();
@@ -200,11 +206,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             textColor: Colors.white,
             fontSize: 16.0,
           );
-          
+
           return false; // Return false to prevent exiting the app
         } else {
           Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HomePage()));
+              context, MaterialPageRoute(builder: (context) => HomePage()));
           SystemNavigator.pop(); // Exit the app
           return false; // Return true to exit the app
         }
@@ -251,8 +257,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             ),
                             Expanded(
                               child: Padding(
-                                padding:
-                                    EdgeInsets.symmetric(horizontal: 15),
+                                padding: EdgeInsets.symmetric(horizontal: 15),
                                 child: TextFormField(
                                   controller: _searchController,
                                   decoration: InputDecoration(
@@ -278,9 +283,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     tabs: filteredCategories
                         .map<Tab>((category) => Tab(text: category))
                         .toList(),
-                    unselectedLabelColor: isDarkMode
-                        ? Colors.grey
-                        : Colors.grey,
+                    unselectedLabelColor:
+                        isDarkMode ? Colors.grey : Colors.grey,
                     labelColor: isDarkMode ? Colors.white : Colors.black,
                   ),
                   Flexible(
@@ -307,7 +311,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             toggleDarkMode: _toggleDarkMode,
             onSwitchChanged: _toggleSwitch,
           ),
-
           floatingActionButton: Align(
             alignment: Alignment.bottomRight,
             child: Column(
