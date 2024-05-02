@@ -609,24 +609,26 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
               isDarkMode: isDarkMode, // Pass isDarkMode to the bottom nav bar
             )
           : null,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.remove('cartItems');
-          setState(() {
-            cartItems.clear();
-          });
-        },
-        label: Text(
-          'All',
-          style: TextStyle(color: Colors.white), // Set text color to white
-        ),
-        icon: Icon(
-          Icons.delete,
-          color: Colors.white, // Set icon color to white
-        ),
-        backgroundColor: Colors.red.withOpacity(0.7),
-      ),
+       floatingActionButton: cartItems.isNotEmpty
+        ? FloatingActionButton.extended(
+            onPressed: () async {
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.remove('cartItems');
+              setState(() {
+                cartItems.clear();
+              });
+            },
+            label: Text(
+              'All',
+              style: TextStyle(color: Colors.white), // Set text color to white
+            ),
+            icon: Icon(
+              Icons.delete,
+              color: Colors.white, // Set icon color to white
+            ),
+            backgroundColor: Colors.red.withOpacity(0.7),
+          )
+        : null,
       backgroundColor: isDarkMode ? Color(0xFF222222) : Colors.white,
     );
   }
@@ -652,3 +654,4 @@ class BackButtonPage extends StatelessWidget {
     );
   }
 }
+
