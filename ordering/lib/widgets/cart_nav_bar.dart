@@ -10,7 +10,6 @@ class CartNavBar extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
   final Function(List<Map<String, dynamic>>) updateCartItems;
   final bool isDarkMode;
-
   CartNavBar({
     Key? key,
     required this.cartItems,

@@ -39,6 +39,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
 
   void _refreshOnLoad() async {
     _openCartItemsCount = await fetchOpenCartItemsCount();
+    _loadSwitchValueFromStorage();
     setState(() {
       
     });
