@@ -2,7 +2,6 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
-// import 'package:ordering/pages/home_page.dart';
 import 'package:ordering/pages/ip_screen.dart';
 import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
@@ -55,12 +54,14 @@ class _ItemWidgetState extends State<ItemWidget> {
   Future<void> fetchItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    ;
     const Duration timeoutDuration = Duration(seconds: 5);
     String url = 'http://$ipAddress:8080/api/items';
+
+    // Check if the category is not 'ALL'
     if (widget.category != 'ALL') {
       url += '?category=${Uri.encodeQueryComponent(widget.category)}';
     }
+
     try {
       final response = await http
           .get(
@@ -90,17 +91,21 @@ class _ItemWidgetState extends State<ItemWidget> {
     } catch (e) {
       print('Error fetching items: $e');
     }
+
     try {
-      final response = await http
-          .get(
-            Uri.parse('http://$ipAddress:8080/api/allItems'),
-          )
-          .timeout(Duration(seconds: 5));
-      if (response.statusCode == 200) {
-        // final Map<String, dynamic> data = json.decode(response.body);
-        // String jsonData = json.encode(data);
-      } else {
-        print('Failed to connect to server');
+      if (widget.category == 'ALL') {
+        // Check if category is 'ALL'
+        final response = await http
+            .get(
+              Uri.parse('http://$ipAddress:8080/api/allItems'),
+            )
+            .timeout(Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          // final Map<String, dynamic> data = json.decode(response.body);
+          // String jsonData = json.encode(data);
+        } else {
+          print('Failed to connect to server');
+        }
       }
     } catch (e) {
       print('Error connecting to server: $e');
@@ -288,162 +293,156 @@ class _ItemWidgetState extends State<ItemWidget> {
 
   Widget buildItemCard(BuildContext context, Item item) {
     return Center(
-      child: SizedBox(
+      child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
-        child: SingleChildScrollView(
-          physics: NeverScrollableScrollPhysics(),
-          child: Container(
-            decoration: BoxDecoration(
-              color: widget.isDarkMode
-                  ? Colors.grey.withOpacity(0.7)
-                  : Colors.white.withOpacity(0.85),
-              borderRadius: BorderRadius.circular(20.0),
-              boxShadow: [
-                BoxShadow(
-                  color: widget.isDarkMode ? Colors.black : Colors.grey,
-                  blurRadius: widget.isDarkMode ? 0.0 : 5.0,
-                  offset: Offset(0, 3),
-                ),
-              ],
+        margin: EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: widget.isDarkMode
+              ? Colors.grey.withOpacity(0.7)
+              : Colors.white.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(20.0),
+          boxShadow: [
+            BoxShadow(
+              color: widget.isDarkMode ? Colors.black : Colors.grey,
+              blurRadius: widget.isDarkMode ? 0.0 : 5.0,
+              offset: Offset(0, 3),
             ),
-            margin: EdgeInsets.all(8.0),
-            padding: EdgeInsets.all(8.0),
-            child: InkWell(
-              onTap: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                String? selectedTablesString =
-                    prefs.getString('selectedTables');
-                String? switchValue = prefs.getString('switchValue');
-                if (switchValue == "QS" ||
-                    (selectedTablesString != null &&
-                        selectedTablesString.isNotEmpty)) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SingleItemPage(item: item),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Please select a table first'),
-                      duration: Duration(seconds: 3),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    alignment: Alignment.center,
-                    height: 120, // Set a fixed height for the image container
-                    width:
-                        double.infinity, // Ensure image spans the entire width
-                    child: Image.network(
+          ],
+        ),
+        child: InkWell(
+          onTap: () async {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            String? selectedTablesString = prefs.getString('selectedTables');
+            String? switchValue = prefs.getString('switchValue');
+            if (switchValue == "QS" ||
+                (selectedTablesString != null &&
+                    selectedTablesString.isNotEmpty)) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SingleItemPage(item: item),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please select a table first'),
+                  duration: Duration(seconds: 1),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              LimitedBox(
+                maxHeight: 90.0,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Image.network(
                       _getImagePathForItem(item),
-                      fit:
-                          BoxFit.cover, // Ensure the image covers the container
+                      fit: BoxFit
+                          .contain, // Adjust the fit based on your design requirements
+                      height: constraints.maxHeight,
+                      width: constraints.maxWidth,
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(
                           Icons.fastfood,
-                          size: 120,
+                          size: 70,
                           color:
                               widget.isDarkMode ? Colors.white : Colors.black,
                         );
                       },
-                    ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  item.itemname,
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isDarkMode
+                        ? Colors.white.withOpacity(0.7)
+                        : Colors.black.withOpacity(0.85),
                   ),
-                  SizedBox(height: 8.0),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  "${item.itemcode}",
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: widget.isDarkMode
+                        ? Colors.white.withOpacity(0.8)
+                        : Colors.black.withOpacity(0.85),
+                  ),
+                ),
+              ),
+              SizedBox(height: 4.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      item.itemname,
+                      "\₱${item.sellingprice.toStringAsFixed(2)}",
                       style: TextStyle(
-                        fontSize: 16.0,
+                        fontSize: 14.0,
                         fontWeight: FontWeight.bold,
                         color: widget.isDarkMode
                             ? Colors.white.withOpacity(0.7)
                             : Colors.black.withOpacity(0.85),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      "${item.itemcode}",
-                      style: TextStyle(
-                        fontSize: 14.0,
+                    child: InkWell(
+                      onTap: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        String? selectedTablesString =
+                            prefs.getString('selectedTables');
+                        String? switchValue = prefs.getString('switchValue');
+                        if (switchValue == "QS" ||
+                            (selectedTablesString != null &&
+                                selectedTablesString.isNotEmpty)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Added ${item.itemname}'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          _saveItemToLocal(item);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please select a table first'),
+                              duration: Duration(seconds: 3),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      child: Icon(
+                        CupertinoIcons.plus,
+                        size: 25,
                         color: widget.isDarkMode
-                            ? Colors.white.withOpacity(0.8)
+                            ? Colors.white.withOpacity(0.7)
                             : Colors.black.withOpacity(0.85),
                       ),
                     ),
                   ),
-                  SizedBox(height: 4.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text(
-                          "\₱${item.sellingprice.toStringAsFixed(2)}",
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.bold,
-                            color: widget.isDarkMode
-                                ? Colors.white.withOpacity(0.7)
-                                : Colors.black.withOpacity(0.85),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: InkWell(
-                          onTap: () async {
-                            final prefs = await SharedPreferences.getInstance();
-                            String? selectedTablesString =
-                                prefs.getString('selectedTables');
-                            String? switchValue =
-                                prefs.getString('switchValue');
-                            if (switchValue == "QS" ||
-                                (selectedTablesString != null &&
-                                    selectedTablesString.isNotEmpty)) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Added ${item.itemname}'),
-                                  duration: Duration(seconds: 2),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                              _saveItemToLocal(item);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Please select a table first'),
-                                  duration: Duration(seconds: 3),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
-                          child: Icon(
-                            CupertinoIcons.plus,
-                            size: 25,
-                            color: widget.isDarkMode
-                                ? Colors.white.withOpacity(0.7)
-                                : Colors.black.withOpacity(0.85),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
-            ),
+            ],
           ),
         ),
       ),

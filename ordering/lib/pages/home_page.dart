@@ -120,7 +120,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         categories =
             data.where((category) => category != null).cast<String>().toList();
         // Add 'All' category to the list
-        categories.insert(0, 'All');
+        categories.insert(0, 'ALL');
         prefs.setStringList('categories', categories);
         setState(() {
           categories = data
@@ -128,7 +128,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               .cast<String>()
               .toList();
           // Add 'All' category to the list
-          categories.insert(0, 'All');
+          categories.insert(0, 'ALL');
         });
       } else {
         throw Exception('Failed to fetch categories');
@@ -143,7 +143,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               .where((category) => category != null)
               .cast<String>()
               .toList();
-          categories.insert(0, 'All');
+          categories.insert(0, 'ALL');
         });
       } else {
         throw Exception('Failed to fetch categories');
@@ -209,8 +209,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
           return false; // Return false to prevent exiting the app
         } else {
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => HomePage()));
+          
           SystemNavigator.pop(); // Exit the app
           return false; // Return true to exit the app
         }
