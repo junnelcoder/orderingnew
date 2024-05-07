@@ -69,6 +69,7 @@ class _IpScreenState extends State<IpScreen> {
     super.initState();
     getSavedIpAddress();
     fetchCategories();
+    currentBackPressTime = null;
   }
 
   final TextEditingController _ipAddressController =

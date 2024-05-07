@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:ordering/pages/select_table.dart';
+import 'package:shimmer/shimmer.dart'; // Import the shimmer package
 import '../widgets/home_nav_bar.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
@@ -38,6 +39,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     setState(() {
       selectedService = 'Dine In';
     });
+    currentBackPressTime = null;
   }
 
   @override
@@ -189,6 +191,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     String labelText = alreadySelectedTable.isNotEmpty
         ? '$alreadySelectedTable'
         : 'Select Table';
+
+    // Check if categories are empty to show shimmer effect
+    bool showShimmer = categories.isEmpty;
+
     return WillPopScope(
       onWillPop: () async {
         if (currentBackPressTime == null ||
@@ -209,7 +215,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
           return false; // Return false to prevent exiting the app
         } else {
-          
           SystemNavigator.pop(); // Exit the app
           return false; // Return true to exit the app
         }
@@ -288,17 +293,33 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   ),
                   Flexible(
                     flex: 1,
-                    child: TabBarView(
-                      children: filteredCategories
-                          .map<Widget>((category) => ItemWidget(
-                                category: category,
-                                searchQuery: _searchController.text,
-                                isDarkMode: isDarkMode,
-                                toggleDarkMode: _toggleDarkMode,
-                                onItemAdded: _updateCartItemCount,
-                              ))
-                          .toList(),
-                    ),
+                    child: showShimmer // Check if shimmer should be shown
+                        ? Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            child: GridView.builder(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 8.0,
+                                mainAxisSpacing: 8.0,
+                                childAspectRatio: 0.8,
+                              ),
+                              itemCount: 6, // Adjust the item count
+                              itemBuilder: (_, __) => buildShimmerItemCard(),
+                            ),
+                          )
+                        : TabBarView(
+                            children: filteredCategories
+                                .map<Widget>((category) => ItemWidget(
+                                      category: category,
+                                      searchQuery: _searchController.text,
+                                      isDarkMode: isDarkMode,
+                                      toggleDarkMode: _toggleDarkMode,
+                                      onItemAdded: _updateCartItemCount,
+                                    ))
+                                .toList(),
+                          ),
                   ),
                 ],
               ),
@@ -428,6 +449,76 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildShimmerItemCard() {
+    return Card(
+      color: Colors.white,
+      margin: EdgeInsets.all(8.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      elevation: 4.0,
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      topRight: Radius.circular(20.0),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Container(
+                  height: 16.0,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Container(
+                  height: 16.0,
+                  width: 100.0,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Container(
+                  height: 16.0,
+                  width: 80.0,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

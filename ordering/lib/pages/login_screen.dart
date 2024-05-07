@@ -33,6 +33,7 @@ class _LoginPageState extends State<LoginScreen> {
   void initState() {
     super.initState();
     fetchUsers();
+    currentBackPressTime = null;
   }
 
   void navigateToIpScreen() {
