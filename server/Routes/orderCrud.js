@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 const config = require('../server.js');
+const escpos = require('escpos');
+const net = require('net');
 
 router.get('/categories', async (req, res) => {
   try {
@@ -131,6 +133,10 @@ router.get('/get-notes', async (req, res) => {
   }
 });
 
+const socket = new net.Socket();
+socket.connect(9100, '192.168.3.220', () => {
+    // Once connected, create a printer instance
+    const printer = new escpos.Printer(socket);
 
 // Endpoint to handle adding items to the cart
 router.post('/add-to-cart', async (req, res) => {
@@ -240,15 +246,27 @@ router.post('/add-to-cart', async (req, res) => {
       UPDATE [dbo].[so_detail] 
       SET close_status = 1
     `);
+    printer
+                .font('a')
+                .align('ct')
+                .style('bu')
+                .size(1, 1)
+                .text('Your print content here')
+                .cut()
+                .flush(); // Flush the data to send it to the printer immediately
 
-    // Send a response indicating success
-    res.status(200).json({ message: 'Items added to cart successfully' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
+            // Send response
+            res.status(200).json({ message: 'Items added to cart successfully' });
+        } catch (err) {
+            console.error(err.message);
+            res.status(500).send('Server Error');
+        }
+    });
 });
 
+socket.on('error', (err) => {
+    console.error('Error connecting to printer:', err);
+});
 
 
 

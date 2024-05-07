@@ -397,37 +397,37 @@ class _CartNavBarState extends State<CartNavBar> {
       }
 
       // Print items
-      printer.text('Order Summary axl',
-          styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2));
-      for (final item in cartItems) {
-        final itemName = (item['itemname'] ?? '').trim();
-        final quantity = item['qty'].toString();
-        final pricePerItem = item['unitprice'].toString(); // Adjust as needed
-        printer.text('$itemName - Qty: $quantity - pricePerItem: P $pricePerItem');
-      }
+      // printer.text('Order Summary axl',
+      //     styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2));
+      // for (final item in cartItems) {
+      //   final itemName = (item['itemname'] ?? '').trim();
+      //   final quantity = item['qty'].toString();
+      //   final pricePerItem = item['unitprice'].toString(); // Adjust as needed
+      //   printer.text('$itemName - Qty: $quantity - pricePerItem: P $pricePerItem');
+      // }
 
-      // Calculate total amount
-      double totalAmount = cartItems
-          .map((item) => double.parse(item['total'].toString()))
-          .reduce((value, element) => value + element);
+      // // Calculate total amount
+      // double totalAmount = cartItems
+      //     .map((item) => double.parse(item['total'].toString()))
+      //     .reduce((value, element) => value + element);
 
-      // Print total amount
-      printer.text('Total Amount: Php $totalAmount');
+      // // Print total amount
+      // printer.text('Total Amount: Php $totalAmount');
 
-      // Auto-cut the receipt paper
-      printer.cut();
+      // // Auto-cut the receipt paper
+      // printer.cut();
 
-      // Close connection
-      printer.disconnect();
+      // // Close connection
+      // printer.disconnect();
 
-      sendSelectedIndexToServer();
+      // sendSelectedIndexToServer();
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => HomePage(),
+      //   ),
+      // );
     } else {
       print('Failed to save order. Status code: ${response.statusCode}');
     }
