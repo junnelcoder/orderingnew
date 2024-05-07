@@ -5,8 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../pages/home_page.dart';
 import 'package:ordering/pages/select_table.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:esc_pos_printer/esc_pos_printer.dart';
 
 class CartNavBar extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
@@ -332,109 +330,73 @@ class _CartNavBarState extends State<CartNavBar> {
   }
 
   Future<void> saveOrderToDatabase(List<Map<String, dynamic>> cartItems,
-    BuildContext context, String custName) async {
-  try {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? ipAddress = prefs.getString('ipAddress');
-    String? selectedTablesString = prefs.getString('selectedTables');
-    String? selectedService = prefs.getString('selectedService');
-    String serviceValue = '';
-    switch (selectedService) {
-      case 'Dine In':
-        serviceValue = 'DI';
-        break;
-      case 'Take Out':
-        serviceValue = 'TO';
-        break;
-      case 'Delivery':
-        serviceValue = 'DE';
-        break;
-      case 'Pick Up':
-        serviceValue = 'PU';
-        break;
-      default:
-        serviceValue = 'DI';
-    }
-    if (custName != "") {
-      selectedTablesString = "QS-" + custName;
-      selectedTablesString = selectedTablesString.toUpperCase();
-    }
-    var apiUrl = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
-
-    var response = await http.post(
-      apiUrl,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode({
-        'cartItems': cartItems.map((item) => jsonEncode(item)).toList(),
-        'selectedTablesString': selectedTablesString,
-        'switchValue': serviceValue,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      Fluttertoast.showToast(
-        msg: "Order placed successfully",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-      );
-      await prefs.remove('cartItems');
-      await prefs.remove('selectedService');
-
-      // Connect to the printer
-      const PaperSize paper = PaperSize.mm80;
-      final profile = await CapabilityProfile.load();
-      final printer = NetworkPrinter(paper, profile);
-      final PosPrintResult res =
-          await printer.connect('192.168.3.220', port: 9100);
-
-      if (res != PosPrintResult.success) {
-        print('Could not connect to printer: $res');
-        return;
+      BuildContext context, String custName) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? ipAddress = prefs.getString('ipAddress');
+      String? selectedTablesString = prefs.getString('selectedTables');
+      String? selectedService = prefs.getString('selectedService');
+      String serviceValue = '';
+      switch (selectedService) {
+        case 'Dine In':
+          serviceValue = 'DI';
+          break;
+        case 'Take Out':
+          serviceValue = 'TO';
+          break;
+        case 'Delivery':
+          serviceValue = 'DE';
+          break;
+        case 'Pick Up':
+          serviceValue = 'PU';
+          break;
+        default:
+          serviceValue = 'DI';
       }
+      if (custName != "") {
+        selectedTablesString = "QS-" + custName;
+        selectedTablesString = selectedTablesString.toUpperCase();
+      }
+      var apiUrl = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
 
-      // Print items
-      // printer.text('Order Summary axl',
-      //     styles: PosStyles(align: PosAlign.center, height: PosTextSize.size2));
-      // for (final item in cartItems) {
-      //   final itemName = (item['itemname'] ?? '').trim();
-      //   final quantity = item['qty'].toString();
-      //   final pricePerItem = item['unitprice'].toString(); // Adjust as needed
-      //   printer.text('$itemName - Qty: $quantity - pricePerItem: P $pricePerItem');
-      // }
+      var response = await http.post(
+        apiUrl,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'cartItems': cartItems.map((item) => jsonEncode(item)).toList(),
+          'selectedTablesString': selectedTablesString,
+          'switchValue': serviceValue,
+        }),
+      );
 
-      // // Calculate total amount
-      // double totalAmount = cartItems
-      //     .map((item) => double.parse(item['total'].toString()))
-      //     .reduce((value, element) => value + element);
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: "Order placed successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+        await prefs.remove('cartItems');
+        await prefs.remove('selectedService');
 
-      // // Print total amount
-      // printer.text('Total Amount: Php $totalAmount');
+        sendSelectedIndexToServer();
 
-      // // Auto-cut the receipt paper
-      // printer.cut();
-
-      // // Close connection
-      // printer.disconnect();
-
-      // sendSelectedIndexToServer();
-
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => HomePage(),
-      //   ),
-      // );
-    } else {
-      print('Failed to save order. Status code: ${response.statusCode}');
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
+      } else {
+        print('Failed to save order. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error saving order: $e');
     }
-  } catch (e) {
-    print('Error saving order: $e');
   }
-}
 
   Future<void> selectTableShared() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
