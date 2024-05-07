@@ -133,140 +133,142 @@ router.get('/get-notes', async (req, res) => {
   }
 });
 
+
+
+// Create a new network connection to the printer
 const socket = new net.Socket();
 socket.connect(9100, '192.168.3.220', () => {
-    // Once connected, create a printer instance
-    const printer = new escpos.Printer(socket);
+  // Once connected, create a printer instance
+  const printer = new escpos.Printer(socket);
 
-// Endpoint to handle adding items to the cart
-router.post('/add-to-cart', async (req, res) => {
-  try {
-    const { cartItems, selectedTablesString, switchValue } = req.body;
+  // Define the route to add items to the cart
+  router.post('/add-to-cart', async (req, res) => {
+    try {
+      const { cartItems, selectedTablesString, switchValue } = req.body;
 
-
-    let subtotalAmount = 0;
-    let totalAmount = 0;
-    let paid = 0;
-    let machineid = 0;
-
-    const pool = await sql.connect(config);
-    const updateResult = await pool.request().query(`
-    DECLARE @last_or VARCHAR(20);
-    DECLARE @last_inv VARCHAR(20);
-    DECLARE @new_or VARCHAR(20);
-    DECLARE @new_inv VARCHAR(20);
-    SELECT @last_or = last_or, @last_inv = last_inv FROM [dbo].[business_date_res];
-    SET @new_or = RIGHT('00000000' + CAST(CAST(RIGHT(@last_or, 8) AS INT) + 1 AS VARCHAR), 8);
-    SET @new_inv = RIGHT('00000000' + CAST(CAST(RIGHT(@last_inv, 8) AS INT) + 1 AS VARCHAR), 8);
-    UPDATE [dbo].[business_date_res] SET last_or = @new_or, last_inv = @new_inv;
-    SET @new_or = RIGHT('00000' + CAST(CAST(RIGHT(@last_or, 5) AS INT) + 1 AS VARCHAR), 5);
-    SELECT @new_or AS new_or;
-    `);
-
-    const newSoNumber = updateResult.recordset[0].new_or;
-    // Parse each item and insert into the database
-    for (const item of cartItems) {
-      const { pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status } = JSON.parse(item);
-
-      // Calculate subtotal and total amounts
-      subtotalAmount += parseFloat(subtotal);
-      totalAmount += parseFloat(total);
-      paid = pa_id;
-      machineid = machine_id;
-      const newSoNumber = updateResult.recordset[0].new_or;
-      console.log(newSoNumber);
-      // Generate current date for trans_date
-      const currentDate = new Date().toISOString().split('T')[0];
-
-      // Generate current time for tran_time
-      const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-
-      // Format time to HH:mm:ss format
-      const formattedTime = currentTime.split(' ')[0];
-
-      // Combine date and time into a single datetime string
-      const transDateTime = currentDate + ' ' + formattedTime;
-
-      // Validate close_status
-      const closeStatusInt = parseInt(close_status);
+      let subtotalAmount = 0;
+      let totalAmount = 0;
+      let paid = 0;
+      let machineid = 0;
 
       const pool = await sql.connect(config);
+      const updateResult = await pool.request().query(`
+                DECLARE @last_or VARCHAR(20);
+                DECLARE @last_inv VARCHAR(20);
+                DECLARE @new_or VARCHAR(20);
+                DECLARE @new_inv VARCHAR(20);
+                SELECT @last_or = last_or, @last_inv = last_inv FROM [dbo].[business_date_res];
+                SET @new_or = RIGHT('00000000' + CAST(CAST(RIGHT(@last_or, 8) AS INT) + 1 AS VARCHAR), 8);
+                SET @new_inv = RIGHT('00000000' + CAST(CAST(RIGHT(@last_inv, 8) AS INT) + 1 AS VARCHAR), 8);
+                UPDATE [dbo].[business_date_res] SET last_or = @new_or, last_inv = @new_inv;
+                SET @new_or = RIGHT('00000' + CAST(CAST(RIGHT(@last_or, 5) AS INT) + 1 AS VARCHAR), 5);
+                SELECT @new_or AS new_or;
+            `);
 
-      const request = pool.request()
-        .input('pa_id', sql.Char, pa_id)
+      const newSoNumber = updateResult.recordset[0].new_or;
+
+      for (const item of cartItems) {
+        const { pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status } = JSON.parse(item);
+
+        subtotalAmount += parseFloat(subtotal);
+        totalAmount += parseFloat(total);
+        paid = pa_id;
+        machineid = machine_id;
+
+        const currentDate = new Date().toISOString().split('T')[0];
+        const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
+        const formattedTime = currentTime.split(' ')[0];
+        const transDateTime = currentDate + ' ' + formattedTime;
+        const closeStatusInt = parseInt(close_status);
+
+        const request = pool.request()
+          .input('pa_id', sql.Char, pa_id)
+          .input('so_number', sql.VarChar, newSoNumber)
+          .input('machine_id', sql.VarChar, machine_id)
+          .input('trans_date', sql.DateTime, new Date(trans_date))
+          .input('itemcode', sql.VarChar, itemcode)
+          .input('itemname', sql.Char, itemname)
+          .input('category', sql.VarChar, category)
+          .input('qty', sql.Decimal(18, 2), qty)
+          .input('unitprice', sql.Decimal(18, 2), parseFloat(unitprice))
+          .input('markup', sql.Decimal(18, 2), markup)
+          .input('sellingprice', sql.Decimal(18, 2), sellingprice)
+          .input('subtotal', sql.Decimal(18, 2), subtotal)
+          .input('total', sql.Decimal(18, 2), total)
+          .input('department', sql.VarChar, department)
+          .input('uom', sql.Char, uom)
+          .input('vatable', sql.TinyInt, vatable)
+          .input('tran_time', sql.DateTime, new Date(transDateTime))
+          .input('division', sql.VarChar, division)
+          .input('section', sql.VarChar, section)
+          .input('brand', sql.VarChar, brand)
+          .input('close_status', sql.TinyInt, closeStatusInt)
+          .input('table_no', sql.VarChar, selectedTablesString)
+          .input('order_service', sql.VarChar, switchValue);
+
+        await request.query(`
+                    INSERT INTO [dbo].[so_detail] (pa_id, so_number, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status,table_no, order_service)
+                    VALUES (@pa_id, @so_number, @machine_id, @trans_date, @itemcode, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @subtotal, @total, @department, @uom, @vatable, @tran_time, @division, @section, @brand, @close_status,@table_no, @order_service) 
+                `);
+      }
+
+      const requestHeader = pool.request()
         .input('so_number', sql.VarChar, newSoNumber)
-        .input('machine_id', sql.VarChar, machine_id)
-        .input('trans_date', sql.DateTime, new Date(trans_date)) // Correctly pass trans_date
-        .input('itemcode', sql.VarChar, itemcode)
-        .input('itemname', sql.Char, itemname)
-        .input('category', sql.VarChar, category)
-        .input('qty', sql.Decimal(18, 2), qty)
-        .input('unitprice', sql.Decimal(18, 2), parseFloat(unitprice)) // Parse unitprice to float
-        .input('markup', sql.Decimal(18, 2), markup)
-        .input('sellingprice', sql.Decimal(18, 2), sellingprice)
-        .input('subtotal', sql.Decimal(18, 2), subtotal)
-        .input('total', sql.Decimal(18, 2), total)
-        .input('department', sql.VarChar, department)
-        .input('uom', sql.Char, uom)
-        .input('vatable', sql.TinyInt, vatable)
-        .input('tran_time', sql.DateTime, new Date(transDateTime)) // Pass datetime object
-        .input('division', sql.VarChar, division)
-        .input('section', sql.VarChar, section)
-        .input('brand', sql.VarChar, brand)
-        .input('close_status', sql.TinyInt, closeStatusInt)
+        .input('machine_id', sql.VarChar, machineid)
+        .input('trans_date', sql.DateTime, new Date().toISOString().split('T')[0])
+        .input('pa_id', sql.Char, paid)
+        .input('subtotal_amount', sql.Decimal(18, 2), subtotalAmount)
+        .input('total_amount', sql.Decimal(18, 2), totalAmount)
+        .input('tran_time', sql.DateTime, new Date())
+        .input('close_status', sql.TinyInt, 1)
         .input('table_no', sql.VarChar, selectedTablesString)
-        .input('order_service', sql.VarChar, switchValue);
+        .input('order_service', sql.VarChar, switchValue)
+        .query(`
+                    INSERT INTO [dbo].[so_header] (so_number, machine_id, trans_date, pa_id, subtotal_amount, total_amount, tran_time, close_status, table_no, order_service) 
+                    VALUES (@so_number, @machine_id, @trans_date, @pa_id, @subtotal_amount, @total_amount, @tran_time, @close_status, @table_no, @order_service) 
+                `);
 
-      await request.query(`
-        INSERT INTO [dbo].[so_detail] (pa_id, so_number, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status,table_no, order_service)
-        VALUES (@pa_id, @so_number, @machine_id, @trans_date, @itemcode, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @subtotal, @total, @department, @uom, @vatable, @tran_time, @division, @section, @brand, @close_status,@table_no, @order_service) 
-      `);
+      await pool.request().query(`
+                UPDATE [dbo].[so_detail] 
+                SET close_status = 1
+            `);
+
+      // Print order slip
+      printer
+        .font('a') // Set font type 'a' (normal)
+        .align('ct') // Align text to the center
+        .style('normal') // Set style to normal (no bold)
+        .size(0, 0) // Set smaller font size (0, 0)
+        .text('SPARKY ORDERING') // Print text
+        .text('ORDER SLIP') // Print text
+        .text(`Date: ${new Date().toLocaleDateString('en-US')}, ${new Date().toLocaleTimeString('en-US', { hour12: true })}`) // Print text with date and time
+        .text(`SO NUMBER: ${newSoNumber}`) // Print text with SO number
+        .text('------------------------------------') // Print separator line
+        .text(`- - -ORDER FOR: ${selectedTablesString} - - -`) // Print text with table number
+        .text('------------------------------------') // Print separator line
+        .text(`Order Taker: ${paid}`) 
+        .text('  ')
+        .text('  ')
+        .text('  ')
+        .text('  ')
+        .text('  ')
+        .text('  ')// Print text with order taker
+        .cut() // Cut paper (if supported)
+        .flush(); // Flush the data to send it to the printer immediately
+
+
+      res.status(200).json({ message: 'Items added to cart successfully' });
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
     }
-
-    // Insert into so_header table
-    // const pool = await sql.connect(config);
-    const requestHeader = pool.request()
-      .input('so_number', sql.VarChar, newSoNumber) // Assuming so_number is fixed for all items
-      .input('machine_id', sql.VarChar, machineid) // Assuming machine_id is same for all items
-      .input('trans_date', sql.DateTime, new Date().toISOString().split('T')[0]) // Correctly pass trans_date
-      .input('pa_id', sql.Char, paid) // Assuming pa_id is same for all items
-      .input('subtotal_amount', sql.Decimal(18, 2), subtotalAmount)
-      .input('total_amount', sql.Decimal(18, 2), totalAmount)
-      .input('tran_time', sql.DateTime, new Date()) // Pass current datetime object
-      .input('close_status', sql.TinyInt, 1)
-      .input('table_no', sql.VarChar, selectedTablesString)
-      .input('order_service', sql.VarChar, switchValue)
-      .query(`
-    INSERT INTO [dbo].[so_header] (so_number, machine_id, trans_date, pa_id, subtotal_amount, total_amount, tran_time, close_status, table_no, order_service) 
-    VALUES (@so_number, @machine_id, @trans_date, @pa_id, @subtotal_amount, @total_amount, @tran_time, @close_status, @table_no, @order_service) 
-  `);
-
-    // Set close_status to 1 for all records in so_detail
-    await pool.request().query(`
-      UPDATE [dbo].[so_detail] 
-      SET close_status = 1
-    `);
-    printer
-                .font('a')
-                .align('ct')
-                .style('bu')
-                .size(1, 1)
-                .text('Your print content here')
-                .cut()
-                .flush(); // Flush the data to send it to the printer immediately
-
-            // Send response
-            res.status(200).json({ message: 'Items added to cart successfully' });
-        } catch (err) {
-            console.error(err.message);
-            res.status(500).send('Server Error');
-        }
-    });
+  });
 });
 
 socket.on('error', (err) => {
-    console.error('Error connecting to printer:', err);
+  console.error('Error connecting to printer:', err);
 });
+
 
 
 
@@ -402,7 +404,7 @@ router.post('/delete-items', async (req, res) => {
         console.log(`Deleted all rows with so_number: ${so_number}`);
         res.status(200).json({ message: 'Items deleted successfully' });
       }
-    }else if(count === 888){
+    } else if (count === 888) {
       const fetchRequest = pool.request().input('trans_no', sql.BigInt, trans_no);
       const fetchResult = await fetchRequest.query(`
         SELECT [so_number] FROM [dbo].[so_detail]
@@ -424,8 +426,8 @@ router.post('/delete-items', async (req, res) => {
         `);// ginamit kona din dito yung so_number pala idelete yung column na target ko na madelete
         console.log(`Deleted all rows with so_number: ${so_number}`);
         res.status(200).json({ message: 'Items deleted successfully' });
-    }
-  }else {
+      }
+    } else {
       const fetchRequest = pool.request().input('trans_no', sql.BigInt, trans_no);
       const fetchResult = await fetchRequest.query(`
         SELECT [so_number],[sellingprice] FROM [dbo].[so_detail]
