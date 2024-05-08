@@ -137,7 +137,7 @@ router.get('/get-notes', async (req, res) => {
 
 // Create a new network connection to the printer
 const socket = new net.Socket();
-socket.connect(9100, '192.168.3.220', () => {
+socket.connect(9100, '192.168.1.87', () => {
   // Once connected, create a printer instance
   const printer = new escpos.Printer(socket);
 
@@ -244,15 +244,12 @@ socket.connect(9100, '192.168.3.220', () => {
         .text(`Date: ${new Date().toLocaleDateString('en-US')}, ${new Date().toLocaleTimeString('en-US', { hour12: true })}`) // Print text with date and time
         .text(`SO NUMBER: ${newSoNumber}`) // Print text with SO number
         .text('------------------------------------') // Print separator line
-        .text(`- - -ORDER FOR: ${selectedTablesString} - - -`) // Print text with table number
+        .text(`- - - ORDER FOR: ${selectedTablesString} - - -`) // Print text with table number
         .text('------------------------------------') // Print separator line
         .text(`Order Taker: ${paid}`) 
         .text('  ')
         .text('  ')
         .text('  ')
-        .text('  ')
-        .text('  ')
-        .text('  ')// Print text with order taker
         .cut() // Cut paper (if supported)
         .flush(); // Flush the data to send it to the printer immediately
 

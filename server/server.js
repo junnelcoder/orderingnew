@@ -8,6 +8,7 @@ const http = require('http');
 const ip = require('ip');
 const path = require('path');
 const fs = require('fs');
+
 // Add CORS middleware
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -58,18 +59,41 @@ const config = {
   }
 };
 
-const server = http.createServer(app);
+// Create a function to start the server
+const startServer = () => {
+  const server = http.createServer(app);
 
-server.listen(PORT, () => {
-  const ipAddress = ip.address();
-  console.log(`Server is running at http://${ipAddress}:${PORT}`);
-  console.log(`Your server IP is: ${ipAddress}`);
-});
-
-sql.connect(config)
-  .then(() => {
-    console.log('Connected to SQL Server');
-  })
-  .catch((err) => {
-    console.error('Error connecting to SQL Server:', err);
+  server.listen(PORT, () => {
+    const ipAddress = ip.address();
+    console.log(`Server is running at http://${ipAddress}:${PORT}`);
+    console.log(`Your server IP is: ${ipAddress}`);
   });
+
+  // Handle server errors
+  server.on('error', (error) => {
+    console.error('Server error:', error);
+    console.log('Restarting server...');
+    // Restart server after 5 seconds
+    setTimeout(startServer, 5000);
+  });
+};
+
+// Start the server
+startServer();
+
+// Connect to SQL Server
+const connectToSqlServer = () => {
+  sql.connect(config)
+    .then(() => {
+      console.log('Connected to SQL Server');
+    })
+    .catch((err) => {
+      console.error('Error connecting to SQL Server:', err);
+      console.log('Retrying connection...');
+      // Retry connection after 5 seconds
+      setTimeout(connectToSqlServer, 5000);
+    });
+};
+
+// Attempt to connect to SQL Server
+connectToSqlServer();
