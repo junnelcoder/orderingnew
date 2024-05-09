@@ -4,6 +4,20 @@ const sql = require('mssql');
 const config = require('../server.js');
 const escpos = require('escpos');
 const net = require('net');
+const { ThermalPrinter, PrinterTypes, CharacterSet, BreakLine } = require('node-thermal-printer');
+
+let printer = new ThermalPrinter({
+  type: PrinterTypes.RONGTA,
+  interface: 'tcp://192.168.1.87',
+  characterSet: CharacterSet.PC852_LATIN2,
+  removeSpecialCharacters: false,
+  lineCharacter: "-",
+  breakLine: BreakLine.NONE,
+  options: {
+    timeout: 1000,
+  }
+});
+
 
 router.get('/categories', async (req, res) => {
   try {
@@ -137,13 +151,30 @@ router.get('/get-notes', async (req, res) => {
 
 // Create a new network connection to the printer
 const socket = new net.Socket();
-socket.connect(9100, '192.168.1.87', () => {
-  // Once connected, create a printer instance
-  const printer = new escpos.Printer(socket);
+socket.connect(9100, '192.168.1.87', async () => {
 
+});
+const printOrderSlip = (printer, newSoNumber, selectedTablesString, paid) => {
+  printer.alignCenter()
+  printer.println('SPARKY ORDERING')
+  printer.println('ORDER SLIP')
+  printer.println(`Date: ${new Date().toLocaleDateString('en-US')}, ${new Date().toLocaleTimeString('en-US', { hour12: true })}`)
+  printer.println(`SO NUMBER: ${newSoNumber}`)
+  printer.println('------------------------------------')
+  printer.println(`- - - ORDER FOR: ${selectedTablesString} - - -`)
+  printer.println('------------------------------------')
+  printer.println(`Order Taker: ${paid}`)
+  printer.cut()
+  printer.execute();
+  printer.clear();
+};
   // Define the route to add items to the cart
   router.post('/add-to-cart', async (req, res) => {
     try {
+     
+
+      // Set the flag to indicate that order processing has started
+     
       const { cartItems, selectedTablesString, switchValue } = req.body;
 
       let subtotalAmount = 0;
@@ -234,24 +265,8 @@ socket.connect(9100, '192.168.1.87', () => {
             `);
 
       // Print order slip
-      printer
-        .font('a') // Set font type 'a' (normal)
-        .align('ct') // Align text to the center
-        .style('normal') // Set style to normal (no bold)
-        .size(0, 0) // Set smaller font size (0, 0)
-        .text('SPARKY ORDERING') // Print text
-        .text('ORDER SLIP') // Print text
-        .text(`Date: ${new Date().toLocaleDateString('en-US')}, ${new Date().toLocaleTimeString('en-US', { hour12: true })}`) // Print text with date and time
-        .text(`SO NUMBER: ${newSoNumber}`) // Print text with SO number
-        .text('------------------------------------') // Print separator line
-        .text(`- - - ORDER FOR: ${selectedTablesString} - - -`) // Print text with table number
-        .text('------------------------------------') // Print separator line
-        .text(`Order Taker: ${paid}`) 
-        .text('  ')
-        .text('  ')
-        .text('  ')
-        .cut() // Cut paper (if supported)
-        .flush(); // Flush the data to send it to the printer immediately
+      printOrderSlip(printer, newSoNumber, selectedTablesString, paid);
+      
 
 
       res.status(200).json({ message: 'Items added to cart successfully' });
@@ -260,7 +275,7 @@ socket.connect(9100, '192.168.1.87', () => {
       res.status(500).send('Server Error');
     }
   });
-});
+
 
 socket.on('error', (err) => {
   console.error('Error connecting to printer:', err);

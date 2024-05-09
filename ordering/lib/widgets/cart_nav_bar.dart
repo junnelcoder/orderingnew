@@ -207,6 +207,13 @@ class _CartNavBarState extends State<CartNavBar> {
     }
 
     bool displayTextField = switchValue == 'QS'; // Check if switchValue is 'QS'
+    if(displayTextField){
+
+    _customerNameController.text = lastInvDigitsString;
+    }else{
+      
+    _customerNameController.text = "";
+    }
     Widget textFieldWidget = displayTextField
         ? TextField(
             controller: _customerNameController,
@@ -224,7 +231,7 @@ class _CartNavBarState extends State<CartNavBar> {
             ),
           )
         : SizedBox();
-    _customerNameController.text = lastInvDigitsString;
+        
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
