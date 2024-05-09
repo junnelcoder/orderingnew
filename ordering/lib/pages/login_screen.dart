@@ -26,6 +26,7 @@ void saveUsernameToSharedPreferences(String username) async {
 
 class _LoginPageState extends State<LoginScreen> {
   bool _isObscured = true;
+  bool _isLoading = true; 
   List<String> users = [];
   List<String> passwords = []; // Declare passwords here
   DateTime? currentBackPressTime;
@@ -77,7 +78,7 @@ class _LoginPageState extends State<LoginScreen> {
         }
 
         setState(() {
-          // Update your UI if necessary
+          _isLoading = false; 
         });
       } else {
         print('Failed to load users: ${response.statusCode}');
@@ -204,112 +205,128 @@ class _LoginPageState extends State<LoginScreen> {
                   child: Padding(
                     padding: EdgeInsets.all(screenWidth * 0.06),
                     child: Column(
-                      children: <Widget>[
-                        SizedBox(height: screenHeight * 0.1),
-                        DropdownButtonFormField<String>(
-                          value: _selectedUsername,
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedUsername = newValue!;
-                            });
-                          },
-                          items: users
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: SizedBox(
-                                height: 40,
-                                child: Center(
-                                  child: Text(value),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                          decoration: InputDecoration(
-                            hintText: "Select Username",
-                            prefixIcon: Icon(Icons.person, color: Colors.grey),
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(screenWidth * 0.05),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _isObscured,
-                          style: TextStyle(fontFamily: 'MaanJoy'),
-                          decoration: InputDecoration(
-                            hintText: "Password",
-                            prefixIcon: Icon(Icons.lock, color: Colors.grey),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isObscured
-                                    ? Icons.visibility
-                                    : Icons.visibility_off,
-                                color: Colors.grey,
-                              ),
-                              onPressed: _togglePasswordVisibility,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius:
-                                  BorderRadius.circular(screenWidth * 0.05),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: screenHeight * 0.02),
-                        SizedBox(
-                          width: double.infinity,
-                          height: screenHeight * 0.06,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              String username = _selectedUsername!;
-                              String password = _passwordController.text;
-                              int arrSize = users.length;
-                              for (int i = 0; i < arrSize; i++) {
-                                if (username.trim() == users[i].trim()) {
-                                  if (password.trim() == passwords[i].trim()) {
-                                    saveUsernameToSharedPreferences(username);
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => HomePage(),
+                        children: <Widget>[
+                          SizedBox(height: screenHeight * 0.1),
+                          _isLoading // Check isLoading flag
+                              ? Center(
+                                  child: CircularProgressIndicator(), // Show loading indicator
+                                )
+                              : Column(
+                                  children: [
+                                    DropdownButtonFormField<String>(
+                                      value: _selectedUsername,
+                                      onChanged: (String? newValue) {
+                                        setState(() {
+                                          _selectedUsername = newValue!;
+                                        });
+                                      },
+                                      items: users
+                                          .map<DropdownMenuItem<String>>(
+                                              (String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: SizedBox(
+                                            height: 40,
+                                            child: Center(
+                                              child: Text(value),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                      decoration: InputDecoration(
+                                        hintText: "Select Username",
+                                        prefixIcon:
+                                            Icon(Icons.person, color: Colors.grey),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              screenWidth * 0.05),
+                                        ),
                                       ),
-                                    );
-                                  } else {
-                                    Fluttertoast.showToast(
-                                      msg: "Incorrect password",
-                                      toastLength: Toast.LENGTH_SHORT,
-                                      gravity: ToastGravity.BOTTOM,
-                                      timeInSecForIosWeb: 1,
-                                      backgroundColor: Colors.red,
-                                      textColor: Colors.white,
-                                      fontSize: 16.0,
-                                    );
-                                  }
-                                }
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(screenWidth * 0.05),
-                              ),
-                            ),
-                            child: GlowingText(
-                              text: "Sign in",
-                              glowColor: Colors.black,
-                              style: TextStyle(
-                                fontSize: screenHeight * 0.025,
-                                color: Colors.white,
-                                fontFamily: 'MaanJoy',
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                                    ),
+                                    SizedBox(height: screenHeight * 0.02),
+                                    TextFormField(
+                                      controller: _passwordController,
+                                      obscureText: _isObscured,
+                                      style: TextStyle(fontFamily: 'MaanJoy'),
+                                      decoration: InputDecoration(
+                                        hintText: "Password",
+                                        prefixIcon:
+                                            Icon(Icons.lock, color: Colors.grey),
+                                        suffixIcon: IconButton(
+                                          icon: Icon(
+                                            _isObscured
+                                                ? Icons.visibility
+                                                : Icons.visibility_off,
+                                            color: Colors.grey,
+                                          ),
+                                          onPressed: _togglePasswordVisibility,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              screenWidth * 0.05),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: screenHeight * 0.02),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: screenHeight * 0.06,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          String username = _selectedUsername!;
+                                          String password =
+                                              _passwordController.text;
+                                          int arrSize = users.length;
+                                          for (int i = 0; i < arrSize; i++) {
+                                            if (username.trim() ==
+                                                users[i].trim()) {
+                                                                                            if (password.trim() ==
+                                                  passwords[i].trim()) {
+                                                saveUsernameToSharedPreferences(
+                                                    username);
+                                                Navigator.pushReplacement(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        HomePage(),
+                                                  ),
+                                                );
+                                              } else {
+                                                Fluttertoast.showToast(
+                                                  msg: "Incorrect password",
+                                                  toastLength: Toast.LENGTH_SHORT,
+                                                  gravity: ToastGravity.BOTTOM,
+                                                  timeInSecForIosWeb: 1,
+                                                  backgroundColor: Colors.red,
+                                                  textColor: Colors.white,
+                                                  fontSize: 16.0,
+                                                );
+                                              }
+                                            }
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.black,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                screenWidth * 0.05),
+                                          ),
+                                        ),
+                                        child: GlowingText(
+                                          text: "Sign in",
+                                          glowColor: Colors.black,
+                                          style: TextStyle(
+                                            fontSize: screenHeight * 0.025,
+                                            color: Colors.white,
+                                            fontFamily: 'MaanJoy',
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ],
+                      ),
                   ),
                 ),
               ),

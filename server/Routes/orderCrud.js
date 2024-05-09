@@ -5,10 +5,10 @@ const config = require('../server.js');
 const escpos = require('escpos');
 const net = require('net');
 const { ThermalPrinter, PrinterTypes, CharacterSet, BreakLine } = require('node-thermal-printer');
-
+require('dotenv').config();
 let printer = new ThermalPrinter({
   type: PrinterTypes.RONGTA,
-  interface: 'tcp://192.168.1.87',
+  interface: process.env.PRINTER_INTERFACE,
   characterSet: CharacterSet.PC852_LATIN2,
   removeSpecialCharacters: false,
   lineCharacter: "-",
@@ -150,10 +150,7 @@ router.get('/get-notes', async (req, res) => {
 
 
 // Create a new network connection to the printer
-const socket = new net.Socket();
-socket.connect(9100, '192.168.1.87', async () => {
 
-});
 const printOrderSlip = (printer, newSoNumber, selectedTablesString, paid) => {
   printer.alignCenter()
   printer.println('SPARKY ORDERING')
@@ -164,7 +161,7 @@ const printOrderSlip = (printer, newSoNumber, selectedTablesString, paid) => {
   printer.println(`- - - ORDER FOR: ${selectedTablesString} - - -`)
   printer.println('------------------------------------')
   printer.println(`Order Taker: ${paid}`)
-  printer.cut()
+  printer.cut({ verticalTabAmount: 1 });
   printer.execute();
   printer.clear();
 };
@@ -276,10 +273,6 @@ const printOrderSlip = (printer, newSoNumber, selectedTablesString, paid) => {
     }
   });
 
-
-socket.on('error', (err) => {
-  console.error('Error connecting to printer:', err);
-});
 
 
 

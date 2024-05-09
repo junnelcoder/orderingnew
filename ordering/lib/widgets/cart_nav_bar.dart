@@ -23,7 +23,7 @@ class CartNavBar extends StatefulWidget {
 
 class _CartNavBarState extends State<CartNavBar> {
   bool _isDarkMode = false;
-
+        bool operationCompleted = false; 
   @override
   void initState() {
     _loadDarkModePreference();
@@ -231,7 +231,16 @@ class _CartNavBarState extends State<CartNavBar> {
             ),
           )
         : SizedBox();
-        
+    var loadingDialog = AlertDialog(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 20),
+          Text('Saving order...'),
+        ],
+      ),
+    );
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -270,22 +279,40 @@ class _CartNavBarState extends State<CartNavBar> {
               child: Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
-                String customerName = _customerNameController.text.trim();
-                if (displayTextField && customerName.isEmpty) {
-                  Fluttertoast.showToast(
-                    msg: 'Please enter the customer name.',
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                  );
-                  return;
-                }
-                // Navigator.of(context).pop();
-                saveOrderToDatabase(
-                    widget.cartItems, context, _customerNameController.text);
-              },
-              child: Text('Confirm'),
-            ),
+                  onPressed: () async {
+                     showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) => loadingDialog,
+                );
+
+                    String customerName = _customerNameController.text.trim();
+                    if (displayTextField && customerName.isEmpty) {
+                      Fluttertoast.showToast(
+                        msg: 'Please enter the customer name.',
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                      );
+                      Navigator.of(context).pop(); 
+                      return;
+                    }
+Future.delayed(Duration(seconds: 10), () {
+                  if (!operationCompleted) {
+                    Fluttertoast.showToast(
+                      msg: 'Server error. Please try again later.',
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                    );
+                    Navigator.of(context).pop(); 
+                  }
+                });
+                    await saveOrderToDatabase(
+                        widget.cartItems, context, _customerNameController.text);
+                    
+                    // Navigator.of(context).pop(); 
+                  },
+                  child: Text('Confirm'),
+                ),
           ],
         );
       },
@@ -379,6 +406,7 @@ class _CartNavBarState extends State<CartNavBar> {
       );
 
       if (response.statusCode == 200) {
+        operationCompleted=true;
         Fluttertoast.showToast(
           msg: "Order placed successfully",
           toastLength: Toast.LENGTH_SHORT,
