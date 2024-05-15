@@ -5,17 +5,16 @@ const config = require('../server.js');
 const escpos = require('escpos');
 const net = require('net');
 const { ThermalPrinter, PrinterTypes, CharacterSet, BreakLine } = require('node-thermal-printer');
-require('dotenv').config();
-let printer = new ThermalPrinter({
-  type: PrinterTypes.RONGTA,
-  interface: process.env.PRINTER_INTERFACE,
-  characterSet: CharacterSet.PC852_LATIN2,
-  removeSpecialCharacters: false,
-  lineCharacter: "-",
-  breakLine: BreakLine.NONE,
-  options: {
-    timeout: 1000,
-  }
+
+const config2 = require('../config.json');
+const printer = new ThermalPrinter({
+  type: PrinterTypes[config2.printer.type],
+  interface: config2.printer.interface,
+  characterSet: CharacterSet[config2.printer.characterSet],
+  removeSpecialCharacters: config2.printer.removeSpecialCharacters,
+  lineCharacter: config2.printer.lineCharacter,
+  breakLine: BreakLine[config2.printer.breakLine],
+  options: config2.printer.options,
 });
 
 
@@ -85,52 +84,50 @@ router.get('/allItems', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch note items' });
   }
 });
+// router.post('/add-notes-to-cart', async (req, res) => {
+//   try {
+//     // Extract item details from the request body
+//     const { pa_id, machine_id, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, section, brand, close_status, picture_path, total, subtotal } = req.body;
+//     const trans_date = new Date().toISOString().split('T')[0]; // Extract date portion only
 
-// Endpoint para sa pag-add sa cart ng mga notes
-router.post('/add-notes-to-cart', async (req, res) => {
-  try {
-    // Extract item details from the request body
-    const { pa_id, machine_id, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, section, brand, close_status, picture_path, total, subtotal } = req.body;
-    const trans_date = new Date().toISOString().split('T')[0]; // Extract date portion only
+//     // Connect to the database
+//     const pool = await sql.connect(config);
 
-    // Connect to the database
-    const pool = await sql.connect(config);
+//     // Insert the item details into the cart_items table using parameterized query
+//     const request = pool.request()
+//       .input('pa_id', sql.VarChar, pa_id)
+//       .input('machine_id', sql.VarChar, machine_id)
+//       .input('trans_date', sql.Date, trans_date)
+//       .input('itemname', sql.VarChar, itemname)
+//       .input('category', sql.VarChar, category)
+//       .input('qty', sql.VarChar, qty)
+//       .input('unitprice', sql.VarChar, unitprice)
+//       .input('markup', sql.VarChar, markup)
+//       .input('sellingprice', sql.VarChar, sellingprice)
+//       .input('department', sql.VarChar, department)
+//       .input('uom', sql.VarChar, uom)
+//       .input('vatable', sql.VarChar, vatable)
+//       .input('tran_time', sql.VarChar, tran_time)
+//       .input('division', sql.VarChar, division)
+//       .input('section', sql.VarChar, section)
+//       .input('brand', sql.VarChar, brand)
+//       .input('close_status', sql.TinyInt, close_status) // Use TinyInt for close_status
+//       .input('picture_path', sql.VarChar, picture_path)
+//       .input('subtotal', sql.VarChar, subtotal)
+//       .input('total', sql.VarChar, total); // Set notes to null
 
-    // Insert the item details into the cart_items table using parameterized query
-    const request = pool.request()
-      .input('pa_id', sql.VarChar, pa_id)
-      .input('machine_id', sql.VarChar, machine_id)
-      .input('trans_date', sql.Date, trans_date)
-      .input('itemname', sql.VarChar, itemname)
-      .input('category', sql.VarChar, category)
-      .input('qty', sql.VarChar, qty)
-      .input('unitprice', sql.VarChar, unitprice)
-      .input('markup', sql.VarChar, markup)
-      .input('sellingprice', sql.VarChar, sellingprice)
-      .input('department', sql.VarChar, department)
-      .input('uom', sql.VarChar, uom)
-      .input('vatable', sql.VarChar, vatable)
-      .input('tran_time', sql.VarChar, tran_time)
-      .input('division', sql.VarChar, division)
-      .input('section', sql.VarChar, section)
-      .input('brand', sql.VarChar, brand)
-      .input('close_status', sql.TinyInt, close_status) // Use TinyInt for close_status
-      .input('picture_path', sql.VarChar, picture_path)
-      .input('subtotal', sql.VarChar, subtotal)
-      .input('total', sql.VarChar, total); // Set notes to null
+//     await request.query(`
+//         INSERT INTO [restopos45].[dbo].[cart_items] (pa_id, machine_id, trans_date, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, brand, section, close_status, picture_path, subtotal, total)
+//         VALUES (@pa_id, @machine_id, @trans_date, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @department, @uom, @vatable, @tran_time, @division, @brand, @section, @close_status, @picture_path, @subtotal, @total)
+//       `);
 
-    await request.query(`
-        INSERT INTO [restopos45].[dbo].[cart_items] (pa_id, machine_id, trans_date, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, brand, section, close_status, picture_path, subtotal, total)
-        VALUES (@pa_id, @machine_id, @trans_date, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @department, @uom, @vatable, @tran_time, @division, @brand, @section, @close_status, @picture_path, @subtotal, @total)
-      `);
-
-    // Send a response indicating success
-    res.status(200).json({ message: 'Notes added to cart successfully' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
+//     // Send a response indicating success
+//     res.status(200).json({ message: 'Notes added to cart successfully' });
+//   } catch (err) {
+//     console.error(err.message);
+//     res.status(500).send('Server Error');
+//   }
+// });
 
 
 router.get('/get-notes', async (req, res) => {
@@ -151,20 +148,33 @@ router.get('/get-notes', async (req, res) => {
 
 // Create a new network connection to the printer
 
-const printOrderSlip = (printer, newSoNumber, selectedTablesString, paid) => {
-  printer.alignCenter()
-  printer.println('SPARKY ORDERING')
-  printer.println('ORDER SLIP')
-  printer.println(`Date: ${new Date().toLocaleDateString('en-US')}, ${new Date().toLocaleTimeString('en-US', { hour12: true })}`)
-  printer.println(`SO NUMBER: ${newSoNumber}`)
-  printer.println('------------------------------------')
-  printer.println(`- - - ORDER FOR: ${selectedTablesString} - - -`)
-  printer.println('------------------------------------')
-  printer.println(`Order Taker: ${paid}`)
-  printer.cut({ verticalTabAmount: 1 });
-  printer.execute();
-  printer.clear();
+const printOrderSlip = async (printer, newSoNumber, selectedTablesString, paid) => {
+  try {
+    if (!printer) {
+      console.log('Printer is not available. Order slip could not be printed.');
+      return { error: 'Printer is not available. Order slip could not be printed.' };
+    }
+    printer.alignCenter();
+    printer.println('SPARKY ORDERING');
+    printer.println('ORDER SLIP');
+    printer.println(`Date: ${new Date().toLocaleDateString('en-US')}, ${new Date().toLocaleTimeString('en-US', { hour12: true })}`);
+    printer.println(`SO NUMBER: ${newSoNumber}`);
+    printer.println('------------------------------------');
+    printer.println(`- - - ORDER FOR: ${selectedTablesString} - - -`);
+    printer.println('------------------------------------');
+    printer.println(`Order Taker: ${paid}`);
+    printer.cut({ verticalTabAmount: 1 });
+    await printer.execute();
+    printer.clear();
+    console.log('Order slip printed successfully');
+    return { success: 'Order slip printed successfully' };
+  } catch (error) {
+    console.error('Error printing order slip, No printer detected/connected');
+    return { error: 'Error printing order slip' };
+  }
 };
+
+
   // Define the route to add items to the cart
   router.post('/add-to-cart', async (req, res) => {
     try {
@@ -262,16 +272,16 @@ const printOrderSlip = (printer, newSoNumber, selectedTablesString, paid) => {
             `);
 
       // Print order slip
-      printOrderSlip(printer, newSoNumber, selectedTablesString, paid);
-      
-
-
-      res.status(200).json({ message: 'Items added to cart successfully' });
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
+      const printResult = await printOrderSlip(printer, newSoNumber, selectedTablesString, paid);
+    if (printResult.error) {
+      return res.status(200).json({ message: 'Order saved successfully, but no printer detected' });
     }
-  });
+    res.status(300).json({ message: 'Items added to cart successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 
 
 

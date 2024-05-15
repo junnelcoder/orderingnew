@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../pages/config.dart';
 import '../pages/home_page.dart';
 import 'package:ordering/pages/select_table.dart';
 
@@ -23,7 +24,7 @@ class CartNavBar extends StatefulWidget {
 
 class _CartNavBarState extends State<CartNavBar> {
   bool _isDarkMode = false;
-        bool operationCompleted = false; 
+  bool operationCompleted = false;
   @override
   void initState() {
     _loadDarkModePreference();
@@ -185,7 +186,7 @@ class _CartNavBarState extends State<CartNavBar> {
     String switchValue = prefs.getString('switchValue') ?? '';
     String? ipAddress = prefs.getString('ipAddress');
     String lastInvDigitsString = "";
-    var url = Uri.parse('http://$ipAddress:8080/api/get-last_inv');
+    var url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/get-last_inv');
     try {
       var response = await http.get(url);
       if (response.statusCode == 200) {
@@ -207,12 +208,10 @@ class _CartNavBarState extends State<CartNavBar> {
     }
 
     bool displayTextField = switchValue == 'QS'; // Check if switchValue is 'QS'
-    if(displayTextField){
-
-    _customerNameController.text = lastInvDigitsString;
-    }else{
-      
-    _customerNameController.text = "";
+    if (displayTextField) {
+      _customerNameController.text = lastInvDigitsString;
+    } else {
+      _customerNameController.text = "";
     }
     Widget textFieldWidget = displayTextField
         ? TextField(
@@ -279,40 +278,40 @@ class _CartNavBarState extends State<CartNavBar> {
               child: Text('Cancel'),
             ),
             TextButton(
-                  onPressed: () async {
-                     showDialog(
+              onPressed: () async {
+                showDialog(
                   context: context,
                   barrierDismissible: false,
                   builder: (BuildContext context) => loadingDialog,
                 );
 
-                    String customerName = _customerNameController.text.trim();
-                    if (displayTextField && customerName.isEmpty) {
-                      Fluttertoast.showToast(
-                        msg: 'Please enter the customer name.',
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                      );
-                      Navigator.of(context).pop(); 
-                      return;
-                    }
-Future.delayed(Duration(seconds: 10), () {
+                String customerName = _customerNameController.text.trim();
+                if (displayTextField && customerName.isEmpty) {
+                  Fluttertoast.showToast(
+                    msg: 'Please enter the customer name.',
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                  );
+                  Navigator.of(context).pop();
+                  return;
+                }
+                Future.delayed(Duration(seconds: 10), () {
                   if (!operationCompleted) {
                     Fluttertoast.showToast(
                       msg: 'Server error. Please try again later.',
                       toastLength: Toast.LENGTH_SHORT,
                       gravity: ToastGravity.BOTTOM,
                     );
-                    Navigator.of(context).pop(); 
+                    Navigator.of(context).pop();
                   }
                 });
-                    await saveOrderToDatabase(
-                        widget.cartItems, context, _customerNameController.text);
-                    
-                    // Navigator.of(context).pop(); 
-                  },
-                  child: Text('Confirm'),
-                ),
+                await saveOrderToDatabase(
+                    widget.cartItems, context, _customerNameController.text);
+
+                // Navigator.of(context).pop();
+              },
+              child: Text('Confirm'),
+            ),
           ],
         );
       },
@@ -331,7 +330,7 @@ Future.delayed(Duration(seconds: 10), () {
         for (int i = 0; i < retrievedIndexes.length; i++) {
           List<int> temp = [];
           temp.add(retrievedIndexes[i]);
-          var apiUrl = Uri.parse('http://$ipAddress:8080/api/occupy');
+          var apiUrl = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
           var response = await http.post(
             apiUrl,
             headers: <String, String>{
@@ -391,7 +390,7 @@ Future.delayed(Duration(seconds: 10), () {
         selectedTablesString = "QS-" + custName;
         selectedTablesString = selectedTablesString.toUpperCase();
       }
-      var apiUrl = Uri.parse('http://$ipAddress:8080/api/add-to-cart');
+      var apiUrl = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/add-to-cart');
 
       var response = await http.post(
         apiUrl,
@@ -405,10 +404,31 @@ Future.delayed(Duration(seconds: 10), () {
         }),
       );
 
-      if (response.statusCode == 200) {
-        operationCompleted=true;
+      if (response.statusCode == 300) {
+        operationCompleted = true;
         Fluttertoast.showToast(
           msg: "Order placed successfully",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+        await prefs.remove('cartItems');
+        await prefs.remove('selectedService');
+
+        sendSelectedIndexToServer();
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
+      } else if (response.statusCode == 200 &&
+          response.body.contains('no printer detected')) {
+            operationCompleted = true;
+        Fluttertoast.showToast(
+          msg: "Order saved, but no printer detected",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.green,

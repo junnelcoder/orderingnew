@@ -1,0 +1,24 @@
+{
+  "db": {
+    "user": "sa",
+    "password": "zankojt@2024",
+    "server": "DESKTOP-EIR2A8B\\SQLEXPRESS2014",
+    "database": "restopos45",
+    "options": {
+      "encrypt": false,
+      "enableArithAbort": true
+    }
+  },
+  "printer": {
+    "type": "RONGTA",
+    "interface": "tcp://192.168.1.82",
+    "characterSet": "PC852_LATIN2",
+    "removeSpecialCharacters": false,
+    "lineCharacter": "-",
+    "breakLine": "NONE",
+    "options": {
+      "timeout": 1000
+    }
+  }
+}
+

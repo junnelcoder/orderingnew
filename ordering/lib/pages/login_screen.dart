@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginScreen> {
       // }
 
       final response = await http
-          .get(Uri.parse('http://$ipAddress:8080/api/getUsers'))
+          .get(Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/getUsers'))
           .timeout(Duration(seconds: 5));
 
       if (response.statusCode == 200) {

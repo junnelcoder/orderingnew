@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       final response = await http
           .get(
-            Uri.parse('http://$ipAddress:8080/api/categories'),
+            Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/categories'),
           )
           .timeout(Duration(seconds: 5));
       if (response.statusCode == 200) {

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import 'config.dart';
+
 class DeleteCartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -69,7 +71,7 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
   void deleteOn(String trans_no, int count) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    final url = Uri.parse('http://$ipAddress:8080/api/delete-items');
+    final url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/delete-items');
     String? temp = prefs.getString('count');
     count = int.parse(temp!);
     print(count);
@@ -107,7 +109,7 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
   void showModal(String id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    final url = Uri.parse('http://$ipAddress:8080/api/soDetailData');
+    final url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/soDetailData');
 
     try {
       final response = await http.get(url);
@@ -134,7 +136,7 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
   void showCustomContainer(String id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    final url = Uri.parse('http://$ipAddress:8080/api/soDetailData');
+    final url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/soDetailData');
 
     try {
       final response = await http.get(url);
@@ -329,7 +331,7 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
   Future<void> retrievePunched() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    final url = Uri.parse('http://$ipAddress:8080/api/todaysTransactions');
+    final url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/todaysTransactions');
 
     try {
       final response = await http.get(url);

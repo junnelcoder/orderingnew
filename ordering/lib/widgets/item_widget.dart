@@ -55,7 +55,7 @@ class _ItemWidgetState extends State<ItemWidget> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
     const Duration timeoutDuration = Duration(seconds: 5);
-    String url = 'http://$ipAddress:8080/api/items';
+    String url = 'http://$ipAddress:${AppConfig.serverPort}/api/items';
 
     // Check if the category is not 'ALL'
     if (widget.category != 'ALL') {
@@ -97,7 +97,8 @@ class _ItemWidgetState extends State<ItemWidget> {
         // Check if category is 'ALL'
         final response = await http
             .get(
-              Uri.parse('http://$ipAddress:8080/api/allItems'),
+              Uri.parse(
+                  'http://$ipAddress:${AppConfig.serverPort}/api/allItems'),
             )
             .timeout(Duration(seconds: 5));
         if (response.statusCode == 200) {
@@ -132,7 +133,7 @@ class _ItemWidgetState extends State<ItemWidget> {
       try {
         final response = await http
             .get(
-              Uri.parse('http://$ipAddress:8080/api/ipConn'),
+              Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/ipConn'),
             )
             .timeout(Duration(seconds: 5));
         if (response.statusCode == 200) {
@@ -347,11 +348,12 @@ class _ItemWidgetState extends State<ItemWidget> {
                       height: constraints.maxHeight,
                       width: constraints.maxWidth,
                       errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.fastfood,
-                          size: 70,
-                          color:
-                              widget.isDarkMode ? Colors.white : Colors.black,
+                        return Center(
+                          child: Icon(
+                            Icons.fastfood,
+                            size: 70,
+                            color: widget.isDarkMode ? Colors.white : Colors.black,
+                          ),
                         );
                       },
                     );
@@ -456,7 +458,7 @@ class _ItemWidgetState extends State<ItemWidget> {
       String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
       String ipAddress = AppConfig.serverIPAddress;
       // Construct the URL to fetch the image dynamically from the server
-      return 'http://$ipAddress:8080/api/image/$itemcode';
+      return 'http://$ipAddress:${AppConfig.serverPort}/api/image/$itemcode';
     }
   }
 

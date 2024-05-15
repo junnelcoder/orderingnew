@@ -1,21 +1,18 @@
 const express = require('express');
 const app = express();
-const axios = require('axios');
 const sql = require('mssql');
 const bodyParser = require('body-parser');
-const PORT = 8080;
 const http = require('http');
-const ip = require('ip');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
+const cors = require('cors');
+
+// Load configuration file
+const config = require('./config.json');
 
 // Add CORS middleware
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-});
+app.use(cors());
 app.use(bodyParser.json());
 
 // Serve static files (images) from the 'images' directory
@@ -41,6 +38,10 @@ app.get('/api/image/:itemcode', (req, res) => {
       // If the file doesn't exist, send the default image
       const defaultImagePath = path.join(currentDirectory, 'images', 'DEFAULT.png');
       res.sendFile(defaultImagePath);
+      // Clear the screen after sending the response
+      console.clear();
+      // Trigger connectToSqlServer after clearing the screen
+      connectToSqlServer();
     } else {
       // If the file exists, send it
       res.sendFile(imagePath);
@@ -48,25 +49,36 @@ app.get('/api/image/:itemcode', (req, res) => {
   });
 });
 
-const config = {
-  user: 'sa',
-  password: 'zankojt@2024',
-  server: 'DESKTOP-eir2a8b\\SQLEXPRESS2014',
-  database: 'restopos45',
-  options: {
-    encrypt: false,
-    enableArithAbort: true
+
+// Function to get the IP address of the Wi-Fi adapter
+const getWiFiIPAddress = () => {
+  const networkInterfaces = os.networkInterfaces();
+  for (const interfaceName in networkInterfaces) {
+    const iface = networkInterfaces[interfaceName];
+    for (const alias of iface) {
+      if (alias.family === 'IPv4' && !alias.internal && interfaceName.includes('Wi-Fi')) {
+        return alias.address;
+      }
+    }
   }
+  return null;
 };
 
 // Create a function to start the server
 const startServer = () => {
   const server = http.createServer(app);
 
-  server.listen(PORT, () => {
-    const ipAddress = ip.address();
-    console.log(`Server is running at http://${ipAddress}:${PORT}`);
-    console.log(`Your server IP is: ${ipAddress}`);
+  const wifiIP = getWiFiIPAddress();
+  const port = 3009;
+
+  if (!wifiIP) {
+    console.error('Wi-Fi IP address not found.');
+    return;
+  }
+
+  server.listen(port, wifiIP, () => {
+    console.log(`Server is running at http://${wifiIP}`);
+    // :${port}
   });
 
   // Handle server errors
@@ -83,7 +95,8 @@ startServer();
 
 // Connect to SQL Server
 const connectToSqlServer = () => {
-  sql.connect(config)
+  // console.log('Attempting to connect to SQL Server with config:', config.db);
+  sql.connect(config.db)
     .then(() => {
       console.log('Connected to SQL Server');
     })

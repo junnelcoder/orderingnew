@@ -89,7 +89,7 @@ class _SingleItemPageState extends State<SingleItemPage>
   Future<List<Map<String, dynamic>>> fetchNoteItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    var url = Uri.parse('http://$ipAddress:8080/api/get-notes');
+    var url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/get-notes');
 
     try {
       var response = await http.get(url);
@@ -166,7 +166,7 @@ class _SingleItemPageState extends State<SingleItemPage>
   Future<String> _fetchTerminalId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    var url = Uri.parse('http://$ipAddress:8080/api/getTerminalId');
+    var url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/getTerminalId');
 
     try {
       var response = await http.get(url);
@@ -545,7 +545,7 @@ class _SingleItemPageState extends State<SingleItemPage>
       String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
       String ipAddress = AppConfig.serverIPAddress;
       // Construct the URL to fetch the image dynamically from the server
-      return 'http://$ipAddress:8080/api/image/$itemcode';
+      return 'http://$ipAddress:${AppConfig.serverPort}/api/image/$itemcode';
     }
   }
 }

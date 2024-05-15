@@ -5,7 +5,7 @@ import 'package:ordering/pages/cart_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'config.dart';
 enum TableStatus { AVAILABLE, OCCUPIED, RESERVED }
 
 class SelectTablePage extends StatelessWidget {
@@ -129,7 +129,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
     String? ipAddress = prefs.getString('ipAddress');
     try {
       final response = await http.get(
-        Uri.parse('http://$ipAddress:8080/api/tableno'),
+        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/tableno'),
       );
 
       if (response.statusCode == 200) {
