@@ -92,25 +92,7 @@ class _ItemWidgetState extends State<ItemWidget> {
       print('Error fetching items: $e');
     }
 
-    try {
-      if (widget.category == 'ALL') {
-        // Check if category is 'ALL'
-        final response = await http
-            .get(
-              Uri.parse(
-                  'http://$ipAddress:${AppConfig.serverPort}/api/allItems'),
-            )
-            .timeout(Duration(seconds: 5));
-        if (response.statusCode == 200) {
-          // final Map<String, dynamic> data = json.decode(response.body);
-          // String jsonData = json.encode(data);
-        } else {
-          print('Failed to connect to server');
-        }
-      }
-    } catch (e) {
-      print('Error connecting to server: $e');
-    }
+    
   }
 
   Future<void> checkConnectivity() async {

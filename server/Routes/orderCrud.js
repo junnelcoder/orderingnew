@@ -175,22 +175,22 @@ const printOrderSlip = async (printer, newSoNumber, selectedTablesString, paid) 
 };
 
 
-  // Define the route to add items to the cart
-  router.post('/add-to-cart', async (req, res) => {
-    try {
-     
+// Define the route to add items to the cart
+router.post('/add-to-cart', async (req, res) => {
+  try {
 
-      // Set the flag to indicate that order processing has started
-     
-      const { cartItems, selectedTablesString, switchValue } = req.body;
 
-      let subtotalAmount = 0;
-      let totalAmount = 0;
-      let paid = 0;
-      let machineid = 0;
+    // Set the flag to indicate that order processing has started
 
-      const pool = await sql.connect(config);
-      const updateResult = await pool.request().query(`
+    const { cartItems, selectedTablesString, switchValue } = req.body;
+
+    let subtotalAmount = 0;
+    let totalAmount = 0;
+    let paid = 0;
+    let machineid = 0;
+
+    const pool = await sql.connect(config);
+    const updateResult = await pool.request().query(`
                 DECLARE @last_or VARCHAR(20);
                 DECLARE @last_inv VARCHAR(20);
                 DECLARE @new_or VARCHAR(20);
@@ -203,76 +203,84 @@ const printOrderSlip = async (printer, newSoNumber, selectedTablesString, paid) 
                 SELECT @new_or AS new_or;
             `);
 
-      const newSoNumber = updateResult.recordset[0].new_or;
+    const newSoNumber = updateResult.recordset[0].new_or;
 
-      for (const item of cartItems) {
-        const { pa_id, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status } = JSON.parse(item);
+    for (const item of cartItems) {
+      const { pa_id, machine_id, trans_date, itemcode,
+         itemname, category, qty, unitprice, markup, 
+         sellingprice, subtotal, total, department, 
+         uom, vatable, tran_time, division, section, 
+         brand, close_status } = JSON.parse(item);
 
-        subtotalAmount += parseFloat(subtotal);
-        totalAmount += parseFloat(total);
-        paid = pa_id;
-        machineid = machine_id;
+      subtotalAmount += parseFloat(subtotal);
+      totalAmount += parseFloat(total);
+      paid = pa_id;
+      machineid = machine_id;
 
-        const currentDate = new Date().toISOString().split('T')[0];
-        const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-        const formattedTime = currentTime.split(' ')[0];
-        const transDateTime = currentDate + ' ' + formattedTime;
-        const closeStatusInt = parseInt(close_status);
+      const currentDate = new Date().toISOString().split('T')[0];
+      const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
+      const formattedTime = currentTime.split(' ')[0];
+      const transDateTime = currentDate + ' ' + formattedTime;
+      const closeStatusInt = parseInt(close_status);
 
-        const request = pool.request()
-          .input('pa_id', sql.Char, pa_id)
-          .input('so_number', sql.VarChar, newSoNumber)
-          .input('machine_id', sql.VarChar, machine_id)
-          .input('trans_date', sql.DateTime, new Date(trans_date))
-          .input('itemcode', sql.VarChar, itemcode)
-          .input('itemname', sql.Char, itemname)
-          .input('category', sql.VarChar, category)
-          .input('qty', sql.Decimal(18, 2), qty)
-          .input('unitprice', sql.Decimal(18, 2), parseFloat(unitprice))
-          .input('markup', sql.Decimal(18, 2), markup)
-          .input('sellingprice', sql.Decimal(18, 2), sellingprice)
-          .input('subtotal', sql.Decimal(18, 2), subtotal)
-          .input('total', sql.Decimal(18, 2), total)
-          .input('department', sql.VarChar, department)
-          .input('uom', sql.Char, uom)
-          .input('vatable', sql.TinyInt, vatable)
-          .input('tran_time', sql.DateTime, new Date(transDateTime))
-          .input('division', sql.VarChar, division)
-          .input('section', sql.VarChar, section)
-          .input('brand', sql.VarChar, brand)
-          .input('close_status', sql.TinyInt, closeStatusInt)
-          .input('table_no', sql.VarChar, selectedTablesString)
-          .input('order_service', sql.VarChar, switchValue);
-
-        await request.query(`
-                    INSERT INTO [dbo].[so_detail] (pa_id, so_number, machine_id, trans_date, itemcode, itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable, tran_time, division, section, brand, close_status,table_no, order_service)
-                    VALUES (@pa_id, @so_number, @machine_id, @trans_date, @itemcode, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @subtotal, @total, @department, @uom, @vatable, @tran_time, @division, @section, @brand, @close_status,@table_no, @order_service) 
-                `);
-      }
-
-      const requestHeader = pool.request()
+      const request = pool.request()
+        .input('pa_id', sql.Char, pa_id)
         .input('so_number', sql.VarChar, newSoNumber)
-        .input('machine_id', sql.VarChar, machineid)
-        .input('trans_date', sql.DateTime, new Date().toISOString().split('T')[0])
-        .input('pa_id', sql.Char, paid)
-        .input('subtotal_amount', sql.Decimal(18, 2), subtotalAmount)
-        .input('total_amount', sql.Decimal(18, 2), totalAmount)
-        .input('tran_time', sql.DateTime, new Date())
-        .input('close_status', sql.TinyInt, 1)
+        .input('machine_id', sql.VarChar, machine_id)
+        .input('trans_date', sql.DateTime, new Date(trans_date))
+        .input('itemcode', sql.VarChar, itemcode)
+        .input('itemname', sql.Char, itemname)
+        .input('category', sql.VarChar, category)
+        .input('qty', sql.Decimal(18, 2), qty)
+        .input('unitprice', sql.Decimal(18, 2), parseFloat(unitprice))
+        .input('markup', sql.Decimal(18, 2), markup)
+        .input('sellingprice', sql.Decimal(18, 2), sellingprice)
+        .input('subtotal', sql.Decimal(18, 2), subtotal)
+        .input('total', sql.Decimal(18, 2), total)
+        .input('department', sql.VarChar, department)
+        .input('uom', sql.Char, uom)
+        .input('vatable', sql.TinyInt, vatable)
+        .input('tran_time', sql.DateTime, new Date(transDateTime))
+        .input('division', sql.VarChar, division)
+        .input('section', sql.VarChar, section)
+        .input('brand', sql.VarChar, brand)
+        .input('close_status', sql.TinyInt, closeStatusInt)
         .input('table_no', sql.VarChar, selectedTablesString)
-        .input('order_service', sql.VarChar, switchValue)
-        .query(`
+        .input('order_service', sql.VarChar, switchValue);
+
+      await request.query(`
+                    INSERT INTO [dbo].[so_detail] (pa_id, so_number, machine_id, trans_date, itemcode, 
+                      itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable,
+                      tran_time, division, section, brand, close_status,table_no, order_service)
+                    VALUES (@pa_id, @so_number, @machine_id, @trans_date, @itemcode, @itemname, @category, 
+                      @qty, @unitprice, @markup, @sellingprice, @subtotal, @total, @department, @uom, @vatable, 
+                      @tran_time, @division, @section, @brand, @close_status,@table_no, @order_service) 
+                `);
+    }
+
+    const requestHeader = pool.request()
+      .input('so_number', sql.VarChar, newSoNumber)
+      .input('machine_id', sql.VarChar, machineid)
+      .input('trans_date', sql.DateTime, new Date().toISOString().split('T')[0])
+      .input('pa_id', sql.Char, paid)
+      .input('subtotal_amount', sql.Decimal(18, 2), subtotalAmount)
+      .input('total_amount', sql.Decimal(18, 2), totalAmount)
+      .input('tran_time', sql.DateTime, new Date())
+      .input('close_status', sql.TinyInt, 1)
+      .input('table_no', sql.VarChar, selectedTablesString)
+      .input('order_service', sql.VarChar, switchValue)
+      .query(`
                     INSERT INTO [dbo].[so_header] (so_number, machine_id, trans_date, pa_id, subtotal_amount, total_amount, tran_time, close_status, table_no, order_service) 
                     VALUES (@so_number, @machine_id, @trans_date, @pa_id, @subtotal_amount, @total_amount, @tran_time, @close_status, @table_no, @order_service) 
                 `);
 
-      await pool.request().query(`
+    await pool.request().query(`
                 UPDATE [dbo].[so_detail] 
                 SET close_status = 1
             `);
 
-      // Print order slip
-      const printResult = await printOrderSlip(printer, newSoNumber, selectedTablesString, paid);
+    // Print order slip
+    const printResult = await printOrderSlip(printer, newSoNumber, selectedTablesString, paid);
     if (printResult.error) {
       return res.status(200).json({ message: 'Order saved successfully, but no printer detected' });
     }

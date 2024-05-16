@@ -5,21 +5,53 @@ const config = require('../server.js');
 
 router.get('/getUsers', async (req, res) => {
     try {
-        const pool = await sql.connect(config);
-        const result = await pool.request().query(`
-            SELECT [user_id],[user_password] FROM [restopos45].[dbo].[user_access]
-        `);
-        const users = result.recordset.map(record => ({
-            username: record.user_id,
-            password: record.user_password
-        }));
-        res.json(users);
-        
+      const pool = await sql.connect(config);
+      const result = await pool.request().query(`
+        SELECT [user_id] FROM [restopos45].[dbo].[user_access]
+      `);
+      const users = result.recordset.map(record => ({
+        username: record.user_id
+      }));
+      
+      console.log(result);
+      res.json(users);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+      console.error(err.message);
+      res.status(500).send('Server Error');
     }
-});
+  });
+
+router.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+  
+    try {
+      const pool = await sql.connect(config);
+      const result = await pool
+        .request()
+        .input('username', sql.VarChar, username)
+        .query('SELECT [user_password] FROM [restopos45].[dbo].[user_access] WHERE [user_id] = @username');
+  
+      if (result.recordset.length === 0) {
+        res.status(401).json({ message: 'User not found' });
+        return;
+      }
+  
+      const hashedPassword = result.recordset[0].user_password;
+  
+  
+      if (providedPassword === hashedPassword) {
+        // Authentication successful
+        res.status(200).json({ message: 'Login successful' });
+      } else {
+        // Incorrect password
+        res.status(401).json({ message: 'Invalid password' });
+      }
+    } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+    }
+  });
+  
 
 router.post('/device', (req, res) => {
     const deviceInfo = req.body; // Assuming device information is sent in the request body
