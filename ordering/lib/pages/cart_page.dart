@@ -140,7 +140,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
           item['itemcode'].trim().toUpperCase().replaceAll(' ', '_');
       String ipAddress = AppConfig.serverIPAddress;
       // Construct the URL to fetch the image dynamically from the server
-      return 'http://$ipAddress:${AppConfig.serverPort}/api/image/$itemcode';
+      return 'http://$ipAddress:8080/api/image/$itemcode';
     }
   }
 
