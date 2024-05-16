@@ -19,22 +19,27 @@ class LoginScreen extends StatefulWidget {
 final TextEditingController _passwordController = TextEditingController();
 String? _selectedUsername;
 
-void saveUsernameToSharedPreferences(String username) async {
+void saveTerminalToLocal(String terminalId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('terminalId', terminalId);
+}
+void saveUsernameToLocal(String username) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setString('username', username);
 }
 
 class _LoginPageState extends State<LoginScreen> {
   bool _isObscured = true;
-  bool _isLoading = true; 
+  bool _isLoading = true;
   List<String> users = [];
   List<String> passwords = []; // Declare passwords here
   DateTime? currentBackPressTime;
-  @override
+ @override
   void initState() {
     super.initState();
     fetchUsers();
     currentBackPressTime = null;
+    _fetchTerminalId();
   }
 
   void navigateToIpScreen() {
@@ -46,11 +51,12 @@ class _LoginPageState extends State<LoginScreen> {
     );
   }
 
-  void fetchUsers() async {
+ void fetchUsers() async {
     try {
       var ipAddress = AppConfig.serverIPAddress.trim();
       final response = await http
-          .get(Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/getUsers'))
+          .get(Uri.parse(
+              'http://$ipAddress:${AppConfig.serverPort}/api/getUsers'))
           .timeout(Duration(seconds: 5));
       if (response.statusCode == 200) {
         final List<dynamic> responseData = jsonDecode(response.body);
@@ -74,34 +80,54 @@ class _LoginPageState extends State<LoginScreen> {
       );
     }
   }
-  
+
+   Future<void> _fetchTerminalId() async {
+    try {
+      String terminalId = await _getTerminalIdFromServer();
+      saveTerminalToLocal(terminalId);
+    } catch (e) {
+      print('Error fetching terminal ID: $e');
+    }
+  }
+  Future<String> _getTerminalIdFromServer() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    var url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/getTerminalId');
+
+    try {
+      var response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(response.body);
+        return data['terminalId'];
+      } else {
+        throw Exception('Failed to fetch terminal ID');
+      }
+    } catch (e) {
+      print('Error fetching terminal ID: $e');
+      throw Exception('Failed to fetch terminal ID');
+    }
+  }
+
   void _togglePasswordVisibility() {
     setState(() {
       _isObscured = !_isObscured;
     });
   }
+
   void login(String username, String password) async {
     var ipAddress = AppConfig.serverIPAddress.trim();
-    // Check if the user has a password
-    if (password.isEmpty) {
-      saveUsernameToSharedPreferences(username);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
-      return;
-    }
+    var body = jsonEncode({"username": username, "password": password});
     var response = await http.post(
-        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/login'),
-        body: {
-          'username': username,
-          'password': password,
-        }
+      Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/auth/login'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: body,
     );
+
     if (response.statusCode == 200) {
-      saveUsernameToSharedPreferences(username);
+      saveUsernameToLocal(username);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -126,8 +152,7 @@ class _LoginPageState extends State<LoginScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-
-  return WillPopScope(
+    return WillPopScope(
       onWillPop: () async {
         // If currentBackPressTime is null or elapsed time is more than 2 seconds, exit the app
         if (currentBackPressTime == null ||
@@ -151,77 +176,78 @@ class _LoginPageState extends State<LoginScreen> {
           return true;
         }
       },
-    child : Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          height: screenHeight,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              colors: [
-                Colors.grey[900]!,
-                Colors.grey[600]!,
-                Colors.grey[300]!,
-              ],
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              SizedBox(height: screenHeight * 0.1),
-              Padding(
-                padding: EdgeInsets.all(screenWidth * 0.05),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    GlowingText(
-                      text: "Welcome Back",
-                      glowColor: Colors.black,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: screenHeight * 0.05,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'MaanJoy',
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.01),
-                    GlowingText(
-                      text: "Sign in to continue",
-                      glowColor: Colors.black,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: screenHeight * 0.025,
-                        fontFamily: 'MaanJoy',
-                      ),
-                    ),
-                  ],
-                ),
+      child: Scaffold(
+        body: SingleChildScrollView(
+          child: Container(
+            height: screenHeight,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                colors: [
+                  Colors.grey[900]!,
+                  Colors.grey[600]!,
+                  Colors.grey[300]!,
+                ],
               ),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(screenWidth * 0.1),
-                      topRight: Radius.circular(screenWidth * 0.1),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        spreadRadius: screenWidth * 0.02,
-                        blurRadius: screenWidth * 0.04,
-                        offset: Offset(0, screenWidth * 0.03),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                SizedBox(height: screenHeight * 0.1),
+                Padding(
+                  padding: EdgeInsets.all(screenWidth * 0.05),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      GlowingText(
+                        text: "Welcome Back",
+                        glowColor: Colors.black,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: screenHeight * 0.05,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'MaanJoy',
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.01),
+                      GlowingText(
+                        text: "Sign in to continue",
+                        glowColor: Colors.black,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: screenHeight * 0.025,
+                          fontFamily: 'MaanJoy',
+                        ),
                       ),
                     ],
                   ),
-                  child: Padding(
-                    padding: EdgeInsets.all(screenWidth * 0.06),
-                    child: Column(
+                ),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(screenWidth * 0.1),
+                        topRight: Radius.circular(screenWidth * 0.1),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.5),
+                          spreadRadius: screenWidth * 0.02,
+                          blurRadius: screenWidth * 0.04,
+                          offset: Offset(0, screenWidth * 0.03),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(screenWidth * 0.06),
+                      child: Column(
                         children: <Widget>[
                           SizedBox(height: screenHeight * 0.1),
                           _isLoading // Check isLoading flag
                               ? Center(
-                                  child: CircularProgressIndicator(), // Show loading indicator
+                                  child:
+                                      CircularProgressIndicator(), // Show loading indicator
                                 )
                               : Column(
                                   children: [
@@ -247,8 +273,8 @@ class _LoginPageState extends State<LoginScreen> {
                                       }).toList(),
                                       decoration: InputDecoration(
                                         hintText: "Select Username",
-                                        prefixIcon:
-                                            Icon(Icons.person, color: Colors.grey),
+                                        prefixIcon: Icon(Icons.person,
+                                            color: Colors.grey),
                                         border: OutlineInputBorder(
                                           borderRadius: BorderRadius.circular(
                                               screenWidth * 0.05),
@@ -262,8 +288,8 @@ class _LoginPageState extends State<LoginScreen> {
                                       style: TextStyle(fontFamily: 'MaanJoy'),
                                       decoration: InputDecoration(
                                         hintText: "Password",
-                                        prefixIcon:
-                                            Icon(Icons.lock, color: Colors.grey),
+                                        prefixIcon: Icon(Icons.lock,
+                                            color: Colors.grey),
                                         suffixIcon: IconButton(
                                           icon: Icon(
                                             _isObscured
@@ -280,15 +306,16 @@ class _LoginPageState extends State<LoginScreen> {
                                       ),
                                     ),
                                     SizedBox(height: screenHeight * 0.02),
-                        SizedBox(
-                          width: double.infinity,
-                          height: screenHeight * 0.06,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              String username = _selectedUsername!;
-                              String password = _passwordController.text;
-                              login(username, password);
-                            },
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: screenHeight * 0.06,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          String username = _selectedUsername!;
+                                          String password =
+                                              _passwordController.text;
+                                          login(username, password);
+                                        },
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.black,
                                           shape: RoundedRectangleBorder(
@@ -311,17 +338,17 @@ class _LoginPageState extends State<LoginScreen> {
                                 ),
                         ],
                       ),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),);
+    );
   }
 }
-
 
 class GlowingText extends StatelessWidget {
   final String text;
