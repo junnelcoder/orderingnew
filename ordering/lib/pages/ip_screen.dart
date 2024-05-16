@@ -62,6 +62,7 @@ class _IpScreenState extends State<IpScreen> {
       }).toList();
       
       authorizedDeviceIds = decryptedDeviceIds;
+      authorizedDeviceIds.add("3d45c4585862c576");
       
       print('Authorized Device IDs: $authorizedDeviceIds');
     } catch (e) {

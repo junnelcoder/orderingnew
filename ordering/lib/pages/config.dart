@@ -5,3 +5,12 @@ class AppConfig {
 
 List<Map<String, dynamic>> notes = [];
 List<int> selected = [];
+
+
+// notes hanggang half ng screen
+// button sa pag add ng quantity
+// QS switch status sharedprefs -------Justin
+// table onclick save to db     -------Justin
+// price
+// delete punched items UI
+// terminal ID
