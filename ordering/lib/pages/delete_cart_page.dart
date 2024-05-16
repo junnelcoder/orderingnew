@@ -57,14 +57,49 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
     }
   }
 
+ Future<void> removeTablesFromShared(String table) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('selectedTables');
+    await prefs.remove('selectedTables2');
+
+    List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
+    List<int> temp = [retrievedIndexes[0]];
+    int action = 0;
+    int change = 0;
+    String? ipAddress = prefs.getString('ipAddress');
+    var apiUrl =
+        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
+    var requestBody = jsonEncode({
+      'selectedIndex': temp,
+      'action': action, 
+      'previousIndex': table,
+        'changeSelected': change,
+    });
+    var response = await http.post(
+      apiUrl,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: requestBody,
+    );
+    if (response.statusCode == 200) {
+    } else {
+      print('Failed to occupy tables. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
   void _clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
     String? uname = prefs.getString('username');
+    String? temp = prefs.getString('selectedTables2');
+    String? switchValue = prefs.getString('switchValue');
+    removeTablesFromShared(temp!);
     await prefs.clear();
     if (ipAddress != null && uname != null) {
       await prefs.setString('ipAddress', ipAddress);
       await prefs.setString('username', uname);
+      await prefs.setString('switchValue', switchValue!);
     }
   }
 
