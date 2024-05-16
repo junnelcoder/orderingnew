@@ -451,7 +451,7 @@ class _ItemWidgetState extends State<ItemWidget> {
       String? storedUsername = prefs.getString('username');
       // Generate a unique identifier for the main item
       String mainItemId = UniqueKey().toString();
-      String terminalId = await _fetchTerminalId();
+      String? terminalId = prefs.getString('terminalId');
       var mainItemDetails = {
         'id': mainItemId,
         'pa_id': storedUsername,
@@ -495,10 +495,7 @@ class _ItemWidgetState extends State<ItemWidget> {
     }
   }
 
-  Future<String> _fetchTerminalId() async {
-    // Implement your logic to fetch terminal ID
-    return 'Terminal123'; // Dummy terminal ID for demonstration
-  }
+ 
 }
 
 class Item {
