@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ordering/pages/home_page.dart';
@@ -6,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config.dart';
+
 enum TableStatus { AVAILABLE, OCCUPIED, RESERVED }
 
 class SelectTablePage extends StatelessWidget {
@@ -81,15 +84,76 @@ class _SelectTablePageState extends State<_SelectTablePage>
 
   Future<void> saveSelectedTables2(String table) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selectedTables2', table);
+    String? selectedTables = prefs.getString('selectedTables2');
+    if (selectedTables == null) {
+      await prefs.setString('selectedTables2', table);
+      selectedTables = "";
+      List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
+      List<int> temp = [retrievedIndexes[0]];
+      int action = 1;
+      int change = 0;
+      String? ipAddress = prefs.getString('ipAddress');
+      var apiUrl =
+          Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
+      var requestBody = jsonEncode({
+        'previousIndex': selectedTables,
+        'selectedIndex': temp,
+        'action': action,
+        'changeSelected': change,
+      });
+      var response = await http.post(
+        apiUrl,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: requestBody,
+      );
+      if (response.statusCode == 200) {
+      } else {
+        print('Failed to occupy table. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    } else {
+      await prefs.setString('selectedTables2', table);
+      List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
+      List<int> temp = [retrievedIndexes[0]];
+      int action = 1;
+      int change = 1;
+      String? ipAddress = prefs.getString('ipAddress');
+      var apiUrl =
+          Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
+      var requestBody = jsonEncode({
+        'previousIndex': selectedTables,
+        'selectedIndex': temp,
+        'action': action,
+        'changeSelected': change,
+      });
+      var response = await http.post(
+        apiUrl,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: requestBody,
+      );
+      if (response.statusCode == 200) {
+      } else {
+        print('Failed to occupy tables. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
+    }
+
     String? currentPage = prefs.getString('currentPage');
 
     if (currentPage == "cartPage") {
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => CartPage()));
+        context,
+        MaterialPageRoute(builder: (context) => CartPage()),
+      );
     } else {
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => HomePage()));
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+      );
     }
   }
 
@@ -116,10 +180,37 @@ class _SelectTablePageState extends State<_SelectTablePage>
     _tempSelectedTables.add(alreadySelectedTable);
   }
 
-  Future<void> removeFromShared() async {
+  Future<void> removeFromShared(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('selectedTables');
     await prefs.remove('selectedTables2');
+
+    List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
+    List<int> temp = [retrievedIndexes[0]];
+    int action = 0;
+    int change = 0;
+    String? ipAddress = prefs.getString('ipAddress');
+    var apiUrl =
+        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
+    var requestBody = jsonEncode({
+      'selectedIndex': temp,
+      'action': action, 
+      'previousIndex': table,
+        'changeSelected': change,
+    });
+    var response = await http.post(
+      apiUrl,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: requestBody,
+    );
+    if (response.statusCode == 200) {
+    } else {
+      print('Failed to occupy tables. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => HomePage()));
   }
@@ -314,7 +405,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
                           return;
                         }
                         if (_tempSelectedTables.contains(tableNumber)) {
-                          removeFromShared();
+                          removeFromShared(transNumber);
                           _tempSelectedTables.remove(tableNumber);
                         } else {
                           _tempSelectedTables.clear();
@@ -347,11 +438,20 @@ class _SelectTablePageState extends State<_SelectTablePage>
                               ),
                             ],
                           ),
-                          if (isSelected || isSelectedFromPrefs)
-                            Container(
-                              color: Colors.black54.withOpacity(0.5),
-                              child: Center(),
-                            ),
+                         if (isSelected || isSelectedFromPrefs)
+  GestureDetector(
+    onTap: () {
+      removeFromShared(transNumber);
+      _tempSelectedTables.remove(tableNumber);
+    },
+    child: Container(
+      color: Colors.black54.withOpacity(0.5),
+      child: Center(
+       
+      ),
+    ),
+  ),
+
                         ],
                       ),
                     ),

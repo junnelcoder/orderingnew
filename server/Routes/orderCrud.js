@@ -335,24 +335,49 @@ router.get('/tableno', async (req, res) => {
 
 router.post('/occupy', async (req, res) => {
   try {
-    const selectedIndex = req.body;
-    console.log(selectedIndex);
+    const { previousIndex, selectedIndex, action , changeSelected} = req.body;
+    const change = req.body.changeSelected;
+    console.log("change ",change);
+    console.log("previous ",previousIndex);
+    console.log("selected ",selectedIndex);
     if (isNaN(selectedIndex)) {
       return res.status(400).json({ error: 'Invalid input. Please provide a valid integer.' });
     }
 
     const pool = await sql.connect(config);
-    const updateQuery = `
-        UPDATE [dbo].[tableno]
-        SET [occupied] = 1
-        WHERE [trans_no] = @selectedIndex
-      `;
+    if(change != 1){
+      const updateQuery = `
+    UPDATE [dbo].[tableno]
+    SET [occupied] = @action
+    WHERE [trans_no] = @selectedIndex
+  `;
+const request = pool.request();
+request.input('selectedIndex', sql.Int, selectedIndex);
+request.input('action', sql.Int, action);
 
-    const request = pool.request();
-    request.input('selectedIndex', sql.Int, selectedIndex);
+const result = await request.query(updateQuery);
+res.status(200).json({ message: `Table ${selectedIndex} occupied successfully.` });
+    }else if(changeSelected ==1 ) {
+      const changeQuery = `
+      UPDATE [dbo].[tableno]
+SET [occupied] = 
+  CASE
+    WHEN [trans_no] = @previousIndex THEN 0
+    WHEN [trans_no] = @selectedIndex THEN 1
+    ELSE [occupied]
+  END
+WHERE [trans_no] IN (@previousIndex, @selectedIndex);
 
-    const result = await request.query(updateQuery);
-    res.status(200).json({ message: `Table ${selectedIndex} occupied successfully.` });
+    `;
+    
+const request = pool.request();
+request.input('selectedIndex', sql.Int, selectedIndex);
+request.input('previousIndex', sql.Int, previousIndex);
+
+const result = await request.query(changeQuery);
+res.status(200).json({ message: `Table ${selectedIndex} occupied successfully.` });
+    }
+    
   } catch (err) {
     console.error('Error updating occupied status:', err);
     res.status(500).json({ error: 'Failed to update occupied status.', message: err.message, stack: err.stack });

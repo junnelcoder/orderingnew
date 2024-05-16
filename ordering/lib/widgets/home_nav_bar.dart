@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:ordering/pages/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
 
 class HomeNavBar extends StatefulWidget {
   final bool isDarkMode;
@@ -115,9 +117,42 @@ class _HomeNavBarState extends State<HomeNavBar> {
     }
   }
 
+Future<void> removeTablesFromShared(String table) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('selectedTables');
+    await prefs.remove('selectedTables2');
+
+    List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
+    List<int> temp = [retrievedIndexes[0]];
+    int action = 0;
+    int change = 0;
+    String? ipAddress = prefs.getString('ipAddress');
+    var apiUrl =
+        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
+    var requestBody = jsonEncode({
+      'selectedIndex': temp,
+      'action': action, 
+      'previousIndex': table,
+        'changeSelected': change,
+    });
+    var response = await http.post(
+      apiUrl,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: requestBody,
+    );
+    if (response.statusCode == 200) {
+    } else {
+      print('Failed to occupy tables. Status code: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    }
+  }
   Future<void> _saveSwitchValueToStorage(bool newValue) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('switchValue', newValue ? 'FNB' : 'QS');
+    String? temp = prefs.getString('selectedTables2');
+    removeTablesFromShared(temp!);
   }
 
   Future<int> fetchOpenCartItemsCount() async {
