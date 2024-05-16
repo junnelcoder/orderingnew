@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const session = require('express-session');
 const sql = require('mssql');
 const bodyParser = require('body-parser');
 const http = require('http');
@@ -10,6 +11,12 @@ const cors = require('cors');
 
 // Load configuration file
 const config = require('./config.json');
+
+app.use(session({
+  secret: config.key.secret,
+  resave: false,
+  saveUninitialized: true,
+}));
 
 // Add CORS middleware
 app.use(cors());

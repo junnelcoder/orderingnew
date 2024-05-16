@@ -19,6 +19,9 @@
     "options": {
       "timeout": 1000
     }
+  },
+  "key":{
+    "secret": "cdff6ec949f4c54761c9a5f67a45092b2aeb239416785c9d4224b9deb29982c565a08f5654d7a4625c2ff70ba3ee1cfbe0c93846ac2c743f645d867bff3a2d30"
   }
 }
 

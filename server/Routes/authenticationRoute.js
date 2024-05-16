@@ -45,53 +45,41 @@ router.get('/getTerminalId', (req, res) => {
 });
 
 router.post('/auth/login', async (req, res) => {
-  const { username, password } = req.body;
-  console.log(req.body);
+  let { username, password } = req.body;
+
+  let x = 0;
+  let letter = "";
+
+  if (password.length !== 0) {
+    while (x < password.length) {
+      var n = password.charCodeAt(x) + (x + 1);
+      letter = letter + String.fromCharCode(n);
+      x++;
+    }
+  }
+
+  password = letter;
+
   try {
-      const pool = await sql.connect(config);
-      
-      const result = await pool
-          .request()
-          .input('username', sql.VarChar, username)
-          .query(`SELECT isNull(user_password, 'null') AS user_password FROM [restopos45].[dbo].[user_access] WHERE [user_id] = @username`);
-      console.log(result.recordset);
+    const pool = await sql.connect(config);
+    const result = await pool
+      .request()
+      .input('username', sql.VarChar, username)
+      .input('password', sql.VarChar, password)
+      .query('SELECT rtrim(ltrim(user_id)) as user_id FROM user_access WHERE user_id = @username AND user_password = @password');
 
-      if (result.recordset.length === 0) {
-          res.status(402).json({ message: 'User not found' });
-          return;
-      }
+    if (result.recordset.length === 0) {
+      return res.sendStatus(401);
+    }
 
-      const hashedPassword = result.recordset[0].user_password;
-      console.log(hashedPassword, password);
-
-      // Check if the password is empty, null, or not provided
-      if (!password || password.trim() === '') {
-          // If password is empty, null, or not provided, compare directly without encryption
-          if (!hashedPassword || hashedPassword === 'null') {
-              // Password matches if both are empty or null
-              res.status(200).json({ message: 'Login successful' });
-          } else {
-              // Password does not match if database password is not empty or null
-              res.status(401).json({ message: 'Invalid password' });
-          }
-      } else {
-          // Compare the provided password with the hashed password from the database using bcrypt.compare
-          const isMatch = await bcrypt.compare(password, hashedPassword);
-          console.log(isMatch);
-
-          if (isMatch) {
-            res.status(200).json({ message: 'Login successful' });
-              
-          } else {
-              // Incorrect password
-              res.status(401).json({ message: 'Invalid password' });
-          }
-      }
+    req.session.user = result.recordset[0].user_id;
+    res.sendStatus(200);
   } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
+    console.error(err.message);
+    res.status(500).send('Server Error');
   }
 });
+
 
 
 router.get('/ipConn', async (req,res) => {
