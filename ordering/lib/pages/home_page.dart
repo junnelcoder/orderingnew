@@ -102,11 +102,13 @@ Future<void> removeTablesFromShared(String table) async {
     String? ipAddress = prefs.getString('ipAddress');
     String? uname = prefs.getString('username');
     String? temp = prefs.getString('selectedTables2');
+    String? switchValue = prefs.getString('switchValue');
     removeTablesFromShared(temp!);
     await prefs.clear();
     if (ipAddress != null && uname != null) {
       await prefs.setString('ipAddress', ipAddress);
       await prefs.setString('username', uname);
+      await prefs.setString('switchValue', switchValue!);
     }
   }
 

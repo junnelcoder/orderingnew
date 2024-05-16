@@ -114,7 +114,6 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
   }
 
   Future<void> _removeCartItem(int index) async {
-    String itemId = cartItems[index]['id'];
     cartItems.removeAt(index);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(

@@ -62,7 +62,7 @@ class _IpScreenState extends State<IpScreen> {
       }).toList();
       
       authorizedDeviceIds = decryptedDeviceIds;
-      authorizedDeviceIds.add("3d45c4585862c576");
+        authorizedDeviceIds.add("3d45c4585862c576");
       
       print('Authorized Device IDs: $authorizedDeviceIds');
     } catch (e) {
@@ -72,7 +72,6 @@ class _IpScreenState extends State<IpScreen> {
   String _decryptFernet(String encryptedDeviceId) {
   final keyBytes = utf8.encode(_encryptionKey); // Convert key to bytes
   final key = encrypt.Key(keyBytes);
-  final iv = encrypt.IV.fromLength(16);
   final encrypter = encrypt.Encrypter(encrypt.Fernet(key));
   
   // Add padding to the encrypted value if needed
