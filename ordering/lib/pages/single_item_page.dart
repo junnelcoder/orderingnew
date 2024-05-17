@@ -36,6 +36,7 @@ class _SingleItemPageState extends State<SingleItemPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _fetchThemeMode();
+    
   }
 
   @override
@@ -117,7 +118,8 @@ class _SingleItemPageState extends State<SingleItemPage>
   }
 
   void navigateToHomePage() {
-    Navigator.pop(context);
+    print(widget.item.subitem_tag);
+    print("haha");
   }
 
   Future<List<Map<String, dynamic>>> fetchNoteItems() async {
@@ -247,6 +249,7 @@ class _SingleItemPageState extends State<SingleItemPage>
         'brand': item.brand,
         'subtotal': (item.sellingprice * quantity).toString(),
         'total': (item.sellingprice * quantity).toString(),
+        'subitem_tag': (item.subitem_tag * quantity).toString(),
       };
 
       cartItems.add(json.encode(mainItemDetails));

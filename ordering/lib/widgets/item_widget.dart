@@ -18,6 +18,7 @@ class ItemWidget extends StatefulWidget {
   final bool isDarkMode; // Add this parameter
   final VoidCallback toggleDarkMode; // Toggle function
   final VoidCallback onItemAdded;
+
   const ItemWidget({
     required this.category,
     required this.searchQuery,
@@ -91,8 +92,6 @@ class _ItemWidgetState extends State<ItemWidget> {
     } catch (e) {
       print('Error fetching items: $e');
     }
-
-    
   }
 
   Future<void> checkConnectivity() async {
@@ -126,16 +125,6 @@ class _ItemWidgetState extends State<ItemWidget> {
           print('Failed to connect to server');
         }
       } catch (e) {
-        // print('Errorrrrr connecting to server: $e');
-        // Fluttertoast.showToast(
-        //   msg: "Server problem, Working offline",
-        //   toastLength: Toast.LENGTH_SHORT,
-        //   gravity: ToastGravity.BOTTOM,
-        //   timeInSecForIosWeb: 3,
-        //   backgroundColor: Colors.red,
-        //   textColor: Colors.white,
-        //   fontSize: 16.0,
-        // );
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -275,6 +264,155 @@ class _ItemWidgetState extends State<ItemWidget> {
   }
 
   Widget buildItemCard(BuildContext context, Item item) {
+  if (item.subitem_tag == 1) {
+    // If item has subitems
+    return Center(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        margin: EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: widget.isDarkMode
+              ? Colors.grey.withOpacity(0.7)
+              : Colors.white.withOpacity(0.85),
+          borderRadius: BorderRadius.circular(20.0),
+          boxShadow: [
+            BoxShadow(
+              color: widget.isDarkMode ? Colors.green : Colors.red,
+              blurRadius: widget.isDarkMode ? 0.0 : 3.0,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: () async {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            String? selectedTablesString = prefs.getString('selectedTables');
+            String? switchValue = prefs.getString('switchValue');
+            if (switchValue == "QS" ||
+                (selectedTablesString != null &&
+                    selectedTablesString.isNotEmpty)) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SingleItemPage(item: item),
+                ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please select a table first'),
+                  duration: Duration(seconds: 1),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              LimitedBox(
+                maxHeight: 90.0,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Image.network(
+                      _getImagePathForItem(item),
+                      fit: BoxFit
+                          .contain, // Adjust the fit based on your design requirements
+                      height: constraints.maxHeight,
+                      width: constraints.maxWidth,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Icon(
+                            Icons.fastfood,
+                            size: 70,
+                            color: widget.isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  item.itemname,
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isDarkMode
+                        ? Colors.white.withOpacity(0.7)
+                        : Colors.black.withOpacity(0.85),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  "${item.itemcode}",
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: widget.isDarkMode
+                        ? Colors.white.withOpacity(0.8)
+                        : Colors.black.withOpacity(0.85),
+                  ),
+                ),
+              ),
+              SizedBox(height: 4.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: InkWell(
+                      onTap: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        String? selectedTablesString =
+                            prefs.getString('selected Tables');
+                        String? switchValue = prefs.getString('switchValue');
+                        if (switchValue == "QS" ||
+                            (selectedTablesString != null &&
+                                selectedTablesString.isNotEmpty)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Added ${item.itemname}'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          _saveItemToLocal(item);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please select a table first'),
+                              duration: Duration(seconds: 3),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      child: Text(
+                  "",
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: widget.isDarkMode
+                        ? Colors.white.withOpacity(0.8)
+                        : Colors.black.withOpacity(0.85),
+                  ),
+                ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  } else {
+    // If item does not have subitems
     return Center(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -392,7 +530,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                       onTap: () async {
                         final prefs = await SharedPreferences.getInstance();
                         String? selectedTablesString =
-                            prefs.getString('selectedTables');
+                            prefs.getString('selected Tables');
                         String? switchValue = prefs.getString('switchValue');
                         if (switchValue == "QS" ||
                             (selectedTablesString != null &&
@@ -432,6 +570,9 @@ class _ItemWidgetState extends State<ItemWidget> {
       ),
     );
   }
+}
+
+
 
   String _getImagePathForItem(Item item) {
     if (item.picture_path.trim().isNotEmpty) {
@@ -481,27 +622,18 @@ class _ItemWidgetState extends State<ItemWidget> {
 
       await prefs.setStringList('cartItems', cartItems);
       print('Cart Items: $cartItems');
-      // Update the state of HomeNavBar widget
-      // widget.onItemAdded();
-      // Navigator.pushReplacement(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => HomePage(),
-      //   ),
-      // );
     } catch (e) {
       print('Error saving item to local storage: $e');
       throw Exception('Failed to save item to local storage');
     }
   }
-
- 
 }
 
 class Item {
   final String itemname;
   final String itemcode;
   final double sellingprice;
+  final int subitem_tag;
 
   final String category;
   final double unitPrice;
@@ -521,6 +653,7 @@ class Item {
     required this.itemname,
     required this.itemcode,
     required this.sellingprice,
+    required this.subitem_tag,
     this.category = '',
     this.unitPrice = 0.0,
     this.markup = 0.0,
@@ -540,9 +673,12 @@ class Item {
     return Item(
       itemname: json['itemname'] ?? '',
       itemcode: json['itemcode'] ?? '',
-      sellingprice: json['sellingprice'] != null
+      sellingprice: json['sellingprice']!= null
           ? double.parse(json['sellingprice'].toString())
           : 0.0,
+      subitem_tag: json['subitem_tag'] != null
+          ? int.parse(json['subitem_tag'].toString())
+          : 0,
       category: json['category'] ?? '',
       unitPrice: json['unitprice'] != null
           ? double.parse(json['unitprice'].toString())
