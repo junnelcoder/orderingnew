@@ -1,8 +1,18 @@
 {
-  "db": {
+  "db1": {
     "user": "sa",
     "password": "zankojt@2024",
     "server": "DESKTOP-EIR2A8B\\SQLEXPRESS2014",
+    "database": "restopos45",
+    "options": {
+      "encrypt": false,
+      "enableArithAbort": true
+    }
+  },
+  "db": {
+    "user": "sa",
+    "password": "password@2014",
+    "server": "localhost\\sqlexpress2014",
     "database": "restopos45",
     "options": {
       "encrypt": false,
