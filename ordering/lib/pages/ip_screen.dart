@@ -295,6 +295,7 @@ class _IpScreenState extends State<IpScreen> {
                                     await prefs.setString(
                                         'ipAddress', ipAddress);
                                     if (ipAddress == '') {
+                                      
                                       Fluttertoast.showToast(
                                         msg: "Please Input Ip Address First",
                                         toastLength: Toast.LENGTH_SHORT,
@@ -306,6 +307,9 @@ class _IpScreenState extends State<IpScreen> {
                                             const Color.fromARGB(255, 0, 0, 0),
                                         fontSize: 16.0,
                                       );
+                                      setState(() {
+                                      isLoading = false;
+                                      });
                                     } else {
                                       fetchCategories();
                                     }
