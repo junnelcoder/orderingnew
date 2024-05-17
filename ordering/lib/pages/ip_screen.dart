@@ -344,15 +344,16 @@ class _IpScreenState extends State<IpScreen> {
                 ),
               ),
             ),
-            if (isLoading) // Show loading indicator if isLoading is true
-              Container(
-                color: Colors.black
-                    .withOpacity(0.5), // Semi-transparent black background
-                child: Center(
-                  child:
-                      CircularProgressIndicator(), // Circular loading indicator
-                ),
-              ),
+            if (isLoading) 
+  Container(
+    color: Colors.black.withOpacity(0.5), 
+    child: Center(
+      child: CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+      ),
+    ),
+  ),
+
           ],
         ),
       ),

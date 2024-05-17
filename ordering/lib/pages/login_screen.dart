@@ -32,6 +32,7 @@ void saveUsernameToLocal(String username) async {
 class _LoginPageState extends State<LoginScreen> {
   bool _isObscured = true;
   bool _isLoading = true;
+  bool _isLoading2 = false;
   String label = "";
   List<String> users = [];
   List<String> passwords = []; // Declare passwords here
@@ -140,15 +141,19 @@ class _LoginPageState extends State<LoginScreen> {
   }
 
   void login(String username, String password) async {
-    var ipAddress = AppConfig.serverIPAddress.trim();
-    var body = jsonEncode({"username": username, "password": password});
+  var ipAddress = AppConfig.serverIPAddress.trim();
+  var body = jsonEncode({"username": username, "password": password});
+   setState(() {
+      _isLoading2 = true; 
+    });
+  try {
     var response = await http.post(
       Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/auth/login'),
       headers: {
         'Content-Type': 'application/json',
       },
       body: body,
-    );
+    ).timeout(Duration(seconds: 5)); 
 
     if (response.statusCode == 200) {
       saveUsernameToLocal(username);
@@ -159,6 +164,9 @@ class _LoginPageState extends State<LoginScreen> {
         ),
       );
     } else {
+         setState(() {
+      _isLoading2 = false; 
+    });
       Fluttertoast.showToast(
         msg: "Incorrect username or password",
         toastLength: Toast.LENGTH_SHORT,
@@ -169,7 +177,20 @@ class _LoginPageState extends State<LoginScreen> {
         fontSize: 16.0,
       );
     }
+  } catch (e) {
+    print("Request timed out: $e");
+    Fluttertoast.showToast(
+      msg: "Request timed out. Please try again later.",
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -392,6 +413,13 @@ class _LoginPageState extends State<LoginScreen> {
                   ],
                 ),
               ),
+            ),
+          ),
+          if (_isLoading2)
+          Container(
+            color: Colors.black.withOpacity(0.5),
+            child: Center(
+              child: CircularProgressIndicator(),
             ),
           ),
           Positioned(
