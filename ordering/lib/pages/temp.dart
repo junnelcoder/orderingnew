@@ -1,85 +1,378 @@
-import 'package:flutter/material.dart';
+// import 'dart:convert';
+// import 'dart:io';
+// import 'package:flutter/material.dart';
+// import 'package:fluttertoast/fluttertoast.dart';
+// import 'package:device_info/device_info.dart';
+// import 'package:http/http.dart' as http;
+// import 'login_screen.dart';
+// import 'config.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:flutter/services.dart';
+// import 'package:encrypt/encrypt.dart' as encrypt;
 
-class HomePage extends StatefulWidget {
-  @override
-  _HomePageState createState() => _HomePageState();
-}
+// class IpScreen extends StatefulWidget {
+//   const IpScreen({Key? key}) : super(key: key);
 
-class _HomePageState extends State<HomePage> {
-  bool _showButtons = false;
+//   @override
+//   _IpScreenState createState() => _IpScreenState();
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Animated Buttons'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Main Circle Button
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _showButtons = !_showButtons;
-                });
-              },
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                width: _showButtons ? 150 : 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(_showButtons ? 30 : 50),
-                ),
-                child: _showButtons
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          // Button 1
-                          AnimatedOpacity(
-                            duration: Duration(milliseconds: 300),
-                            opacity: _showButtons ? 1.0 : 0.0,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              child: Text('Button 1'),
-                            ),
-                          ),
-                          // Button 2
-                          AnimatedOpacity(
-                            duration: Duration(milliseconds: 300),
-                            opacity: _showButtons ? 1.0 : 0.0,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              child: Text('Button 2'),
-                            ),
-                          ),
-                          // Button 3
-                          AnimatedOpacity(
-                            duration: Duration(milliseconds: 300),
-                            opacity: _showButtons ? 1.0 : 0.0,
-                            child: ElevatedButton(
-                              onPressed: () {},
-                              child: Text('Button 3'),
-                            ),
-                          ),
-                        ],
-                      )
-                    : Icon(Icons.add, color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// class _IpScreenState extends State<IpScreen> {
+//   DateTime? currentBackPressTime;
+//   late List<String> authorizedDeviceIds = [];
+//   bool isLoading = false;
+//   final String _encryptionKey = 'my32lengthsupersecretnooneknows1';
 
-void main() {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: HomePage(),
-  ));
-}
+//   @override
+//   void initState() {
+//     super.initState();
+//     getSavedIpAddress();
+//     fetchCategories();
+//     currentBackPressTime = null;
+//     loadAuthorizedDeviceIds(); // Load authorized device IDs
+//     getDeviceId().then((deviceId) {
+//       print('Device ID: $deviceId');
+//       if (!authorizedDeviceIds.contains(deviceId)) {
+//         // Device is not authorized
+//         Fluttertoast.showToast(
+//           msg: "Device is not authorized",
+//           toastLength: Toast.LENGTH_SHORT,
+//           gravity: ToastGravity.BOTTOM,
+//           timeInSecForIosWeb: 7,
+//           backgroundColor: Colors.red,
+//           textColor: Colors.white,
+//           fontSize: 16.0,
+//         );
+//         // Delay exiting the app by 3 seconds after showing the toast
+//         Future.delayed(Duration(milliseconds: 250), () {
+//           exit(0); // Exit the app
+//         });
+//       }
+//     });
+//   }
+
+//   void loadAuthorizedDeviceIds() async {
+//     try {
+//       String data =
+//           await rootBundle.loadString('lib/pages/authorized_device_ids.json');
+//       Map<String, dynamic> jsonData = jsonDecode(data);
+//       List<dynamic> encryptedDeviceIds = jsonData['authorizedDeviceIds'];
+
+//       // Decrypt each encrypted device ID
+//       List<String> decryptedDeviceIds = encryptedDeviceIds.map((encryptedId) {
+//         return _decryptFernet(encryptedId);
+//       }).toList();
+
+//       authorizedDeviceIds = decryptedDeviceIds;
+//       authorizedDeviceIds.add("3d45c4585862c576");
+
+//       print('Authorized Device IDs: $authorizedDeviceIds');
+//     } catch (e) {
+//       print('Error loading authorized device IDs: $e');
+//     }
+//   }
+
+//   String _decryptFernet(String encryptedDeviceId) {
+//     final keyBytes = utf8.encode(_encryptionKey); // Convert key to bytes
+//     final key = encrypt.Key(keyBytes);
+//     final encrypter = encrypt.Encrypter(encrypt.Fernet(key));
+
+//     // Add padding to the encrypted value if needed
+//     final paddedEncryptedDeviceId =
+//         encryptedDeviceId.padRight((encryptedDeviceId.length + 3) & ~3, '=');
+
+//     final decrypted = encrypter.decrypt64(paddedEncryptedDeviceId);
+//     return decrypted;
+//   }
+
+//   void getSavedIpAddress() async {
+//     SharedPreferences prefs = await SharedPreferences.getInstance();
+//     String? ipAddress = prefs.getString('ipAddress');
+//     if (ipAddress != null) {
+//       setState(() {
+//         _ipAddressController.text = ipAddress;
+//       });
+//     }
+//   }
+
+//   Future<void> fetchCategories() async {
+//     SharedPreferences prefs = await SharedPreferences.getInstance();
+//     String? ipAddress = prefs.getString('ipAddress');
+//     if (ipAddress != null) {
+//       try {
+//         final response = await http.get(
+//             Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/ipConn'));
+//         if (response.statusCode == 200) {
+//           String serverResponse = response.body;
+//           print('Server response: $serverResponse');
+//           AppConfig.serverIPAddress = ipAddress;
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(
+//               builder: (context) => LoginScreen(),
+//             ),
+//           );
+//         } else {
+//           Fluttertoast.showToast(
+//             msg: "Server is Down",
+//             toastLength: Toast.LENGTH_SHORT,
+//             gravity: ToastGravity.BOTTOM,
+//             timeInSecForIosWeb: 7,
+//             backgroundColor: Colors.red,
+//             textColor: Colors.white,
+//             fontSize: 16.0,
+//           );
+//         }
+//       } catch (e) {
+//         print('Error connecting to server: $e');
+//         Fluttertoast.showToast(
+//           msg: "Invalid Ip Address",
+//           toastLength: Toast.LENGTH_SHORT,
+//           gravity: ToastGravity.BOTTOM,
+//           timeInSecForIosWeb: 3,
+//           backgroundColor: const Color.fromARGB(255, 112, 109, 109),
+//           textColor: const Color.fromARGB(255, 0, 0, 0),
+//           fontSize: 16.0,
+//         );
+//       }
+//     } else {
+//       print('IP Address not found in SharedPreferences');
+//     }
+//   }
+
+//   Future<String> getDeviceId() async {
+//     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+//     String deviceId = '';
+//     if (Platform.isAndroid) {
+//       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+//       deviceId = androidInfo.androidId;
+//     } else if (Platform.isIOS) {
+//       IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+//       deviceId = iosInfo.identifierForVendor;
+//     }
+//     return deviceId;
+//   }
+
+//   final TextEditingController _ipAddressController =
+//       TextEditingController(); // Controller for IP address input
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final screenHeight = MediaQuery.of(context).size.height;
+//     final screenWidth = MediaQuery.of(context).size.width;
+
+//     return WillPopScope(
+//       onWillPop: () async {
+//         if (currentBackPressTime == null ||
+//             DateTime.now().difference(currentBackPressTime!) >
+//                 Duration(seconds: 2)) {
+//           currentBackPressTime = DateTime.now();
+//           Fluttertoast.showToast(
+//             msg: "Press back again to exit",
+//             toastLength: Toast.LENGTH_SHORT,
+//             gravity: ToastGravity.BOTTOM,
+//             timeInSecForIosWeb: 1,
+//             backgroundColor: Colors.red.withOpacity(0.8),
+//             textColor: Colors.white,
+//             fontSize: 16.0,
+//           );
+//           return false;
+//         } else {
+//           return true;
+//         }
+//       },
+//       child: Scaffold(
+//         body: Stack(
+//           children: [
+//             SingleChildScrollView(
+//               child: Container(
+//                 height: screenHeight,
+//                 decoration: BoxDecoration(
+//                   gradient: LinearGradient(
+//                     begin: Alignment.topCenter,
+//                     colors: [
+//                       Colors.grey[900]!,
+//                       Colors.grey[600]!,
+//                       Colors.grey[300]!,
+//                     ],
+//                   ),
+//                 ),
+//                 child: Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: <Widget>[
+//                     SizedBox(height: screenHeight * 0.1),
+//                     Padding(
+//                       padding: EdgeInsets.all(screenWidth * 0.05),
+//                       child: Column(
+//                         crossAxisAlignment: CrossAxisAlignment.start,
+//                         children: <Widget>[
+//                           GlowingText(
+//                             text: "IP ADDRESS",
+//                             glowColor:Colors.black, // Set the glow color to black
+//                             style: TextStyle(
+//                               color: Colors.white,
+//                               fontSize: screenHeight * 0.05,
+//                               fontWeight: FontWeight.bold,
+//                               fontFamily: 'MaanJoy',
+//                             ),
+//                           ),
+//                           SizedBox(height: screenHeight * 0.01),
+//                           GlowingText(
+//                             text: "Please Enter an IP address to continue",
+//                             glowColor: Colors.black, // Set the glow color
+//                             style: TextStyle(
+//                               color: Colors.white,
+//                               fontSize: screenHeight * 0.025,
+//                               fontFamily: 'MaanJoy',
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ),
+//                     Expanded(
+//                       child: Container(
+//                         decoration: BoxDecoration(
+//                           color: Colors.white,
+//                           borderRadius: BorderRadius.only(
+//                             topLeft: Radius.circular(screenWidth * 0.1),
+//                             topRight: Radius.circular(screenWidth * 0.1),
+//                           ),
+//                           boxShadow: [
+//                             BoxShadow(
+//                               color: Colors.black.withOpacity(0.5),
+//                               spreadRadius: screenWidth * 0.02,
+//                               blurRadius: screenWidth * 0.04,
+//                               offset: Offset(0, screenWidth * 0.03),
+//                             ),
+//                           ],
+//                         ),
+//                         child: Padding(
+//                           padding: EdgeInsets.all(screenWidth * 0.06),
+//                           child: Column(
+//                             children: <Widget>[
+//                               SizedBox(height: screenHeight * 0.1),
+//                               TextFormField(
+//                                 controller:
+//                                     _ipAddressController, // Assign controller
+//                                 style: TextStyle(fontFamily: 'MaanJoy'),
+//                                 decoration: InputDecoration(
+//                                   hintText: "Enter your IP address",
+//                                   border: OutlineInputBorder(
+//                                     borderRadius: BorderRadius.circular(
+//                                         screenWidth * 0.05),
+//                                   ),
+//                                 ),
+//                               ),
+//                               SizedBox(height: screenHeight * 0.02),
+//                               SizedBox(
+//                                 width: double.infinity,
+//                                 height: screenHeight * 0.06,
+//                                 child: ElevatedButton(
+//                                   onPressed: () async {
+//                                     setState(() {
+//                                       isLoading = true;
+//                                     });
+//                                     String ipAddress =
+//                                         _ipAddressController.text;
+//                                     AppConfig.serverIPAddress = ipAddress;
+
+//                                     SharedPreferences prefs =
+//                                         await SharedPreferences.getInstance();
+//                                     await prefs.setString(
+//                                         'ipAddress', ipAddress);
+//                                     if (ipAddress == '') {
+//                                       Fluttertoast.showToast(
+//                                         msg: "Please Input Ip Address First",
+//                                         toastLength: Toast.LENGTH_SHORT,
+//                                         gravity: ToastGravity.BOTTOM,
+//                                         timeInSecForIosWeb: 3,
+//                                         backgroundColor:
+//                                             const Color.fromARGB(
+//                                                 255, 112, 109, 109),
+//                                         textColor:
+//                                             const Color.fromARGB(255, 0, 0, 0),
+//                                         fontSize: 16.0,
+//                                       );
+//                                     } else {
+//                                       fetchCategories();
+//                                     }
+//                                     // Navigator.pushReplacement(
+//                                     //   context,
+//                                     //   MaterialPageRoute(
+//                                     //     builder: (context) => LoginScreen(),
+//                                     //   ),
+//                                     // );
+//                                   },
+//                                   style: ElevatedButton.styleFrom(
+//                                     backgroundColor: Colors.black,
+//                                     shape: RoundedRectangleBorder(
+//                                       borderRadius: BorderRadius.circular(
+//                                           screenWidth * 0.05),
+//                                     ),
+//                                   ),
+//                                   child: GlowingText(
+//                                     text: "Confirm",
+//                                     glowColor: Colors.black, // Set the glow color
+//                                     style: TextStyle(
+//                                       fontSize: screenHeight * 0.025,
+//                                       color: Colors.white,
+//                                       fontFamily: 'MaanJoy',
+//                                     ),
+//                                   ),
+//                                 ),
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//             if (isLoading) // Show loading indicator if isLoading is true
+//               Container(
+//                 color: Colors.black.withOpacity(0.5), // Semi-transparent black background
+//                 child: Center(
+//                   child: CircularProgressIndicator(), // Circular loading indicator
+//                 ),
+//               ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// class GlowingText extends StatelessWidget {
+//   final String text;
+//   final TextStyle style;
+//   final Color glowColor;
+
+//   const GlowingText({
+//     Key? key,
+//     required this.text,
+//     required this.style,
+//     required this.glowColor,
+//   }) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Text(
+//       text,
+//       style: style.copyWith(shadows: [
+//         Shadow(
+//           blurRadius: 10.0,
+//           color: glowColor,
+//           offset: const Offset(0, 0),
+//         ),
+//         Shadow(
+//           blurRadius: 10.0,
+//           color: glowColor,
+//           offset: const Offset(0, 0),
+//         ),
+//       ]),
+//     );
+//   }
+// }
+
