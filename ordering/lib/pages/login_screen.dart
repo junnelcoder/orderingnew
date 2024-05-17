@@ -31,6 +31,7 @@ void saveUsernameToLocal(String username) async {
 class _LoginPageState extends State<LoginScreen> {
   bool _isObscured = true;
   bool _isLoading = true;
+  String label = "";
   List<String> users = [];
   List<String> passwords = []; // Declare passwords here
   DateTime? currentBackPressTime;
@@ -40,6 +41,7 @@ class _LoginPageState extends State<LoginScreen> {
     fetchUsers();
     currentBackPressTime = null;
     _fetchTerminalId();
+    _fetchIP();
   }
 
   void navigateToIpScreen() {
@@ -88,6 +90,13 @@ class _LoginPageState extends State<LoginScreen> {
     } catch (e) {
       print('Error fetching terminal ID: $e');
     }
+  }
+   Future<void> _fetchIP() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    setState(() {
+      label = "$ipAddress:${AppConfig.serverPort}.";
+    });
   }
   Future<String> _getTerminalIdFromServer() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -200,18 +209,18 @@ class _LoginPageState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       GlowingText(
-                        text: "Welcome Back",
+                        text: "You're Connected to:",
                         glowColor: Colors.black,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: screenHeight * 0.05,
+                          fontSize: screenHeight * 0.04,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'MaanJoy',
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.01),
                       GlowingText(
-                        text: "Sign in to continue",
+                        text: label,
                         glowColor: Colors.black,
                         style: TextStyle(
                           color: Colors.white,
