@@ -88,7 +88,7 @@ class _IpScreenState extends State<IpScreen> {
   void getSavedIpAddress() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    
+
     if (ipAddress != null) {
       setState(() {
         _ipAddressController.text = ipAddress;
@@ -102,24 +102,26 @@ class _IpScreenState extends State<IpScreen> {
     bool? getBackBool = prefs.getBool('backToIP');
     if (ipAddress != null) {
       try {
-        final response = await http.get(
-            Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/ipConn'));
+        final response = await http
+            .get(Uri.parse(
+                'http://$ipAddress:${AppConfig.serverPort}/api/ipConn'))
+            .timeout(Duration(seconds: 5));
         if (response.statusCode == 200) {
           String serverResponse = response.body;
           print('Server response: $serverResponse');
           AppConfig.serverIPAddress = ipAddress;
-          if(getBackBool!){
-    await prefs.setBool('backToIP', false);
-          }else{
+          if (getBackBool!) {
+            await prefs.setBool('backToIP', false);
+          } else {
             Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => LoginScreen(),
-            ),
-          );
+              context,
+              MaterialPageRoute(
+                builder: (context) => LoginScreen(),
+              ),
+            );
           }
         } else {
-    await prefs.setBool('backToIP', false);
+          await prefs.setBool('backToIP', false);
           Fluttertoast.showToast(
             msg: "Server is Down",
             toastLength: Toast.LENGTH_SHORT,
@@ -132,6 +134,9 @@ class _IpScreenState extends State<IpScreen> {
         }
       } catch (e) {
         print('Error connecting to server: $e');
+        setState(() {
+          isLoading = false;
+        });
         Fluttertoast.showToast(
           msg: "Invalid Ip Address",
           toastLength: Toast.LENGTH_SHORT,
@@ -216,7 +221,8 @@ class _IpScreenState extends State<IpScreen> {
                         children: <Widget>[
                           GlowingText(
                             text: "IP ADDRESS",
-                            glowColor:Colors.black, // Set the glow color to black
+                            glowColor:
+                                Colors.black, // Set the glow color to black
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: screenHeight * 0.05,
@@ -294,9 +300,8 @@ class _IpScreenState extends State<IpScreen> {
                                         toastLength: Toast.LENGTH_SHORT,
                                         gravity: ToastGravity.BOTTOM,
                                         timeInSecForIosWeb: 3,
-                                        backgroundColor:
-                                            const Color.fromARGB(
-                                                255, 112, 109, 109),
+                                        backgroundColor: const Color.fromARGB(
+                                            255, 112, 109, 109),
                                         textColor:
                                             const Color.fromARGB(255, 0, 0, 0),
                                         fontSize: 16.0,
@@ -320,7 +325,8 @@ class _IpScreenState extends State<IpScreen> {
                                   ),
                                   child: GlowingText(
                                     text: "Confirm",
-                                    glowColor: Colors.black, // Set the glow color
+                                    glowColor:
+                                        Colors.black, // Set the glow color
                                     style: TextStyle(
                                       fontSize: screenHeight * 0.025,
                                       color: Colors.white,
@@ -340,9 +346,11 @@ class _IpScreenState extends State<IpScreen> {
             ),
             if (isLoading) // Show loading indicator if isLoading is true
               Container(
-                color: Colors.black.withOpacity(0.5), // Semi-transparent black background
+                color: Colors.black
+                    .withOpacity(0.5), // Semi-transparent black background
                 child: Center(
-                  child: CircularProgressIndicator(), // Circular loading indicator
+                  child:
+                      CircularProgressIndicator(), // Circular loading indicator
                 ),
               ),
           ],
@@ -383,4 +391,3 @@ class GlowingText extends StatelessWidget {
     );
   }
 }
-
