@@ -196,9 +196,7 @@ class _CartNavBarState extends State<CartNavBar> {
           lastInvDigitsString = lastInvDigits.toString();
           print(lastInvDigitsString);
           setState(() {});
-        } else {
-          throw Exception('No data received');
-        }
+        } 
       } else {
         throw Exception('Failed to fetch note items');
       }

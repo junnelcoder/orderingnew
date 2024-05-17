@@ -86,7 +86,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
   Future<List<Map<String, dynamic>>> _fetchNotes() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    var url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/get-notes');
+    var url = Uri.parse('http://$ipAddress:${AppConfig}/api/get-notes');
     try {
       var response = await http.get(url);
       if (response.statusCode == 200) {
@@ -114,6 +114,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
   }
 
   Future<void> _removeCartItem(int index) async {
+    String itemId = cartItems[index]['id'];
     cartItems.removeAt(index);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
@@ -139,7 +140,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
           item['itemcode'].trim().toUpperCase().replaceAll(' ', '_');
       String ipAddress = AppConfig.serverIPAddress;
       // Construct the URL to fetch the image dynamically from the server
-      return 'http://$ipAddress:${AppConfig.serverPort}/api/image/$itemcode';
+      return 'http://$ipAddress:8080/api/image/$itemcode';
     }
   }
 
