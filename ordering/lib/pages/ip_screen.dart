@@ -42,7 +42,7 @@ class _IpScreenState extends State<IpScreen> {
           fontSize: 16.0,
         );
         // Delay exiting the app by 3 seconds after showing the toast
-        Future.delayed(Duration(milliseconds:250), () {
+        Future.delayed(Duration(milliseconds: 250), () {
           exit(0); // Exit the app
         });
       }
@@ -55,33 +55,33 @@ class _IpScreenState extends State<IpScreen> {
           await rootBundle.loadString('lib/pages/authorized_device_ids.json');
       Map<String, dynamic> jsonData = jsonDecode(data);
       List<dynamic> encryptedDeviceIds = jsonData['authorizedDeviceIds'];
-      
+
       // Decrypt each encrypted device ID
       List<String> decryptedDeviceIds = encryptedDeviceIds.map((encryptedId) {
         return _decryptFernet(encryptedId);
       }).toList();
-      
+
       authorizedDeviceIds = decryptedDeviceIds;
-        authorizedDeviceIds.add("3d45c4585862c576");
-      
+      authorizedDeviceIds.add("3d45c4585862c576");
+
       print('Authorized Device IDs: $authorizedDeviceIds');
     } catch (e) {
       print('Error loading authorized device IDs: $e');
     }
   }
+
   String _decryptFernet(String encryptedDeviceId) {
-  final keyBytes = utf8.encode(_encryptionKey); // Convert key to bytes
-  final key = encrypt.Key(keyBytes);
-  final encrypter = encrypt.Encrypter(encrypt.Fernet(key));
-  
-  // Add padding to the encrypted value if needed
-  final paddedEncryptedDeviceId = encryptedDeviceId.padRight(
-    (encryptedDeviceId.length + 3) & ~3,
-    '=');
-  
-  final decrypted = encrypter.decrypt64(paddedEncryptedDeviceId);
-  return decrypted;
-}
+    final keyBytes = utf8.encode(_encryptionKey); // Convert key to bytes
+    final key = encrypt.Key(keyBytes);
+    final encrypter = encrypt.Encrypter(encrypt.Fernet(key));
+
+    // Add padding to the encrypted value if needed
+    final paddedEncryptedDeviceId =
+        encryptedDeviceId.padRight((encryptedDeviceId.length + 3) & ~3, '=');
+
+    final decrypted = encrypter.decrypt64(paddedEncryptedDeviceId);
+    return decrypted;
+  }
 
   void getSavedIpAddress() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -98,8 +98,8 @@ class _IpScreenState extends State<IpScreen> {
     String? ipAddress = prefs.getString('ipAddress');
     if (ipAddress != null) {
       try {
-        final response =
-            await http.get(Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/ipConn'));
+        final response = await http.get(
+            Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/ipConn'));
         if (response.statusCode == 200) {
           String serverResponse = response.body;
           print('Server response: $serverResponse');
@@ -111,12 +111,20 @@ class _IpScreenState extends State<IpScreen> {
             ),
           );
         } else {
-          print('Failed to connect to server');
+          Fluttertoast.showToast(
+            msg: "Server is Down",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 7,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
       } catch (e) {
         print('Error connecting to server: $e');
         Fluttertoast.showToast(
-          msg: "Server error",
+          msg: "Invalid Ip Address",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIosWeb: 3,
@@ -246,8 +254,8 @@ class _IpScreenState extends State<IpScreen> {
                             decoration: InputDecoration(
                               hintText: "Enter your IP address",
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(
-                                    screenWidth * 0.05),
+                                borderRadius:
+                                    BorderRadius.circular(screenWidth * 0.05),
                               ),
                             ),
                           ),
@@ -257,27 +265,38 @@ class _IpScreenState extends State<IpScreen> {
                             height: screenHeight * 0.06,
                             child: ElevatedButton(
                               onPressed: () async {
-                                String ipAddress =
-                                    _ipAddressController.text;
+                                String ipAddress = _ipAddressController.text;
                                 AppConfig.serverIPAddress = ipAddress;
 
                                 SharedPreferences prefs =
                                     await SharedPreferences.getInstance();
-                                await prefs.setString(
-                                    'ipAddress', ipAddress);
-
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LoginScreen(),
-                                  ),
-                                );
+                                await prefs.setString('ipAddress', ipAddress);
+                                if (ipAddress == '') {
+                                  Fluttertoast.showToast(
+                                    msg: "Please Input Ip Address First",
+                                    toastLength: Toast.LENGTH_SHORT,
+                                    gravity: ToastGravity.BOTTOM,
+                                    timeInSecForIosWeb: 3,
+                                    backgroundColor: const Color.fromARGB(
+                                        255, 112, 109, 109),
+                                    textColor:
+                                        const Color.fromARGB(255, 0, 0, 0),
+                                    fontSize: 16.0,
+                                  );
+                                }else{
+                                fetchCategories();}
+                                // Navigator.pushReplacement(
+                                //   context,
+                                //   MaterialPageRoute(
+                                //     builder: (context) => LoginScreen(),
+                                //   ),
+                                // );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.black,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(
-                                      screenWidth * 0.05),
+                                  borderRadius:
+                                      BorderRadius.circular(screenWidth * 0.05),
                                 ),
                               ),
                               child: GlowingText(
