@@ -88,6 +88,7 @@ class _IpScreenState extends State<IpScreen> {
   void getSavedIpAddress() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
+    
     if (ipAddress != null) {
       setState(() {
         _ipAddressController.text = ipAddress;
@@ -98,6 +99,7 @@ class _IpScreenState extends State<IpScreen> {
   Future<void> fetchCategories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
+    bool? getBackBool = prefs.getBool('backToIP');
     if (ipAddress != null) {
       try {
         final response = await http.get(
@@ -106,13 +108,18 @@ class _IpScreenState extends State<IpScreen> {
           String serverResponse = response.body;
           print('Server response: $serverResponse');
           AppConfig.serverIPAddress = ipAddress;
-          Navigator.pushReplacement(
+          if(getBackBool!){
+    await prefs.setBool('backToIP', false);
+          }else{
+            Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => LoginScreen(),
             ),
           );
+          }
         } else {
+    await prefs.setBool('backToIP', false);
           Fluttertoast.showToast(
             msg: "Server is Down",
             toastLength: Toast.LENGTH_SHORT,
