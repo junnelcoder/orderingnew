@@ -20,7 +20,9 @@ class IpScreen extends StatefulWidget {
 class _IpScreenState extends State<IpScreen> {
   DateTime? currentBackPressTime;
   late List<String> authorizedDeviceIds = [];
+  bool isLoading = false;
   final String _encryptionKey = 'my32lengthsupersecretnooneknows1';
+
   @override
   void initState() {
     super.initState();
@@ -85,6 +87,7 @@ class _IpScreenState extends State<IpScreen> {
   void getSavedIpAddress() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
+
     if (ipAddress != null) {
       setState(() {
         _ipAddressController.text = ipAddress;
@@ -97,19 +100,27 @@ class _IpScreenState extends State<IpScreen> {
     String? ipAddress = prefs.getString('ipAddress');
     if (ipAddress != null) {
       try {
-        final response = await http.get(
-            Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/ipConn'));
+        final response = await http
+            .get(Uri.parse(
+                'http://$ipAddress:${AppConfig.serverPort}/api/ipConn'))
+            .timeout(Duration(seconds: 5));
         if (response.statusCode == 200) {
           String serverResponse = response.body;
           print('Server response: $serverResponse');
           AppConfig.serverIPAddress = ipAddress;
+          bool? getBackBool = prefs.getBool('backToIP');
+          if (getBackBool != null && getBackBool) {
+            await prefs.setBool('backToIP', false);
+          } else {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
               builder: (context) => LoginScreen(),
             ),
           );
+          }
         } else {
+          await prefs.setBool('backToIP', false);
           Fluttertoast.showToast(
             msg: "Server is Down",
             toastLength: Toast.LENGTH_SHORT,
@@ -122,6 +133,9 @@ class _IpScreenState extends State<IpScreen> {
         }
       } catch (e) {
         print('Error connecting to server: $e');
+        setState(() {
+          isLoading = false;
+        });
         Fluttertoast.showToast(
           msg: "Invalid Ip Address",
           toastLength: Toast.LENGTH_SHORT,
@@ -180,7 +194,9 @@ class _IpScreenState extends State<IpScreen> {
         }
       },
       child: Scaffold(
-        body: SingleChildScrollView(
+        body: Stack(
+          children: [
+            SingleChildScrollView(
           child: Container(
             height: screenHeight,
             decoration: BoxDecoration(
@@ -204,7 +220,8 @@ class _IpScreenState extends State<IpScreen> {
                     children: <Widget>[
                       GlowingText(
                         text: "IP ADDRESS",
-                        glowColor: Colors.black,
+                            glowColor:
+                                Colors.black,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: screenHeight * 0.05,
@@ -254,8 +271,8 @@ class _IpScreenState extends State<IpScreen> {
                             decoration: InputDecoration(
                               hintText: "Enter your IP address",
                               border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.circular(screenWidth * 0.05),
+                                    borderRadius: BorderRadius.circular(
+                                        screenWidth * 0.05),
                               ),
                             ),
                           ),
@@ -265,12 +282,17 @@ class _IpScreenState extends State<IpScreen> {
                             height: screenHeight * 0.06,
                             child: ElevatedButton(
                               onPressed: () async {
-                                String ipAddress = _ipAddressController.text;
+                                    setState(() {
+                                      isLoading = true;
+                                    });
+                                    String ipAddress =
+                                        _ipAddressController.text;
                                 AppConfig.serverIPAddress = ipAddress;
 
                                 SharedPreferences prefs =
                                     await SharedPreferences.getInstance();
-                                await prefs.setString('ipAddress', ipAddress);
+                                    await prefs.setString(
+                                        'ipAddress', ipAddress);
                                 if (ipAddress == '') {
                                   Fluttertoast.showToast(
                                     msg: "Please Input Ip Address First",
@@ -283,8 +305,12 @@ class _IpScreenState extends State<IpScreen> {
                                         const Color.fromARGB(255, 0, 0, 0),
                                     fontSize: 16.0,
                                   );
-                                }else{
-                                fetchCategories();}
+                                      setState(() {
+                                        isLoading = false;
+                                      });
+                                    } else {
+                                      fetchCategories();
+                                    }
                                 // Navigator.pushReplacement(
                                 //   context,
                                 //   MaterialPageRoute(
@@ -295,13 +321,14 @@ class _IpScreenState extends State<IpScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.black,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(screenWidth * 0.05),
+                                      borderRadius: BorderRadius.circular(
+                                          screenWidth * 0.05),
                                 ),
                               ),
                               child: GlowingText(
                                 text: "Confirm",
-                                glowColor: Colors.black,
+                                    glowColor:
+                                        Colors.black,
                                 style: TextStyle(
                                   fontSize: screenHeight * 0.025,
                                   color: Colors.white,
@@ -318,6 +345,17 @@ class _IpScreenState extends State<IpScreen> {
               ],
             ),
           ),
+            ),
+            if (isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.5),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
