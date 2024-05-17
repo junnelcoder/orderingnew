@@ -159,6 +159,7 @@ class _IpScreenState extends State<IpScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (currentBackPressTime == null ||

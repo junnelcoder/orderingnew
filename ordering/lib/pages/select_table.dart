@@ -508,6 +508,7 @@ class BackButtonPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         // Check if current page is HomePage, if not, navigate back to HomePage

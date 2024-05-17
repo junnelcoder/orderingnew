@@ -152,6 +152,7 @@ class _LoginPageState extends State<LoginScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         // If currentBackPressTime is null or elapsed time is more than 2 seconds, exit the app

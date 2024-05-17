@@ -1,15 +1,15 @@
 {
-  "db1": {
+  "db": {
     "user": "sa",
     "password": "zankojt@2024",
-    "server": "DESKTOP-U6G6LH1\\SQLEXPRESS2014",
+    "server": "DESKTOP-EIR2A8B\\SQLEXPRESS2014",
     "database": "restopos45",
     "options": {
       "encrypt": false,
       "enableArithAbort": true
     }
   },
-  "db": {
+  "db1": {
     "user": "sa",
     "password": "password@2014",
     "server": "localhost\\sqlexpress2014",

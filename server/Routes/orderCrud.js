@@ -37,40 +37,6 @@ router.get('/categories', async (req, res) => {
 });
 
 
-router.get('/items', async (req, res) => {
-  try {
-    let category = req.query.category;
-    let query = 'SELECT * FROM [restopos45].[dbo].[items]';
-
-    // If a specific category is selected, filter by that category
-    if (category && category !== 'ALL') {
-      category = decodeURIComponent(category); // Decode the category parameter
-      query += ' WHERE category = @category';
-    }
-
-    // Add ORDER BY clause to sort items alphabetically by itemname
-    query += ' ORDER BY itemname';
-
-    const pool = await sql.connect(config);
-    const result = await pool.request()
-      .input('category', sql.VarChar, category)
-      .query(query);
-
-    // Filter out items with undesired categories
-    const filteredItems = result.recordset.filter(item => {
-      const itemCategory = item.category ? item.category.trim().toLowerCase() : '';
-      return itemCategory !== '' && !['notes', 'notes', 'notes'].includes(itemCategory);
-    });
-
-    // Send the list of filtered and sorted items as a JSON response
-    res.json(filteredItems);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
-
 
 router.get('/allItems', async (req, res) => {
   try {
@@ -84,51 +50,6 @@ router.get('/allItems', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch note items' });
   }
 });
-// router.post('/add-notes-to-cart', async (req, res) => {
-//   try {
-//     // Extract item details from the request body
-//     const { pa_id, machine_id, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, section, brand, close_status, picture_path, total, subtotal } = req.body;
-//     const trans_date = new Date().toISOString().split('T')[0]; // Extract date portion only
-
-//     // Connect to the database
-//     const pool = await sql.connect(config);
-
-//     // Insert the item details into the cart_items table using parameterized query
-//     const request = pool.request()
-//       .input('pa_id', sql.VarChar, pa_id)
-//       .input('machine_id', sql.VarChar, machine_id)
-//       .input('trans_date', sql.Date, trans_date)
-//       .input('itemname', sql.VarChar, itemname)
-//       .input('category', sql.VarChar, category)
-//       .input('qty', sql.VarChar, qty)
-//       .input('unitprice', sql.VarChar, unitprice)
-//       .input('markup', sql.VarChar, markup)
-//       .input('sellingprice', sql.VarChar, sellingprice)
-//       .input('department', sql.VarChar, department)
-//       .input('uom', sql.VarChar, uom)
-//       .input('vatable', sql.VarChar, vatable)
-//       .input('tran_time', sql.VarChar, tran_time)
-//       .input('division', sql.VarChar, division)
-//       .input('section', sql.VarChar, section)
-//       .input('brand', sql.VarChar, brand)
-//       .input('close_status', sql.TinyInt, close_status) // Use TinyInt for close_status
-//       .input('picture_path', sql.VarChar, picture_path)
-//       .input('subtotal', sql.VarChar, subtotal)
-//       .input('total', sql.VarChar, total); // Set notes to null
-
-//     await request.query(`
-//         INSERT INTO [restopos45].[dbo].[cart_items] (pa_id, machine_id, trans_date, itemname, category, qty, unitprice, markup, sellingprice, department, uom, vatable, tran_time, division, brand, section, close_status, picture_path, subtotal, total)
-//         VALUES (@pa_id, @machine_id, @trans_date, @itemname, @category, @qty, @unitprice, @markup, @sellingprice, @department, @uom, @vatable, @tran_time, @division, @brand, @section, @close_status, @picture_path, @subtotal, @total)
-//       `);
-
-//     // Send a response indicating success
-//     res.status(200).json({ message: 'Notes added to cart successfully' });
-//   } catch (err) {
-//     console.error(err.message);
-//     res.status(500).send('Server Error');
-//   }
-// });
-
 
 router.get('/get-notes', async (req, res) => {
   try {

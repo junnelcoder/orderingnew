@@ -114,6 +114,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
   }
 
   Future<void> _removeCartItem(int index) async {
+    // ignore: unused_local_variable
     String itemId = cartItems[index]['id'];
     cartItems.removeAt(index);
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -643,6 +644,7 @@ class BackButtonPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         // Check if current page is HomePage, if not, navigate back to HomePage
