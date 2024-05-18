@@ -43,7 +43,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   dio: ^5.4.3+1
   esc_pos_printer: ^4.0.0
-  device_info: ^2.0.0
+  device_info_plus: ^10.0.0
   encrypt: ^5.0.3
   
 dev_dependencies:

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:device_info/device_info.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:http/http.dart' as http;
 import 'login_screen.dart';
 import 'config.dart';
@@ -112,12 +112,12 @@ class _IpScreenState extends State<IpScreen> {
           if (getBackBool != null && getBackBool) {
             await prefs.setBool('backToIP', false);
           } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => LoginScreen(),
-            ),
-          );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LoginScreen(),
+              ),
+            );
           }
         } else {
           await prefs.setBool('backToIP', false);
@@ -152,15 +152,19 @@ class _IpScreenState extends State<IpScreen> {
   }
 
   Future<String> getDeviceId() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    String deviceId = '';
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      deviceId = androidInfo.androidId;
-    } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      deviceId = iosInfo.identifierForVendor;
+    final deviceInfoPlugin = DeviceInfoPlugin();
+    String deviceId;
+
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      var iosDeviceInfo = await deviceInfoPlugin.iosInfo;
+      deviceId = iosDeviceInfo.identifierForVendor ??
+          'Unknown iOS ID'; // Unique ID on iOS
+    } else {
+      var androidDeviceInfo = await deviceInfoPlugin.androidInfo;
+      deviceId =
+          androidDeviceInfo.id ?? 'Unknown Android ID'; // Unique ID on Android
     }
+
     return deviceId;
   }
 
@@ -197,154 +201,152 @@ class _IpScreenState extends State<IpScreen> {
         body: Stack(
           children: [
             SingleChildScrollView(
-          child: Container(
-            height: screenHeight,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                colors: [
-                  Colors.grey[900]!,
-                  Colors.grey[600]!,
-                  Colors.grey[300]!,
-                ],
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                SizedBox(height: screenHeight * 0.1),
-                Padding(
-                  padding: EdgeInsets.all(screenWidth * 0.05),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      GlowingText(
-                        text: "IP ADDRESS",
-                            glowColor:
-                                Colors.black,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: screenHeight * 0.05,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'MaanJoy',
-                        ),
-                      ),
-                      SizedBox(height: screenHeight * 0.01),
-                      GlowingText(
-                        text: "Please Enter an IP address to continue",
-                        glowColor: Colors.black,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: screenHeight * 0.025,
-                          fontFamily: 'MaanJoy',
-                        ),
-                      ),
+              child: Container(
+                height: screenHeight,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    colors: [
+                      Colors.grey[900]!,
+                      Colors.grey[600]!,
+                      Colors.grey[300]!,
                     ],
                   ),
                 ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(screenWidth * 0.1),
-                        topRight: Radius.circular(screenWidth * 0.1),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.5),
-                          spreadRadius: screenWidth * 0.02,
-                          blurRadius: screenWidth * 0.04,
-                          offset: Offset(0, screenWidth * 0.03),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(screenWidth * 0.06),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    SizedBox(height: screenHeight * 0.1),
+                    Padding(
+                      padding: EdgeInsets.all(screenWidth * 0.05),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          SizedBox(height: screenHeight * 0.1),
-                          TextFormField(
-                            controller:
-                                _ipAddressController, // Assign controller
-                            style: TextStyle(fontFamily: 'MaanJoy'),
-                            decoration: InputDecoration(
-                              hintText: "Enter your IP address",
-                              border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        screenWidth * 0.05),
-                              ),
+                          GlowingText(
+                            text: "IP ADDRESS",
+                            glowColor: Colors.black,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: screenHeight * 0.05,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'MaanJoy',
                             ),
                           ),
-                          SizedBox(height: screenHeight * 0.02),
-                          SizedBox(
-                            width: double.infinity,
-                            height: screenHeight * 0.06,
-                            child: ElevatedButton(
-                              onPressed: () async {
+                          SizedBox(height: screenHeight * 0.01),
+                          GlowingText(
+                            text: "Please Enter an IP address to continue",
+                            glowColor: Colors.black,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: screenHeight * 0.025,
+                              fontFamily: 'MaanJoy',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(screenWidth * 0.1),
+                            topRight: Radius.circular(screenWidth * 0.1),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.5),
+                              spreadRadius: screenWidth * 0.02,
+                              blurRadius: screenWidth * 0.04,
+                              offset: Offset(0, screenWidth * 0.03),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(screenWidth * 0.06),
+                          child: Column(
+                            children: <Widget>[
+                              SizedBox(height: screenHeight * 0.1),
+                              TextFormField(
+                                controller:
+                                    _ipAddressController, // Assign controller
+                                style: TextStyle(fontFamily: 'MaanJoy'),
+                                decoration: InputDecoration(
+                                  hintText: "Enter your IP address",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        screenWidth * 0.05),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: screenHeight * 0.02),
+                              SizedBox(
+                                width: double.infinity,
+                                height: screenHeight * 0.06,
+                                child: ElevatedButton(
+                                  onPressed: () async {
                                     setState(() {
                                       isLoading = true;
                                     });
                                     String ipAddress =
                                         _ipAddressController.text;
-                                AppConfig.serverIPAddress = ipAddress;
+                                    AppConfig.serverIPAddress = ipAddress;
 
-                                SharedPreferences prefs =
-                                    await SharedPreferences.getInstance();
+                                    SharedPreferences prefs =
+                                        await SharedPreferences.getInstance();
                                     await prefs.setString(
                                         'ipAddress', ipAddress);
-                                if (ipAddress == '') {
-                                  Fluttertoast.showToast(
-                                    msg: "Please Input Ip Address First",
-                                    toastLength: Toast.LENGTH_SHORT,
-                                    gravity: ToastGravity.BOTTOM,
-                                    timeInSecForIosWeb: 3,
-                                    backgroundColor: const Color.fromARGB(
-                                        255, 112, 109, 109),
-                                    textColor:
-                                        const Color.fromARGB(255, 0, 0, 0),
-                                    fontSize: 16.0,
-                                  );
+                                    if (ipAddress == '') {
+                                      Fluttertoast.showToast(
+                                        msg: "Please Input Ip Address First",
+                                        toastLength: Toast.LENGTH_SHORT,
+                                        gravity: ToastGravity.BOTTOM,
+                                        timeInSecForIosWeb: 3,
+                                        backgroundColor: const Color.fromARGB(
+                                            255, 112, 109, 109),
+                                        textColor:
+                                            const Color.fromARGB(255, 0, 0, 0),
+                                        fontSize: 16.0,
+                                      );
                                       setState(() {
                                         isLoading = false;
                                       });
                                     } else {
                                       fetchCategories();
                                     }
-                                // Navigator.pushReplacement(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (context) => LoginScreen(),
-                                //   ),
-                                // );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(
+                                    // Navigator.pushReplacement(
+                                    //   context,
+                                    //   MaterialPageRoute(
+                                    //     builder: (context) => LoginScreen(),
+                                    //   ),
+                                    // );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
                                           screenWidth * 0.05),
+                                    ),
+                                  ),
+                                  child: GlowingText(
+                                    text: "Confirm",
+                                    glowColor: Colors.black,
+                                    style: TextStyle(
+                                      fontSize: screenHeight * 0.025,
+                                      color: Colors.white,
+                                      fontFamily: 'MaanJoy',
+                                    ),
+                                  ),
                                 ),
                               ),
-                              child: GlowingText(
-                                text: "Confirm",
-                                    glowColor:
-                                        Colors.black,
-                                style: TextStyle(
-                                  fontSize: screenHeight * 0.025,
-                                  color: Colors.white,
-                                  fontFamily: 'MaanJoy',
-                                ),
-                              ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
             ),
             if (isLoading)
               Container(
