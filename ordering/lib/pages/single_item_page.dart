@@ -36,7 +36,6 @@ class _SingleItemPageState extends State<SingleItemPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _fetchThemeMode();
-    
   }
 
   @override
@@ -77,9 +76,9 @@ class _SingleItemPageState extends State<SingleItemPage>
         Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
     var requestBody = jsonEncode({
       'selectedIndex': temp,
-      'action': action, 
+      'action': action,
       'previousIndex': table,
-        'changeSelected': change,
+      'changeSelected': change,
     });
     var response = await http.post(
       apiUrl,
@@ -94,6 +93,7 @@ class _SingleItemPageState extends State<SingleItemPage>
       print('Response body: ${response.body}');
     }
   }
+
   void _clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
@@ -126,7 +126,8 @@ class _SingleItemPageState extends State<SingleItemPage>
   Future<List<Map<String, dynamic>>> fetchNoteItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    var url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/get-notes');
+    var url =
+        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/get-notes');
 
     try {
       var response = await http.get(url);
@@ -199,8 +200,6 @@ class _SingleItemPageState extends State<SingleItemPage>
       },
     );
   }
-
- 
 
   Future<void> _addItemToCart(List<String> selectedNotes) async {
     try {
@@ -338,8 +337,8 @@ class _SingleItemPageState extends State<SingleItemPage>
                       Icons.fastfood,
                       size: 300,
                       color: isDarkMode
-                              ? Colors.white
-                              : Colors.black, // Use error color from the theme
+                          ? Colors.white
+                          : Colors.black, // Use error color from the theme
                     );
                   },
                 ),
@@ -393,8 +392,8 @@ class _SingleItemPageState extends State<SingleItemPage>
                       GestureDetector(
                         onTap: incrementQuantity,
                         child: Container(
-                          width: 30,
-                          height: 30,
+                          width: 40,
+                          height: 40,
                           decoration: BoxDecoration(
                             color: _textColor,
                             borderRadius: BorderRadius.circular(5),
@@ -416,16 +415,14 @@ class _SingleItemPageState extends State<SingleItemPage>
                       fontSize: 18,
                     ),
                   ),
-                 SizedBox(height: 10),
-Text(
-  '₱${widget.item.sellingprice.toStringAsFixed(2)}',
-  style: TextStyle(
-    color: _textColor,
-    fontSize: 18,
-  ),
-),
-
-
+                  SizedBox(height: 10),
+                  Text(
+                    '₱${widget.item.sellingprice.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      color: _textColor,
+                      fontSize: 18,
+                    ),
+                  ),
                   SizedBox(height: 15),
                   GestureDetector(
                     onTap: () async {

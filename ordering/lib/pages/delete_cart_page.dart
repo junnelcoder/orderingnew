@@ -429,31 +429,31 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
           future: _getUsername(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text('Transactions of ...');
+              return Text('Recent Orders as of today');
             } else {
               if (snapshot.hasData) {
-                String username = snapshot.data!;
+                // String username = snapshot.data!;
                 return RichText(
                   text: TextSpan(
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: screenWidth * 0.05,
                       color: isDarkMode
                           ? Colors.white
                           : Colors.black, // Set default color for all text
                     ),
                     children: [
                       TextSpan(
-                        text: "Transactions of ",
+                        text: "Recent Orders as of today ",
                       ),
-                      TextSpan(
-                        text: username,
-                        style: TextStyle(
-                          color: isDarkMode
-                              ? Colors.grey
-                              : Colors
-                                  .blue, // Set the color for the username here
-                        ),
-                      ),
+                      // TextSpan(
+                      //   text: username,
+                      //   style: TextStyle(
+                      //     color: isDarkMode
+                      //         ? Colors.grey
+                      //         : Colors
+                      //             .blue, // Set the color for the username here
+                      //   ),
+                      // ),
                     ],
                   ),
                 );
@@ -525,6 +525,49 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
                                 Row(
                                   children: [
                                     Expanded(
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisAlignment: MainAxisAlignment.spaceAround,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(left: 20.0), 
+        child: Text(
+          "SO_Number: ",
+          style: TextStyle(
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 20.0), 
+        child: Text(
+          "Customer Info: ",
+          style: TextStyle(
+            fontSize: screenWidth * 0.05,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.only(left: 20.0),
+        child: Text(
+          "Total: ",
+          style: TextStyle(
+            fontSize: screenWidth * 0.05,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+      ),
+    ],
+  ),
+),
+
+                                    SizedBox(width: 10),
+                                    VerticalDivider(), 
+                                    SizedBox(width: 10),
+                                    Expanded(
                                       child: Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -532,14 +575,9 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
                                             MainAxisAlignment.spaceAround,
                                         children: [
                                           Text(
-                                            // ignore: unnecessary_null_comparison
-                                            "so_number: ${item['so_number']}" !=
-                                                    null
-                                                ? "so_number: ${item['so_number']}"
-                                                    .toString()
-                                                : '',
+                                            "${item['so_number']}",
                                             style: TextStyle(
-                                              fontSize: screenWidth * 0.07,
+                                              fontSize: screenWidth * 0.05,
                                               fontWeight: FontWeight.bold,
                                               color: isDarkMode
                                                   ? Colors.white
@@ -547,24 +585,20 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
                                             ),
                                           ),
                                           Text(
-                                            // ignore: unnecessary_null_comparison
-                                            "so_number: ${item['tran_time']}" !=
-                                                    null
-                                                ? "Customer Info: ${item['table_no']}"
+                                            "${item['table_no']}"
                                                     .toString()
-                                                : '',
+                                                ,
                                             style: TextStyle(
-                                              fontSize: screenWidth * 0.06,
+                                              fontSize: screenWidth * 0.05,
                                               color: isDarkMode
                                                   ? Colors.white
                                                   : Colors.black,
                                             ),
                                           ),
                                           Text(
-                                            "total: ₱${double.parse(item['total_amount']?.toString() ?? '0').toStringAsFixed(2)}",
+                                            "₱${double.parse(item['total_amount']?.toString() ?? '0').toStringAsFixed(2)}",
                                             style: TextStyle(
-                                              fontSize: screenWidth * 0.06,
-                                              // fontWeight: FontWeight.bold,
+                                              fontSize: screenWidth * 0.05,
                                               color: isDarkMode
                                                   ? Colors.white
                                                   : Colors.black,
@@ -573,7 +607,6 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
                                         ],
                                       ),
                                     ),
-                                    SizedBox(width: 10),
                                   ],
                                 ),
                               ],

@@ -8,7 +8,5 @@ List<int> selected = [];
 
 
 // button sa pag add ng quantity
-// QS switch status sharedprefs -------Justin
-// delete punched items UI
 // terminal ID
-// log in page timeout
+

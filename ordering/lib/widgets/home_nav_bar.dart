@@ -30,6 +30,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
       _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
   List<String>? _cachedCartItems;
   String loggedIn = "";
+  String selectedService = 'Dine In';
 
   @override
   void initState() {
@@ -39,14 +40,16 @@ class _HomeNavBarState extends State<HomeNavBar> {
     _refreshOnLoad();
     _startPollingForChanges(Duration(milliseconds: 1));
     loadUser();
+    loadSelectedService();
+    setState(() {
+      selectedService = 'Dine In';
+    });
   }
 
   void _refreshOnLoad() async {
     _openCartItemsCount = await fetchOpenCartItemsCount();
     _loadSwitchValueFromStorage();
-    setState(() {
-      
-    });
+    setState(() {});
   }
 
   void _startPollingForChanges(Duration interval) {
@@ -56,6 +59,21 @@ class _HomeNavBarState extends State<HomeNavBar> {
         _refreshOnLoad(); // Refresh the count if changes detected
       }
     });
+  }
+
+  Future<void> saveSelectedService(String service) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedService', service);
+  }
+
+  Future<void> loadSelectedService() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? service = prefs.getString('selectedService');
+    if (service != null) {
+      setState(() {
+        selectedService = service;
+      });
+    }
   }
 
   Future<bool> _checkForChanges() async {
@@ -68,6 +86,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
       return true; // Changes detected
     }
   }
+
   Future<void> loadUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? username = prefs.getString('username');
@@ -126,7 +145,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
     }
   }
 
-Future<void> removeTablesFromShared(String table) async {
+  Future<void> removeTablesFromShared(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('selectedTables');
     await prefs.remove('selectedTables2');
@@ -140,9 +159,9 @@ Future<void> removeTablesFromShared(String table) async {
         Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
     var requestBody = jsonEncode({
       'selectedIndex': temp,
-      'action': action, 
+      'action': action,
       'previousIndex': table,
-        'changeSelected': change,
+      'changeSelected': change,
     });
     var response = await http.post(
       apiUrl,
@@ -157,6 +176,7 @@ Future<void> removeTablesFromShared(String table) async {
       print('Response body: ${response.body}');
     }
   }
+
   Future<void> _saveSwitchValueToStorage(bool newValue) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('switchValue', newValue ? 'FNB' : 'QS');
@@ -184,152 +204,186 @@ Future<void> removeTablesFromShared(String table) async {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15),
-      height: 90,
-      decoration: BoxDecoration(
-        color: widget.isDarkMode ? Color(0xFF222222) : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: widget.isDarkMode
-                ? Colors.grey.withOpacity(0.4)
-                : Colors.black.withOpacity(0.4),
-            spreadRadius: 1,
-            blurRadius: widget.isDarkMode ? 10 : 25,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Existing code for dark mode toggle button
-          // Stack(
-          //   children: [
-          //     IconButton(
-          //       onPressed: () {
-          //         widget.toggleDarkMode();
-          //       },
-          //       iconSize: 30,
-          //       padding: EdgeInsets.all(12),
-          //       constraints: BoxConstraints(),
-          //       alignment: Alignment.centerRight,
-          //       icon: Stack(
-          //         alignment: Alignment.centerRight,
-          //         children: [
-          //           Icon(
-          //             widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-          //             color: widget.isDarkMode ? Colors.white : Colors.black,
-          //           ),
-          //           SizedBox(width: 8), // Add some space between the icons
-          //           Visibility(
-          //             visible: widget
-          //                 .isDarkMode, // Only show the second icon when in dark mode
-          //             child: Icon(
-          //               Icons.light_mode,
-          //               color: Colors.white,
-          //             ),
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ],
-          // ),
-          Container(
-  width: 60, 
-  padding: EdgeInsets.all(1),
-  child: Text(
-    loggedIn, 
-    style: TextStyle(
-      color: widget.isDarkMode ? Colors.white : Colors.black,
-      fontSize: 20,
-    ),
-    maxLines: 1, 
-    overflow: TextOverflow.ellipsis, 
+        padding: EdgeInsets.symmetric(horizontal: 15),
+        height: 90,
+        decoration: BoxDecoration(
+          color: widget.isDarkMode ? Color(0xFF222222) : Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: widget.isDarkMode
+                  ? Colors.grey.withOpacity(0.4)
+                  : Colors.black.withOpacity(0.4),
+              spreadRadius: 1,
+              blurRadius: widget.isDarkMode ? 10 : 25,
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            
+            SizedBox(
+  width: 110, // Set your desired width here
+  child: FloatingActionButton.extended(
+    onPressed: () {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Select Service'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      selectedService = 'Dine In';
+                    });
+                    saveSelectedService('Dine In');
+                    Navigator.pop(context);
+                  },
+                  child: ListTile(
+                    title: Text('Dine In'),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      selectedService = 'Take Out';
+                    });
+                    saveSelectedService('Take Out');
+                    Navigator.pop(context);
+                  },
+                  child: ListTile(
+                    title: Text('Take Out'),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      selectedService = 'Pick Up';
+                    });
+                    saveSelectedService('Pick Up');
+                    Navigator.pop(context);
+                  },
+                  child: ListTile(
+                    title: Text('Pick Up'),
+                  ),
+                ),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      selectedService = 'Delivery';
+                    });
+                    saveSelectedService('Delivery');
+                    Navigator.pop(context);
+                  },
+                  child: ListTile(
+                    title: Text('Delivery'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+    label: Text(selectedService),
+    icon: Icon(Icons.room_service),
+    backgroundColor: widget.isDarkMode
+        ? Colors.grey.withOpacity(0.85)
+        : Colors.blue.withOpacity(0.85),
+    foregroundColor: Colors.white,
+    elevation: 10.0,
   ),
 ),
 
-          GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, "cartPage");
-            },
-            child: Stack(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: widget.isDarkMode ? Colors.grey : Colors.black,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.isDarkMode
-                            ? Colors.grey.withOpacity(0)
-                            : Colors.black.withOpacity(0.4),
-                        spreadRadius: 1,
-                        blurRadius: 6,
-                      ),
-                    ],
+    // Padding added here to move the cartPage button to the left
+    Padding(
+      padding: EdgeInsets.only(right: 50.0),
+      child: GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, "cartPage");
+              },
+              child: Stack(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: widget.isDarkMode ? Colors.grey : Colors.black,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: widget.isDarkMode
+                              ? Colors.grey.withOpacity(0)
+                              : Colors.black.withOpacity(0.4),
+                          spreadRadius: 1,
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.assignment_add,
+                      color: Colors.white,
+                      size: 40,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.assignment_add,
-                    color: Colors.white,
-                    size: 40,
-                  ),
-                ),
-                if (_openCartItemsCount != null && _openCartItemsCount! > 0)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.red,
-                      ),
-                      child: Text(
-                        _openCartItemsCount.toString(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
+                  if (_openCartItemsCount != null && _openCartItemsCount! > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red,
+                        ),
+                        child: Text(
+                          _openCartItemsCount.toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
-          // Existing code for switch button and label
-          Container(
-            margin: EdgeInsets.only(top: 15),
-            child: Column(
-              children: [
-                Semantics(
-                  key: Key('someFunctionalitySwitch'),
-                  child: IgnorePointer(
-                    ignoring:
-                        false, // Always allow interaction with the Switch widget
-                    child: Switch(
-                      value: _someFunctionalitySwitchValue,
-                      onChanged: (value) {
-                        _setSomeFunctionalitySwitchValue(value, context);
-                      },
-                      activeTrackColor:
-                          widget.isDarkMode ? Colors.grey : Colors.black,
-                      activeColor: Colors.white,
+    ),
+
+            // Existing code for switch button and label
+            Container(
+              margin: EdgeInsets.only(top: 15),
+              child: Column(
+                children: [
+                  Semantics(
+                    key: Key('someFunctionalitySwitch'),
+                    child: IgnorePointer(
+                      ignoring: false,
+                      child: Switch(
+                        value: _someFunctionalitySwitchValue,
+                        onChanged: (value) {
+                          _setSomeFunctionalitySwitchValue(value, context);
+                        },
+                        activeTrackColor:
+                            widget.isDarkMode ? Colors.grey : Colors.black,
+                        activeColor: Colors.white,
+                      ),
                     ),
                   ),
-                ),
-                Text(
-                  _someFunctionalitySwitchValue ? 'FNB' : 'QS',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: widget.isDarkMode ? Colors.white : Colors.black,
+                  Text(
+                    _someFunctionalitySwitchValue ? 'FNB' : 'QS',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: widget.isDarkMode ? Colors.white : Colors.black,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
+                ],
+              ),
+            )
+          ],
+        ));
   }
 }
