@@ -162,7 +162,7 @@ class _IpScreenState extends State<IpScreen> {
     } else {
       var androidDeviceInfo = await deviceInfoPlugin.androidInfo;
       deviceId =
-          androidDeviceInfo.id ?? 'Unknown Android ID'; // Unique ID on Android
+          androidDeviceInfo.id; // Unique ID on Android
     }
 
     return deviceId;

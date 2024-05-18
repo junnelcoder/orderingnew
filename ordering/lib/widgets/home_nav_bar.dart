@@ -29,6 +29,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
   int?
       _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
   List<String>? _cachedCartItems;
+  String loggedIn = "";
 
   @override
   void initState() {
@@ -37,6 +38,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
     _loadSwitchValueFromStorage();
     _refreshOnLoad();
     _startPollingForChanges(Duration(milliseconds: 1));
+    loadUser();
   }
 
   void _refreshOnLoad() async {
@@ -65,6 +67,13 @@ class _HomeNavBarState extends State<HomeNavBar> {
       _cachedCartItems = currentCartItems; // Update cached cart items
       return true; // Changes detected
     }
+  }
+  Future<void> loadUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    setState(() {
+      loggedIn = username!;
+    });
   }
 
   bool _listEquals(List<String>? list1, List<String>? list2) {
@@ -193,38 +202,51 @@ Future<void> removeTablesFromShared(String table) async {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Existing code for dark mode toggle button
-          Stack(
-            children: [
-              IconButton(
-                onPressed: () {
-                  widget.toggleDarkMode();
-                },
-                iconSize: 30,
-                padding: EdgeInsets.all(12),
-                constraints: BoxConstraints(),
-                alignment: Alignment.centerRight,
-                icon: Stack(
-                  alignment: Alignment.centerRight,
-                  children: [
-                    Icon(
-                      widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                      color: widget.isDarkMode ? Colors.white : Colors.black,
-                    ),
-                    SizedBox(width: 8), // Add some space between the icons
-                    Visibility(
-                      visible: widget
-                          .isDarkMode, // Only show the second icon when in dark mode
-                      child: Icon(
-                        Icons.light_mode,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // Existing code for cart button
+          // Stack(
+          //   children: [
+          //     IconButton(
+          //       onPressed: () {
+          //         widget.toggleDarkMode();
+          //       },
+          //       iconSize: 30,
+          //       padding: EdgeInsets.all(12),
+          //       constraints: BoxConstraints(),
+          //       alignment: Alignment.centerRight,
+          //       icon: Stack(
+          //         alignment: Alignment.centerRight,
+          //         children: [
+          //           Icon(
+          //             widget.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+          //             color: widget.isDarkMode ? Colors.white : Colors.black,
+          //           ),
+          //           SizedBox(width: 8), // Add some space between the icons
+          //           Visibility(
+          //             visible: widget
+          //                 .isDarkMode, // Only show the second icon when in dark mode
+          //             child: Icon(
+          //               Icons.light_mode,
+          //               color: Colors.white,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ],
+          // ),
+          Container(
+  width: 60, 
+  padding: EdgeInsets.all(1),
+  child: Text(
+    loggedIn, 
+    style: TextStyle(
+      color: widget.isDarkMode ? Colors.white : Colors.black,
+      fontSize: 20,
+    ),
+    maxLines: 1, 
+    overflow: TextOverflow.ellipsis, 
+  ),
+),
+
           GestureDetector(
             onTap: () {
               Navigator.pushNamed(context, "cartPage");

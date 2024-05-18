@@ -141,34 +141,49 @@ class _LoginPageState extends State<LoginScreen> {
   }
 
   void login(String username, String password) async {
-  var ipAddress = AppConfig.serverIPAddress.trim();
-  var body = jsonEncode({"username": username, "password": password});
-   setState(() {
-      _isLoading2 = true; 
+    var ipAddress = AppConfig.serverIPAddress.trim();
+    var body = jsonEncode({"username": username, "password": password});
+    setState(() {
+      _isLoading2 = true;
     });
-  try {
-    var response = await http.post(
-      Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/auth/login'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: body,
-    ).timeout(Duration(seconds: 5)); 
+    try {
+      var response = await http
+          .post(
+            Uri.parse(
+                'http://$ipAddress:${AppConfig.serverPort}/api/auth/login'),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: body,
+          )
+          .timeout(Duration(seconds: 5));
 
-    if (response.statusCode == 200) {
-      saveUsernameToLocal(username);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
-    } else {
-         setState(() {
-      _isLoading2 = false; 
-    });
+      if (response.statusCode == 200) {
+        saveUsernameToLocal(username);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
+      } else {
+        setState(() {
+          _isLoading2 = false;
+        });
+        Fluttertoast.showToast(
+          msg: "Incorrect username or password",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+      }
+    } catch (e) {
+      print("Request timed out: $e");
       Fluttertoast.showToast(
-        msg: "Incorrect username or password",
+        msg: "Request timed out. Please try again later.",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 1,
@@ -177,20 +192,7 @@ class _LoginPageState extends State<LoginScreen> {
         fontSize: 16.0,
       );
     }
-  } catch (e) {
-    print("Request timed out: $e");
-    Fluttertoast.showToast(
-      msg: "Request timed out. Please try again later.",
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.red,
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -378,6 +380,21 @@ class _LoginPageState extends State<LoginScreen> {
                                           height: screenHeight * 0.06,
                                           child: ElevatedButton(
                                             onPressed: () {
+                                              if (_selectedUsername == null ||
+                                                  _selectedUsername!.isEmpty) {
+                                                Fluttertoast.showToast(
+                                                  msg:
+                                                      "Please select a username first",
+                                                  toastLength:
+                                                      Toast.LENGTH_SHORT,
+                                                  gravity: ToastGravity.BOTTOM,
+                                                  timeInSecForIosWeb: 1,
+                                                  backgroundColor: Colors.red,
+                                                  textColor: Colors.white,
+                                                  fontSize: 16.0,
+                                                );
+                                                return;
+                                              }
                                               String username =
                                                   _selectedUsername!;
                                               String password =
@@ -416,12 +433,12 @@ class _LoginPageState extends State<LoginScreen> {
             ),
           ),
           if (_isLoading2)
-          Container(
-            color: Colors.black.withOpacity(0.5),
-            child: Center(
-              child: CircularProgressIndicator(),
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
             ),
-          ),
           Positioned(
             top: 0,
             left: 0,

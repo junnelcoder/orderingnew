@@ -229,7 +229,6 @@ Future<void> removeTablesFromShared(String table) async {
     // Check if categories are empty to show shimmer effect
     bool showShimmer = categories.isEmpty;
 
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (currentBackPressTime == null ||
@@ -260,8 +259,6 @@ Future<void> removeTablesFromShared(String table) async {
           backgroundColor:
               isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
           body: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.only(top: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -270,6 +267,9 @@ Future<void> removeTablesFromShared(String table) async {
                       vertical: 10,
                       horizontal: 15,
                     ),
+                child: Row(
+                  children: [
+                    Expanded(
                     child: Container(
                       width: double.infinity,
                       height: 50,
@@ -296,7 +296,8 @@ Future<void> removeTablesFromShared(String table) async {
                             ),
                             Expanded(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 15),
+                            padding: 
+                            EdgeInsets.symmetric(horizontal: 15),
                                 child: TextFormField(
                                   controller: _searchController,
                                   decoration: InputDecoration(
@@ -304,7 +305,7 @@ Future<void> removeTablesFromShared(String table) async {
                                     border: InputBorder.none,
                                   ),
                                   onChanged: (value) {
-                                    setState(() {}); // Trigger rebuild
+                                    setState(() {}); 
                                   },
                                 ),
                               ),
@@ -313,7 +314,17 @@ Future<void> removeTablesFromShared(String table) async {
                         ),
                       ),
                     ),
+                  ),   
+                    IconButton(
+                  onPressed: _toggleDarkMode,
+                  icon: Icon(
+                    isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
+                    ),
+                  ],
+                ),
+              ),
                   TabBar(
                     isScrollable: true,
                     indicator: BoxDecoration(),
@@ -328,7 +339,7 @@ Future<void> removeTablesFromShared(String table) async {
                   ),
                   Flexible(
                     flex: 1,
-                    child: showShimmer // Check if shimmer should be shown
+                    child: showShimmer 
                         ? Shimmer.fromColors(
                             baseColor: Colors.grey[300]!,
                             highlightColor: Colors.grey[100]!,
@@ -357,7 +368,6 @@ Future<void> removeTablesFromShared(String table) async {
                           ),
                   ),
                 ],
-              ),
             ),
           ),
           bottomNavigationBar: HomeNavBar(

@@ -120,6 +120,7 @@ class _SingleItemPageState extends State<SingleItemPage>
   void navigateToHomePage() {
     print(widget.item.subitem_tag);
     print("haha");
+    Navigator.pop(context);
   }
 
   Future<List<Map<String, dynamic>>> fetchNoteItems() async {
@@ -415,6 +416,16 @@ class _SingleItemPageState extends State<SingleItemPage>
                       fontSize: 18,
                     ),
                   ),
+                 SizedBox(height: 10),
+Text(
+  '₱${widget.item.unitPrice.toStringAsFixed(2)}',
+  style: TextStyle(
+    color: _textColor,
+    fontSize: 18,
+  ),
+),
+
+
                   SizedBox(height: 15),
                   GestureDetector(
                     onTap: () async {
@@ -428,7 +439,7 @@ class _SingleItemPageState extends State<SingleItemPage>
                                 : Colors
                                     .white, // Set the background color to red
                             child: Container(
-                              height: MediaQuery.of(context).size.height / 3,
+                              height: MediaQuery.of(context).size.height / 1,
                               child: Column(
                                 children: [
                                   SizedBox(height: 10),

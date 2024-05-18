@@ -370,7 +370,8 @@ class _ItemWidgetState extends State<ItemWidget> {
                       onTap: () async {
                         final prefs = await SharedPreferences.getInstance();
                         String? selectedTablesString =
-                            prefs.getString('selected Tables');
+                            prefs.getString('selectedTables');
+                            print(selectedTablesString);
                         String? switchValue = prefs.getString('switchValue');
                         if (switchValue == "QS" ||
                             (selectedTablesString != null &&
@@ -530,7 +531,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                       onTap: () async {
                         final prefs = await SharedPreferences.getInstance();
                         String? selectedTablesString =
-                            prefs.getString('selected Tables');
+                            prefs.getString('selectedTables');
                         String? switchValue = prefs.getString('switchValue');
                         if (switchValue == "QS" ||
                             (selectedTablesString != null &&
@@ -546,7 +547,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Please select a table first'),
+                              content: Text('Please selt a table first'),
                               duration: Duration(seconds: 3),
                               backgroundColor: Colors.red,
                             ),

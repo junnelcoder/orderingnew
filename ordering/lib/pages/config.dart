@@ -7,10 +7,8 @@ List<Map<String, dynamic>> notes = [];
 List<int> selected = [];
 
 
-// notes hanggang half ng screen
 // button sa pag add ng quantity
 // QS switch status sharedprefs -------Justin
-// price
 // delete punched items UI
 // terminal ID
 // log in page timeout
