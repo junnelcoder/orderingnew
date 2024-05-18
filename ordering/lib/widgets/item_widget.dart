@@ -295,7 +295,7 @@ class _ItemWidgetState extends State<ItemWidget> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => subPage(),
+                  builder: (context) => subPage(item: item),
                 ),
               );
             } else {
