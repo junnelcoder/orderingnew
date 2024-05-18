@@ -229,6 +229,7 @@ Future<void> removeTablesFromShared(String table) async {
     // Check if categories are empty to show shimmer effect
     bool showShimmer = categories.isEmpty;
 
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (currentBackPressTime == null ||
