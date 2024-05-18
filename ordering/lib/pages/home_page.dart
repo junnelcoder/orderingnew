@@ -269,6 +269,17 @@ Future<void> removeTablesFromShared(String table) async {
                     ),
                 child: Row(
                   children: [
+    Padding(
+      padding: EdgeInsets.only(right: 10), 
+      child: Text(
+        "Justin", 
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+          color: isDarkMode ? Colors.white : Colors.black,
+        ),
+      ),
+    ),
                     Expanded(
                     child: Container(
                       width: double.infinity,
@@ -419,79 +430,7 @@ Future<void> removeTablesFromShared(String table) async {
                         )
                       : SizedBox(),
                 ),
-                SizedBox(height: 10),
-                FloatingActionButton.extended(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Text('Select Service'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    selectedService = 'Dine In';
-                                  });
-                                  saveSelectedService('Dine In');
-                                  Navigator.pop(context);
-                                },
-                                child: ListTile(
-                                  title: Text('Dine In'),
-                                ),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    selectedService = 'Take Out';
-                                  });
-                                  saveSelectedService('Take Out');
-                                  Navigator.pop(context);
-                                },
-                                child: ListTile(
-                                  title: Text('Take Out'),
-                                ),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    selectedService = 'Pick Up';
-                                  });
-                                  saveSelectedService('Pick Up');
-                                  Navigator.pop(context);
-                                },
-                                child: ListTile(
-                                  title: Text('Pick Up'),
-                                ),
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    selectedService = 'Delivery';
-                                  });
-                                  saveSelectedService('Delivery');
-                                  Navigator.pop(context);
-                                },
-                                child: ListTile(
-                                  title: Text('Delivery'),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  label: Text(selectedService),
-                  icon: Icon(Icons.room_service),
-                  backgroundColor: isDarkMode
-                      ? Colors.grey.withOpacity(0.85)
-                      : Colors.blue.withOpacity(0.85),
-                  foregroundColor: Colors.white,
-                  elevation: 4.0,
-                ),
+                
               ],
             ),
           ),
