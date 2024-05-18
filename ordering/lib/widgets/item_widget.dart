@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:ordering/pages/ip_screen.dart';
+import 'package:ordering/pages/subPage.dart';
 import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
 import '../pages/single_item_page.dart';
@@ -294,7 +295,7 @@ class _ItemWidgetState extends State<ItemWidget> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SingleItemPage(item: item),
+                  builder: (context) => subPage(),
                 ),
               );
             } else {

@@ -418,7 +418,7 @@ class _SingleItemPageState extends State<SingleItemPage>
                   ),
                  SizedBox(height: 10),
 Text(
-  '₱${widget.item.unitPrice.toStringAsFixed(2)}',
+  '₱${widget.item.sellingprice.toStringAsFixed(2)}',
   style: TextStyle(
     color: _textColor,
     fontSize: 18,
