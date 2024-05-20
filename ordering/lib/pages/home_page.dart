@@ -148,6 +148,7 @@ class _HomePageState extends State<HomePage>
   void _toggleSwitch(bool newValue) {
     setState(() {
       _isSwitchOn = newValue;
+      _subButtons = false;
       saveSwitchValueToShared(newValue);
     });
   }
@@ -499,9 +500,10 @@ class _HomePageState extends State<HomePage>
                                       )),
                                       child: FloatingActionButton(
                                         onPressed: () {
-                                          // Implement the functionality for the "New Order" button
+                                          
+                  Navigator.pushNamed(context, "table");
                                         },
-                                        child: Text('Add Order'),
+                                        child: Text('New Order'),
                                         backgroundColor: isDarkMode
                                             ? Colors.grey.withOpacity(0.85)
                                             : Color.fromARGB(255, 33, 155, 255)
@@ -533,7 +535,7 @@ class _HomePageState extends State<HomePage>
                                           onPressed: () {
                                             // Implement the functionality for the "New Order" button
                                           },
-                                          child: Text('New Order'),
+                                          child: Text('Add Order'),
                                           backgroundColor: isDarkMode
                                               ? Colors.grey.withOpacity(0.85)
                                               : Colors.orange.withOpacity(0.85),
@@ -570,7 +572,7 @@ class _HomePageState extends State<HomePage>
                                           child: Text('Bill Out'),
                                           backgroundColor: isDarkMode
                                               ? Colors.grey.withOpacity(0.85)
-                                              : Color.fromARGB(255, 172, 253, 79).withOpacity(0.85),
+                                              : Color.fromARGB(255, 119, 204, 21).withOpacity(0.85),
                                           foregroundColor: Colors.white,
                                           elevation: 4.0,
                                         ),
