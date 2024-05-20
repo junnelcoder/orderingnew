@@ -16,19 +16,28 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+class _HomePageState extends State<HomePage>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   List<String> categories = [];
   late TextEditingController _searchController;
+  late AnimationController _animationController;
   bool isDarkMode = false;
   bool _isSwitchOn = false;
   String selectedService = 'Dine In';
   String alreadySelectedTable = "";
   DateTime? currentBackPressTime;
+  String loggedIn = "";
+  bool showSubButtons = false;
+  bool _subButtons = false;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 500),
+    );
     WidgetsBinding.instance.addObserver(this);
     fetchCategories();
     checkSwitchValue();
@@ -36,14 +45,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     selectedFromShared();
     _storeCurrentPage('homePage');
     _fetchThemeMode();
+    loadUser();
     setState(() {
       selectedService = 'Dine In';
     });
     currentBackPressTime = null;
+    _subButtons = false;
   }
 
   @override
   void dispose() {
+    _animationController.dispose();
     _searchController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -66,7 +78,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       });
     }
   }
-Future<void> removeTablesFromShared(String table) async {
+
+  Future<void> loadUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    setState(() {
+      loggedIn = username!;
+    });
+  }
+
+  Future<void> removeTablesFromShared(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('selectedTables');
     await prefs.remove('selectedTables2');
@@ -80,9 +101,9 @@ Future<void> removeTablesFromShared(String table) async {
         Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
     var requestBody = jsonEncode({
       'selectedIndex': temp,
-      'action': action, 
+      'action': action,
       'previousIndex': table,
-        'changeSelected': change,
+      'changeSelected': change,
     });
     var response = await http.post(
       apiUrl,
@@ -97,6 +118,7 @@ Future<void> removeTablesFromShared(String table) async {
       print('Response body: ${response.body}');
     }
   }
+
   void _clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
@@ -148,7 +170,8 @@ Future<void> removeTablesFromShared(String table) async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       final response = await http
           .get(
-            Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/categories'),
+            Uri.parse(
+                'http://$ipAddress:${AppConfig.serverPort}/api/categories'),
           )
           .timeout(Duration(seconds: 5));
       if (response.statusCode == 200) {
@@ -231,213 +254,340 @@ Future<void> removeTablesFromShared(String table) async {
 
     // ignore: deprecated_member_use
     return WillPopScope(
-      onWillPop: () async {
-        if (currentBackPressTime == null ||
-            DateTime.now().difference(currentBackPressTime!) >
-                Duration(seconds: 3)) {
-          // If currentBackPressTime is null or elapsed time is more than 2 seconds,
-          // update currentBackPressTime and show toast message
-          currentBackPressTime = DateTime.now();
-          Fluttertoast.showToast(
-            msg: "Press back again to exit",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.red.withOpacity(0.8),
-            textColor: Colors.white,
-            fontSize: 16.0,
-          );
+        onWillPop: () async {
+          if (currentBackPressTime == null ||
+              DateTime.now().difference(currentBackPressTime!) >
+                  Duration(seconds: 3)) {
+            // If currentBackPressTime is null or elapsed time is more than 2 seconds,
+            // update currentBackPressTime and show toast message
+            currentBackPressTime = DateTime.now();
+            Fluttertoast.showToast(
+              msg: "Press back again to exit",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.red.withOpacity(0.8),
+              textColor: Colors.white,
+              fontSize: 16.0,
+            );
 
-          return false; // Return false to prevent exiting the app
-        } else {
-          SystemNavigator.pop(); // Exit the app
-          return false; // Return true to exit the app
-        }
-      },
-      child: DefaultTabController(
-        length: filteredCategories.length,
-        child: Scaffold(
-          backgroundColor:
-              isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
-          body: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 15,
-                    ),
-                child: Row(
+            return false; // Return false to prevent exiting the app
+          } else {
+            SystemNavigator.pop(); // Exit the app
+            return false; // Return true to exit the app
+          }
+        },
+        child: DefaultTabController(
+            length: filteredCategories.length,
+            child: Scaffold(
+              backgroundColor:
+                  isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
+              body: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-    Padding(
-      padding: EdgeInsets.only(right: 10), 
-      child: Text(
-        "Justin", 
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: isDarkMode ? Colors.white : Colors.black,
-        ),
-      ),
-    ),
-                    Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isDarkMode
-                                ? Colors.grey.withOpacity(0.4)
-                                : Colors.black.withOpacity(0.4),
-                            spreadRadius: 1,
-                            blurRadius: 8,
-                          ),
-                        ],
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 15,
                       ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Row(
-                          children: [
-                            Icon(
-                              CupertinoIcons.search,
-                              color: Colors.black,
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(right: 10),
+                            child: Text(
+                              loggedIn,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
                             ),
-                            Expanded(
-                              child: Padding(
-                            padding: 
-                            EdgeInsets.symmetric(horizontal: 15),
-                                child: TextFormField(
-                                  controller: _searchController,
-                                  decoration: InputDecoration(
-                                    hintText: "Search...",
-                                    border: InputBorder.none,
+                          ),
+                          Expanded(
+                            child: Container(
+                              width: double.infinity,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isDarkMode
+                                        ? Colors.grey.withOpacity(0.4)
+                                        : Colors.black.withOpacity(0.4),
+                                    spreadRadius: 1,
+                                    blurRadius: 8,
                                   ),
-                                  onChanged: (value) {
-                                    setState(() {}); 
-                                  },
+                                ],
+                              ),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      CupertinoIcons.search,
+                                      color: Colors.black,
+                                    ),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 15),
+                                        child: TextFormField(
+                                          controller: _searchController,
+                                          decoration: InputDecoration(
+                                            hintText: "Search...",
+                                            border: InputBorder.none,
+                                          ),
+                                          onChanged: (value) {
+                                            setState(() {});
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          IconButton(
+                            onPressed: _toggleDarkMode,
+                            icon: Icon(
+                              isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                              color: isDarkMode ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),   
-                    IconButton(
-                  onPressed: _toggleDarkMode,
-                  icon: Icon(
-                    isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
+                    TabBar(
+                      isScrollable: true,
+                      indicator: BoxDecoration(),
+                      labelStyle: TextStyle(fontSize: 15),
+                      labelPadding: EdgeInsets.symmetric(horizontal: 20),
+                      tabs: filteredCategories
+                          .map<Tab>((category) => Tab(text: category))
+                          .toList(),
+                      unselectedLabelColor:
+                          isDarkMode ? Colors.grey : Colors.grey,
+                      labelColor: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                    Flexible(
+                      flex: 1,
+                      child: showShimmer
+                          ? Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: GridView.builder(
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 8.0,
+                                  mainAxisSpacing: 8.0,
+                                  childAspectRatio: 0.8,
+                                ),
+                                itemCount: 6, // Adjust the item count
+                                itemBuilder: (_, __) => buildShimmerItemCard(),
+                              ),
+                            )
+                          : TabBarView(
+                              children: filteredCategories
+                                  .map<Widget>((category) => ItemWidget(
+                                        category: category,
+                                        searchQuery: _searchController.text,
+                                        isDarkMode: isDarkMode,
+                                        toggleDarkMode: _toggleDarkMode,
+                                        onItemAdded: _updateCartItemCount,
+                                      ))
+                                  .toList(),
+                            ),
                     ),
                   ],
                 ),
               ),
-                  TabBar(
-                    isScrollable: true,
-                    indicator: BoxDecoration(),
-                    labelStyle: TextStyle(fontSize: 15),
-                    labelPadding: EdgeInsets.symmetric(horizontal: 20),
-                    tabs: filteredCategories
-                        .map<Tab>((category) => Tab(text: category))
-                        .toList(),
-                    unselectedLabelColor:
-                        isDarkMode ? Colors.grey : Colors.grey,
-                    labelColor: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                  Flexible(
-                    flex: 1,
-                    child: showShimmer 
-                        ? Shimmer.fromColors(
-                            baseColor: Colors.grey[300]!,
-                            highlightColor: Colors.grey[100]!,
-                            child: GridView.builder(
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 8.0,
-                                mainAxisSpacing: 8.0,
-                                childAspectRatio: 0.8,
+              bottomNavigationBar: HomeNavBar(
+                isDarkMode: isDarkMode,
+                isSwitchOn: _isSwitchOn,
+                toggleDarkMode: _toggleDarkMode,
+                onSwitchChanged: _toggleSwitch,
+              ),
+              floatingActionButton: Stack(
+                children: [
+                  if (_subButtons) // Conditionally render the gesture detector
+                    AnimatedOpacity(
+                      opacity: _isSwitchOn ? 1.0 : 0.0,
+                      duration: Duration(milliseconds: 200),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _subButtons = false; // Close sub-buttons
+                            _isSwitchOn = true;
+                          });
+                        },
+                        child: Container(
+                          color: Colors.black
+                              .withOpacity(0.0), // Invisible backdrop
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                        ),
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // Select table button
+                        AnimatedOpacity(
+                          opacity: _isSwitchOn ? 1.0 : 0.0,
+                          duration: Duration(milliseconds: 200),
+                          child: _isSwitchOn
+                              ? FloatingActionButton(
+                                  onPressed: () async {
+                                    SharedPreferences prefs =
+                                        await SharedPreferences.getInstance();
+                                    List<String>? cartItems =
+                                        prefs.getStringList('cartItems');
+                                    if (cartItems != null &&
+                                        cartItems.length >= 1) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Please settle your transactions first'),
+                                          duration: Duration(seconds: 2),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    } else {
+                                      setState(() {
+                                        _subButtons = !_subButtons;
+                                        _isSwitchOn = !_isSwitchOn;
+                                      });
+                                    }
+                                  },
+                                  child: Icon(Icons.more_horiz),
+                                  backgroundColor: isDarkMode
+                                      ? Colors.grey.withOpacity(0.85)
+                                      : Colors.orange.withOpacity(0.85),
+                                  foregroundColor: Colors.white,
+                                  elevation: 4.0,
+                                )
+                              : SizedBox(),
+                        ),
+                        // Sub-buttons
+                        Visibility(
+                          visible: _subButtons,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                width: 100,
+                                child: Opacity(
+                                  opacity: _subButtons ? 1.0 : 0.0,
+                                  child: AnimatedOpacity(
+                                    opacity: _subButtons ? 1.0 : 0.0,
+                                    duration: Duration(milliseconds: 500),
+                                    child: SlideTransition(
+                                      position: Tween<Offset>(
+                                        begin: Offset(-0.1, -0.4),
+                                        end: Offset(-0.1, -0.4),
+                                      ).animate(CurvedAnimation(
+                                        parent: _animationController,
+                                        curve: Curves.easeInOut,
+                                      )),
+                                      child: FloatingActionButton(
+                                        onPressed: () {
+                                          // Implement the functionality for the "New Order" button
+                                        },
+                                        child: Text('Add Order'),
+                                        backgroundColor: isDarkMode
+                                            ? Colors.grey.withOpacity(0.85)
+                                            : Color.fromARGB(255, 33, 155, 255)
+                                                .withOpacity(0.85),
+                                        foregroundColor: Colors.white,
+                                        elevation: 4.0,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                              itemCount: 6, // Adjust the item count
-                              itemBuilder: (_, __) => buildShimmerItemCard(),
-                            ),
-                          )
-                        : TabBarView(
-                            children: filteredCategories
-                                .map<Widget>((category) => ItemWidget(
-                                      category: category,
-                                      searchQuery: _searchController.text,
-                                      isDarkMode: isDarkMode,
-                                      toggleDarkMode: _toggleDarkMode,
-                                      onItemAdded: _updateCartItemCount,
-                                    ))
-                                .toList(),
+                              SizedBox(height: 8),
+                              SizedBox(
+                                width: 100,
+                                child: Opacity(
+                                  opacity: _subButtons ? 1.0 : 0.0,
+                                    child: AnimatedOpacity(
+                                      opacity: _subButtons ? 1.0 : 0.0,
+                                      duration: Duration(milliseconds: 500),
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                        begin: Offset(-0.1, -0.3),
+                                        end: Offset(-0.1, -0.3),
+                                        ).animate(CurvedAnimation(
+                                          parent: _animationController,
+                                          curve: Curves.easeInOut,
+                                        )),
+                                        child: FloatingActionButton(
+                                          onPressed: () {
+                                            // Implement the functionality for the "New Order" button
+                                          },
+                                          child: Text('New Order'),
+                                          backgroundColor: isDarkMode
+                                              ? Colors.grey.withOpacity(0.85)
+                                              : Colors.orange.withOpacity(0.85),
+                                          foregroundColor: Colors.white,
+                                          elevation: 4.0,
+                                        ),
+                                      ),
+                                    ),
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              SizedBox(
+                                width: 100,
+                                child: Opacity(
+                                  opacity: _subButtons ? 1.0 : 0.0,
+                                  child: AnimatedOpacity(
+                                    opacity: _subButtons ? 1.0 : 0.0,
+                                    duration: Duration(milliseconds: 500),
+                                    child: AnimatedOpacity(
+                                      opacity: _subButtons ? 1.0 : 0.0,
+                                      duration: Duration(milliseconds: 500),
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                        begin: Offset(-0.1, -0.2),
+                                        end: Offset(-0.1, -0.2),
+                                        ).animate(CurvedAnimation(
+                                          parent: _animationController,
+                                          curve: Curves.easeInOut,
+                                        )),
+                                        child: FloatingActionButton(
+                                          onPressed: () {
+                                            // Implement the functionality for the "New Order" button
+                                          },
+                                          child: Text('Bill Out'),
+                                          backgroundColor: isDarkMode
+                                              ? Colors.grey.withOpacity(0.85)
+                                              : Color.fromARGB(255, 172, 253, 79).withOpacity(0.85),
+                                          foregroundColor: Colors.white,
+                                          elevation: 4.0,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-            ),
-          ),
-          bottomNavigationBar: HomeNavBar(
-            isDarkMode: isDarkMode,
-            isSwitchOn: _isSwitchOn,
-            toggleDarkMode: _toggleDarkMode,
-            onSwitchChanged: _toggleSwitch,
-          ),
-          floatingActionButton: Align(
-            alignment: Alignment.bottomRight,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                AnimatedOpacity(
-                  opacity: _isSwitchOn ? 1.0 : 0.0,
-                  duration: Duration(milliseconds: 200),
-                  child: _isSwitchOn
-                      ? FloatingActionButton.extended(
-                          onPressed: () async {
-                            SharedPreferences prefs =
-                                await SharedPreferences.getInstance();
-                            List<String>? cartItems =
-                                prefs.getStringList('cartItems');
-                            if (cartItems != null && cartItems.length >= 1) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'Please settle your transactions first'),
-                                  duration: Duration(seconds: 2),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => SelectTablePage()),
-                              );
-                            }
-                          },
-                          label: Text(labelText),
-                          icon: Icon(Icons.table_chart),
-                          backgroundColor: isDarkMode
-                              ? Colors.grey.withOpacity(0.85)
-                              : Colors.orange.withOpacity(0.85),
-                          foregroundColor: Colors.white,
-                          elevation: 4.0,
-                        )
-                      : SizedBox(),
-                ),
-                
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+              ),
+            )));
   }
 
   Widget buildShimmerItemCard() {

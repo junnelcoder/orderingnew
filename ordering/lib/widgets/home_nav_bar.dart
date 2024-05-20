@@ -29,7 +29,6 @@ class _HomeNavBarState extends State<HomeNavBar> {
   int?
       _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
   List<String>? _cachedCartItems;
-  String loggedIn = "";
   String selectedService = 'Dine In';
 
   @override
@@ -39,7 +38,6 @@ class _HomeNavBarState extends State<HomeNavBar> {
     _loadSwitchValueFromStorage();
     _refreshOnLoad();
     _startPollingForChanges(Duration(milliseconds: 1));
-    loadUser();
     loadSelectedService();
     setState(() {
       selectedService = 'Dine In';
@@ -85,14 +83,6 @@ class _HomeNavBarState extends State<HomeNavBar> {
       _cachedCartItems = currentCartItems; // Update cached cart items
       return true; // Changes detected
     }
-  }
-
-  Future<void> loadUser() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? username = prefs.getString('username');
-    setState(() {
-      loggedIn = username!;
-    });
   }
 
   bool _listEquals(List<String>? list1, List<String>? list2) {
