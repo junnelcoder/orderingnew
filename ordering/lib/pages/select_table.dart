@@ -44,6 +44,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
     fetchDataFromServer();
     selectedFromShared();
     _fetchThemeMode();
+    // _loadAction();
   }
 
   @override
