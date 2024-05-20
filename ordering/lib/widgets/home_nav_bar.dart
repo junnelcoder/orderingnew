@@ -211,136 +211,139 @@ class _HomeNavBarState extends State<HomeNavBar> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            
             SizedBox(
-  width: 110, // Set your desired width here
-  child: FloatingActionButton.extended(
-    onPressed: () {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Select Service'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      selectedService = 'Dine In';
-                    });
-                    saveSelectedService('Dine In');
-                    Navigator.pop(context);
-                  },
-                  child: ListTile(
-                    title: Text('Dine In'),
-                  ),
-                ),
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      selectedService = 'Take Out';
-                    });
-                    saveSelectedService('Take Out');
-                    Navigator.pop(context);
-                  },
-                  child: ListTile(
-                    title: Text('Take Out'),
-                  ),
-                ),
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      selectedService = 'Pick Up';
-                    });
-                    saveSelectedService('Pick Up');
-                    Navigator.pop(context);
-                  },
-                  child: ListTile(
-                    title: Text('Pick Up'),
-                  ),
-                ),
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      selectedService = 'Delivery';
-                    });
-                    saveSelectedService('Delivery');
-                    Navigator.pop(context);
-                  },
-                  child: ListTile(
-                    title: Text('Delivery'),
-                  ),
-                ),
-              ],
+              width: 110, // Set your desired width here
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Select Service'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectedService = 'Dine In';
+                                });
+                                saveSelectedService('Dine In');
+                                Navigator.pop(context);
+                              },
+                              child: ListTile(
+                                leading: Icon(Icons.restaurant_menu),
+                                title: Text('Dine In'),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectedService = 'Take Out';
+                                });
+                                saveSelectedService('Take Out');
+                                Navigator.pop(context);
+                              },
+                              child: ListTile(
+                                leading: Icon(Icons.takeout_dining),
+                                title: Text('Take Out'),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectedService = 'Pick Up';
+                                });
+                                saveSelectedService('Pick Up');
+                                Navigator.pop(context);
+                              },
+                              child: ListTile(
+                                leading: Icon(Icons.store_mall_directory),
+                                title: Text('Pick Up'),
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectedService = 'Delivery';
+                                });
+                                saveSelectedService('Delivery');
+                                Navigator.pop(context);
+                              },
+                              child: ListTile(
+                                leading: Icon(Icons.delivery_dining),
+                                title: Text('Delivery'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+                label: Text(selectedService),
+                icon: Icon(Icons.room_service),
+                backgroundColor: widget.isDarkMode
+                    ? Colors.grey.withOpacity(0.85)
+                    : Colors.blue.withOpacity(0.85),
+                foregroundColor: Colors.white,
+                elevation: 10.0,
+              ),
             ),
-          );
-        },
-      );
-    },
-    label: Text(selectedService),
-    icon: Icon(Icons.room_service),
-    backgroundColor: widget.isDarkMode
-        ? Colors.grey.withOpacity(0.85)
-        : Colors.blue.withOpacity(0.85),
-    foregroundColor: Colors.white,
-    elevation: 10.0,
-  ),
-),
 
-    // Padding added here to move the cartPage button to the left
-    Padding(
-      padding: EdgeInsets.only(right: 50.0),
-      child: GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(context, "cartPage");
-              },
-              child: Stack(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: widget.isDarkMode ? Colors.grey : Colors.black,
-                      borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: widget.isDarkMode
-                              ? Colors.grey.withOpacity(0)
-                              : Colors.black.withOpacity(0.4),
-                          spreadRadius: 1,
-                          blurRadius: 6,
-                        ),
-                      ],
+            // Padding added here to move the cartPage button to the left
+            Padding(
+              padding: EdgeInsets.only(right: 50.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, "cartPage");
+                },
+                child: Stack(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: widget.isDarkMode ? Colors.grey : Colors.black,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.isDarkMode
+                                ? Colors.grey.withOpacity(0)
+                                : Colors.black.withOpacity(0.4),
+                            spreadRadius: 1,
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.assignment_add,
+                        color: Colors.white,
+                        size: 40,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.assignment_add,
-                      color: Colors.white,
-                      size: 40,
-                    ),
-                  ),
-                  if (_openCartItemsCount != null && _openCartItemsCount! > 0)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.red,
-                        ),
-                        child: Text(
-                          _openCartItemsCount.toString(),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
+                    if (_openCartItemsCount != null && _openCartItemsCount! > 0)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.red,
+                          ),
+                          child: Text(
+                            _openCartItemsCount.toString(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-    ),
 
             // Existing code for switch button and label
             Container(
