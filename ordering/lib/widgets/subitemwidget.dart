@@ -1,16 +1,18 @@
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import 'package:ordering/pages/ip_screen.dart';
-import 'package:ordering/pages/subPage.dart';
+import 'package:intl/intl.dart';
+// import 'package:ordering/pages/ip_screen.dart';
+// import 'package:ordering/pages/subPage.dart';
 import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
-import '../pages/single_item_page.dart';
+import '../pages/subsingle_item_page.dart';
 import '../pages/config.dart';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
+// import 'package:intl/intl.dart';
 
 class SubItemWidget extends StatefulWidget {
   final String itemcode;
@@ -44,7 +46,8 @@ class _SubItemWidgetState extends State<SubItemWidget> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
     const Duration timeoutDuration = Duration(seconds: 5);
-    String url = 'http://$ipAddress:${AppConfig.serverPort}/api/subitems?itemcode=${Uri.encodeQueryComponent(widget.itemcode)}';
+    String url =
+        'http://$ipAddress:${AppConfig.serverPort}/api/subitems?itemcode=${Uri.encodeQueryComponent(widget.itemcode)}';
 
     try {
       final response = await http
@@ -172,7 +175,8 @@ class _SubItemWidgetState extends State<SubItemWidget> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -213,109 +217,213 @@ class _SubItemWidgetState extends State<SubItemWidget> {
         margin: EdgeInsets.all(8.0),
         decoration: BoxDecoration(
           color: widget.isDarkMode
-              ? Colors.grey[800]
-              : Colors.white,
+              ? Colors.grey.withOpacity(0.7)
+              : Colors.white.withOpacity(0.85),
           borderRadius: BorderRadius.circular(20.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 4.0,
-              offset: Offset(2, 4),
+              color: widget.isDarkMode ? Colors.black : Colors.grey,
+              blurRadius: widget.isDarkMode ? 0.0 : 5.0,
+              offset: Offset(0, 3),
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20.0),
-                  topRight: Radius.circular(20.0),
+        child: InkWell(
+          onTap: () async {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            String? selectedTablesString = prefs.getString('selectedTables');
+            String? switchValue = prefs.getString('switchValue');
+            if (switchValue == "QS" ||
+                (selectedTablesString != null &&
+                    selectedTablesString.isNotEmpty)) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SubSingleItemPage(item: item),
                 ),
-                child: Image.network(
-                  item.picture_path,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Center(
-                      child: Icon(
-                        Icons.fastfood,
-                        size: 50,
-                        color: widget.isDarkMode
-                            ? Colors.white
-                            : Colors.black,
-                      ),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Please select a table first'),
+                  duration: Duration(seconds: 1),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              LimitedBox(
+                maxHeight: 90.0,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Image.network(
+                      _getImagePathForItem(item),
+                      fit: BoxFit
+                          .contain, // Adjust the fit based on your design requirements
+                      height: constraints.maxHeight,
+                      width: constraints.maxWidth,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Icon(
+                            Icons.fastfood,
+                            size: 70,
+                            color:
+                                widget.isDarkMode ? Colors.white : Colors.black,
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.itemname,
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                      color: widget.isDarkMode
-                          ? Colors.white
-                          : Colors.black,
-                    ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  item.itemname,
+                  style: TextStyle(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isDarkMode
+                        ? Colors.white.withOpacity(0.7)
+                        : Colors.black.withOpacity(0.85),
                   ),
-                  SizedBox(height: 4.0),
-                  Text(
-                    'Price: ${item.sellingprice.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 14.0,
-                      color: widget.isDarkMode
-                          ? Colors.white
-                          : Colors.black,
-                    ),
-                  ),
-                ],
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0, vertical: 4.0),
-              child: Row(
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Text(
+                  "${item.itemcode}",
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: widget.isDarkMode
+                        ? Colors.white.withOpacity(0.8)
+                        : Colors.black.withOpacity(0.85),
+                  ),
+                ),
+              ),
+              SizedBox(height: 4.0),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Code: ${item.itemcode}',
-                    style: TextStyle(
-                      fontSize: 12.0,
-                      color: widget.isDarkMode
-                          ? Colors.white
-                          : Colors.black,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      "\₱${item.sellingprice.toStringAsFixed(2)}",
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.bold,
+                        color: widget.isDarkMode
+                            ? Colors.white.withOpacity(0.7)
+                            : Colors.black.withOpacity(0.85),
+                      ),
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(
-                      CupertinoIcons.plus,
-                      color: widget.isDarkMode
-                          ? Colors.white
-                          : Colors.black,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: InkWell(
+                      onTap: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        String? selectedTablesString =
+                            prefs.getString('selectedTables');
+                        String? switchValue = prefs.getString('switchValue');
+                        if (switchValue == "QS" ||
+                            (selectedTablesString != null &&
+                                selectedTablesString.isNotEmpty)) {
+                          Fluttertoast.showToast(
+                            msg: 'Item successfully added to orders tab',
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            backgroundColor: Colors.greenAccent,
+                            textColor: Colors.white,
+                          );
+                          _saveItemToLocal(item);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Please selt a table first'),
+                              duration: Duration(seconds: 3),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
+                      child: Icon(
+                        CupertinoIcons.plus,
+                        size: 25,
+                        color: widget.isDarkMode
+                            ? Colors.white.withOpacity(0.7)
+                            : Colors.black.withOpacity(0.85),
+                      ),
                     ),
-                    onPressed: () {
-                      // Add your item to cart logic here
-                      widget.onItemAdded();
-                    },
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
+  String _getImagePathForItem(SubItem item) {
+    if (item.picture_path.trim().isNotEmpty) {
+      return item.picture_path;
+    } else {
+      String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
+      String ipAddress = AppConfig.serverIPAddress;
+      // Construct the URL to fetch the image dynamically from the server
+      return 'http://$ipAddress:${AppConfig.serverPort}/api/image/$itemcode';
+    }
+  }
+
+  Future<void> _saveItemToLocal(SubItem item) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String>? cartItems = prefs.getStringList('cartItems') ?? [];
+      String? storedUsername = prefs.getString('username');
+      // Generate a unique identifier for the main item
+      String mainItemId = UniqueKey().toString();
+      String? terminalId = prefs.getString('terminalId');
+      var mainItemDetails = {
+        'id': mainItemId,
+        'pa_id': storedUsername,
+        'machine_id': terminalId.toString(),
+        'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        'itemcode': item.itemcode,
+        'itemname': item.itemname,
+        'category': item.category,
+        'qty': '1',
+        'unitprice': item.unitPrice.toString(),
+        'markup': item.markup.toString(),
+        'sellingprice': item.sellingprice.toString(),
+        'department': item.department,
+        'uom': item.uom,
+        'vatable': item.vatable,
+        'tran_time': DateFormat('HH:mm:ss').format(DateTime.now()),
+        'division': item.division,
+        'section': item.section,
+        'close_status': item.close_status.toString(),
+        'picture_path': item.picture_path,
+        'brand': item.brand,
+        'subtotal': item.sellingprice.toString(),
+        'total': item.sellingprice.toString(),
+      };
+
+      cartItems.add(json.encode(mainItemDetails));
+
+      await prefs.setStringList('cartItems', cartItems);
+      print('Cart Items: $cartItems');
+    } catch (e) {
+      print('Error saving item to local storage: $e');
+      throw Exception('Failed to save item to local storage');
+    }
+  }
+}
 
 class SubItem {
   final String itemname;
@@ -384,9 +492,8 @@ class SubItem {
           : 0,
       picture_path: json['picture_path'] ?? '',
       brand: json['brand'] ?? '',
-      total: json['total'] != null
-          ? double.parse(json['total'].toString())
-          : 0.0,
+      total:
+          json['total'] != null ? double.parse(json['total'].toString()) : 0.0,
       subtotal: json['subtotal'] != null
           ? double.parse(json['subtotal'].toString())
           : 0.0,

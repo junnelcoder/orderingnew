@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+// import 'package:flutter/services.dart';
+// import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -163,20 +163,28 @@ class _SubPageState extends State<SubPage> with WidgetsBindingObserver {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    selectedFromShared();
-    String itemName = widget.item.itemname; // Extract the single item name
-    // Check if items are empty to show shimmer effect
-    bool showShimmer = itemName.isEmpty;
+@override
+Widget build(BuildContext context) {
+  selectedFromShared();
+  String itemName = widget.item.itemname; // Extract the single item name
+   // Define back button color based on isDarkMode
 
-    return Scaffold(
-      body: CustomScrollView(
+  return Scaffold(
+    body: Container(
+      color: isDarkMode ? Color(0xFF222222) : Colors.white,  // Set the background color here
+      child: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
             pinned: true,
             floating: true,
             expandedHeight: 160.0,
+            backgroundColor:  isDarkMode ? Color(0xFF222222) : Colors.white,  // Set background color of the SliverAppBar
+            leading: IconButton( // Customize back button
+              icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Color(0xFF222222)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 children: <Widget>[
@@ -191,7 +199,7 @@ class _SubPageState extends State<SubPage> with WidgetsBindingObserver {
                         child: Icon(
                           Icons.fastfood,
                           size: 100,
-                          color: isDarkMode ? Colors.black : Colors.white, // Use error color from the theme
+                          color: isDarkMode ? Colors.white : Colors.black, // Use error color from the theme
                         ),
                       );
                     },
@@ -224,9 +232,81 @@ class _SubPageState extends State<SubPage> with WidgetsBindingObserver {
           ),
         ],
       ),
+    ),
+  );
+}
+
+
+
+Widget buildShimmerItemCard() {
+    return Card(
+      color: Colors.white,
+      margin: EdgeInsets.all(8.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      elevation: 4.0,
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      topRight: Radius.circular(20.0),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Container(
+                  height: 16.0,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8.0),
+                child: Container(
+                  height: 16.0,
+                  width: 100.0,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Container(
+                  height: 16.0,
+                  width: 80.0,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
-
   void _updateCartItemCount() {
     setState(() {
       // Refresh the state to update the item count in the HomeNavBar

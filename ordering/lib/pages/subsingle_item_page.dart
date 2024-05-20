@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import '../widgets/item_widget.dart';
+// import '../widgets/item_widget.dart';
 import 'package:ordering/widgets/subitemwidget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../pages/config.dart';
@@ -12,7 +12,7 @@ import '../pages/config.dart';
 final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
 class SubSingleItemPage extends StatefulWidget {
-  final Item item;
+  final SubItem item;
   const SubSingleItemPage({required this.item});
 
   @override
@@ -219,7 +219,7 @@ class _SubSingleItemPageState extends State<SubSingleItemPage>
   }
 
   Future<void> _saveItemToLocal(
-      Item item, int quantity, List<String> selectedNotes) async {
+      SubItem item, int quantity, List<String> selectedNotes) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       List<String>? cartItems = prefs.getStringList('cartItems') ?? [];
@@ -568,7 +568,7 @@ Text(
     );
   }
 
-  String _getImagePathForItem(Item item) {
+  String _getImagePathForItem(SubItem item) {
     if (item.picture_path.trim().isNotEmpty) {
       return item.picture_path;
     } else {
