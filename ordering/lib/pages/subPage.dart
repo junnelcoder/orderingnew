@@ -7,18 +7,30 @@ import 'package:shimmer/shimmer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../widgets/item_widget.dart';
+import '../widgets/subitemwidget.dart';
 import 'config.dart';
 
-class subPage extends StatefulWidget {
+class SubPage extends StatefulWidget {
   final Item item; // Accept item as a parameter
 
-  subPage({required this.item});
+  SubPage({required this.item});
 
   @override
-  _subPageState createState() => _subPageState();
+  _SubPageState createState() => _SubPageState();
 }
 
-class _subPageState extends State<subPage> with WidgetsBindingObserver {
+String _getImagePathForItem(Item item) {
+  if (item.picture_path.trim().isNotEmpty) {
+    return item.picture_path;
+  } else {
+    String itemcode = item.itemcode.trim().toUpperCase().replaceAll(' ', '_');
+    String ipAddress = AppConfig.serverIPAddress;
+    // Construct the URL to fetch the image dynamically from the server
+    return 'http://$ipAddress:${AppConfig.serverPort}/api/image/$itemcode';
+  }
+}
+
+class _SubPageState extends State<SubPage> with WidgetsBindingObserver {
   late TextEditingController _searchController;
   bool isDarkMode = false;
   String selectedService = 'Dine In';
@@ -152,166 +164,65 @@ class _subPageState extends State<subPage> with WidgetsBindingObserver {
   }
 
   @override
-Widget build(BuildContext context) {
-  selectedFromShared();
-  String itemName = widget.item.itemname; // Extract the single item name
-  // Check if items are empty to show shimmer effect
-  bool showShimmer = itemName.isEmpty;
+  Widget build(BuildContext context) {
+    selectedFromShared();
+    String itemName = widget.item.itemname; // Extract the single item name
+    // Check if items are empty to show shimmer effect
+    bool showShimmer = itemName.isEmpty;
 
-  return WillPopScope(
-    onWillPop: () async {
-      if (currentBackPressTime == null ||
-          DateTime.now().difference(currentBackPressTime!) >
-              Duration(seconds: 3)) {
-        // If currentBackPressTime is null or elapsed time is more than 3 seconds,
-        // update currentBackPressTime and show toast message
-        currentBackPressTime = DateTime.now();
-        Fluttertoast.showToast(
-          msg: "Press back again to exit",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red.withOpacity(0.8),
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
-
-        return false; // Return false to prevent exiting the app
-      } else {
-        SystemNavigator.pop(); // Exit the app
-        return false; // Return true to exit the app
-      }
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        backgroundColor: isDarkMode ? Colors.black.withOpacity(0) : Colors.white,
-        title: Text(''),
-        leading: Container(
-          padding: EdgeInsets.all(2.0), // Adjust padding as needed
-          child: IconButton(
-            icon: Icon(Icons.arrow_back),
-            color: isDarkMode ? Colors.white : Colors.black, // Change the icon color
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-        iconTheme: IconThemeData(
-          color: isDarkMode ? Colors.white : Colors.black,
-        ), // Change color to red
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(50),
-          child: SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 2),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: isDarkMode
-                              ? Colors.white
-                              : Colors.black, // Underline color
-                          width: 2.0, // Underline thickness
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: <Widget>[
+          SliverAppBar(
+            pinned: true,
+            floating: true,
+            expandedHeight: 160.0,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                children: <Widget>[
+                  // Background image
+                  Image.network(
+                    _getImagePathForItem(widget.item),
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    height: double.infinity,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
+                        child: Icon(
+                          Icons.fastfood,
+                          size: 100,
+                          color: isDarkMode ? Colors.black : Colors.white, // Use error color from the theme
                         ),
+                      );
+                    },
+                  ),
+                  // Positioned title
+                  Positioned(
+                    bottom: 16.0,
+                    left: 16.0,
+                    right: 16.0,
+                    child: Text(
+                      itemName,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(width: 10), // Adjust spacing as needed
-                        Text(
-                          itemName,
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
-                        ),
-                        SizedBox(width: 10), // Adjust spacing as needed
-                      ],
                     ),
                   ),
                 ],
               ),
             ),
           ),
-        ),
-      ),
-      backgroundColor: isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
-    ),
-  );
-}
-
-
-  Widget buildShimmerItemCard() {
-    return Card(
-      color: Colors.white,
-      margin: EdgeInsets.all(8.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.0),
-      ),
-      elevation: 4.0,
-      child: Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(20.0),
+          SliverToBoxAdapter(
+            child: SubItemWidget(
+              itemcode: widget.item.itemcode,
+              isDarkMode: isDarkMode,
+              toggleDarkMode: _toggleDarkMode,
+              onItemAdded: _updateCartItemCount,
+            ),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[900],
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20.0),
-                      topRight: Radius.circular(20.0),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Container(
-                  height: 16.0,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[900],
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: Container(
-                  height: 16.0,
-                  width: 100.0,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[900],
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Container(
-                  height: 16.0,
-                  width: 80.0,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[900],
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -322,4 +233,3 @@ Widget build(BuildContext context) {
     });
   }
 }
-
