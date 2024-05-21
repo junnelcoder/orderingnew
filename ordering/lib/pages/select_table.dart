@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ordering/pages/home_page.dart';
@@ -35,6 +34,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
   List<String> tableOccupiedArr = [];
   List<String> tableNotOccupiedArr = [];
   String alreadySelectedTable = "";
+  String operation = "";
   bool isDarkMode = false;
 
   @override
@@ -44,7 +44,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
     fetchDataFromServer();
     selectedFromShared();
     _fetchThemeMode();
-    // _loadAction();
+    _loadOperation();
   }
 
   @override
@@ -71,6 +71,13 @@ class _SelectTablePageState extends State<_SelectTablePage>
     }
   }
 
+  Future<void> _loadOperation() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      operation = prefs.getString('tablePageOperation')!;
+    });
+  }
+
   Future<void> removeTablesFromShared(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('selectedTables');
@@ -85,9 +92,9 @@ class _SelectTablePageState extends State<_SelectTablePage>
         Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
     var requestBody = jsonEncode({
       'selectedIndex': temp,
-      'action': action, 
+      'action': action,
       'previousIndex': table,
-        'changeSelected': change,
+      'changeSelected': change,
     });
     var response = await http.post(
       apiUrl,
@@ -102,6 +109,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
       print('Response body: ${response.body}');
     }
   }
+
   void _clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
@@ -149,6 +157,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
         print('Response body: ${response.body}');
       }
     } else {
+      if(operation=="select"){
       await prefs.setString('selectedTables2', table);
       List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
       List<int> temp = [retrievedIndexes[0]];
@@ -175,6 +184,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
         print('Failed to occupy tables. Status code: ${response.statusCode}');
         print('Response body: ${response.body}');
       }
+    }
     }
 
     String? currentPage = prefs.getString('currentPage');
@@ -203,6 +213,17 @@ class _SelectTablePageState extends State<_SelectTablePage>
     );
   }
 
+  Future<void> addOrder(String tableNum) async {
+    Fluttertoast.showToast(
+      msg: '$tableNum is already ',
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.greenAccent,
+      textColor: Colors.white,
+    );
+  }
+
   Future<void> saveSelectedTables(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedTables', table);
@@ -219,31 +240,32 @@ class _SelectTablePageState extends State<_SelectTablePage>
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('selectedTables');
     await prefs.remove('selectedTables2');
-
-    List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
-    List<int> temp = [retrievedIndexes[0]];
-    int action = 0;
-    int change = 0;
-    String? ipAddress = prefs.getString('ipAddress');
-    var apiUrl =
-        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
-    var requestBody = jsonEncode({
-      'selectedIndex': temp,
-      'action': action, 
-      'previousIndex': table,
+    if (operation == "select") {
+      List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
+      List<int> temp = [retrievedIndexes[0]];
+      int action = 0;
+      int change = 0;
+      String? ipAddress = prefs.getString('ipAddress');
+      var apiUrl =
+          Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
+      var requestBody = jsonEncode({
+        'selectedIndex': temp,
+        'action': action,
+        'previousIndex': table,
         'changeSelected': change,
-    });
-    var response = await http.post(
-      apiUrl,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: requestBody,
-    );
-    if (response.statusCode == 200) {
-    } else {
-      print('Failed to occupy tables. Status code: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      });
+      var response = await http.post(
+        apiUrl,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: requestBody,
+      );
+      if (response.statusCode == 200) {
+      } else {
+        print('Failed to occupy tables. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
+      }
     }
 
     Navigator.push(
@@ -436,8 +458,39 @@ class _SelectTablePageState extends State<_SelectTablePage>
                     onTap: () {
                       setState(() {
                         if (tableStatus != TableStatus.AVAILABLE) {
-                          isOccupied(tableNumber);
-                          return;
+                          if (operation == "add") {
+                            saveSelectedTables(tableNumber);
+                            Fluttertoast.showToast(
+                              msg: 'Adding new orders for $tableNumber',
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              timeInSecForIosWeb: 1,
+                              backgroundColor: Colors.greenAccent,
+                              textColor: Colors.white,
+                            );
+                          } else {
+                            Fluttertoast.showToast(
+                              msg: '$tableNumber is already occupied',
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              timeInSecForIosWeb: 1,
+                              backgroundColor: Colors.greenAccent,
+                              textColor: Colors.white,
+                            );
+                            return;
+                          }
+                        }else{
+                          if (operation == "add") {
+                            Fluttertoast.showToast(
+                              msg: 'No, existing orders for $tableNumber',
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              timeInSecForIosWeb: 1,
+                              backgroundColor: Colors.greenAccent,
+                              textColor: Colors.white,
+                            );
+                            return;
+                          }
                         }
                         if (_tempSelectedTables.contains(tableNumber)) {
                           removeFromShared(transNumber);
@@ -473,20 +526,17 @@ class _SelectTablePageState extends State<_SelectTablePage>
                               ),
                             ],
                           ),
-                         if (isSelected || isSelectedFromPrefs)
-  GestureDetector(
-    onTap: () {
-      removeFromShared(transNumber);
-      _tempSelectedTables.remove(tableNumber);
-    },
-    child: Container(
-      color: Colors.black54.withOpacity(0.5),
-      child: Center(
-       
-      ),
-    ),
-  ),
-
+                          if (isSelected || isSelectedFromPrefs)
+                            GestureDetector(
+                              onTap: () {
+                                removeFromShared(transNumber);
+                                _tempSelectedTables.remove(tableNumber);
+                              },
+                              child: Container(
+                                color: Colors.black54.withOpacity(0.5),
+                                child: Center(),
+                              ),
+                            ),
                         ],
                       ),
                     ),
