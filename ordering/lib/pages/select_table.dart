@@ -73,9 +73,26 @@ class _SelectTablePageState extends State<_SelectTablePage>
 
   Future<void> _loadOperation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      operation = prefs.getString('tablePageOperation')!;
-    });
+    String? current = prefs.getString('tablePageOperation');
+    String? previous = prefs.getString('previousOperation');
+    if (previous != null) {
+      if (current != null && current != previous) {
+         setState(() {
+        operation = current;
+      });
+        await prefs.remove('selectedTables');
+        await prefs.remove('selectedTables2');
+        selectedFromShared();
+        await prefs.setString('previousOperation', current);
+     
+      }
+    } else {
+       setState(() {
+        operation = current!;
+      });
+      await prefs.setString('previousOperation', current!);
+     
+    }
   }
 
   Future<void> removeTablesFromShared(String table) async {
@@ -157,34 +174,34 @@ class _SelectTablePageState extends State<_SelectTablePage>
         print('Response body: ${response.body}');
       }
     } else {
-      if(operation=="select"){
-      await prefs.setString('selectedTables2', table);
-      List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
-      List<int> temp = [retrievedIndexes[0]];
-      int action = 1;
-      int change = 1;
-      String? ipAddress = prefs.getString('ipAddress');
-      var apiUrl =
-          Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
-      var requestBody = jsonEncode({
-        'previousIndex': selectedTables,
-        'selectedIndex': temp,
-        'action': action,
-        'changeSelected': change,
-      });
-      var response = await http.post(
-        apiUrl,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: requestBody,
-      );
-      if (response.statusCode == 200) {
-      } else {
-        print('Failed to occupy tables. Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
+      if (operation == "select") {
+        await prefs.setString('selectedTables2', table);
+        List<int> retrievedIndexes = table.split(',').map(int.parse).toList();
+        List<int> temp = [retrievedIndexes[0]];
+        int action = 1;
+        int change = 1;
+        String? ipAddress = prefs.getString('ipAddress');
+        var apiUrl =
+            Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
+        var requestBody = jsonEncode({
+          'previousIndex': selectedTables,
+          'selectedIndex': temp,
+          'action': action,
+          'changeSelected': change,
+        });
+        var response = await http.post(
+          apiUrl,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: requestBody,
+        );
+        if (response.statusCode == 200) {
+        } else {
+          print('Failed to occupy tables. Status code: ${response.statusCode}');
+          print('Response body: ${response.body}');
+        }
       }
-    }
     }
 
     String? currentPage = prefs.getString('currentPage');
@@ -479,7 +496,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
                             );
                             return;
                           }
-                        }else{
+                        } else {
                           if (operation == "add") {
                             Fluttertoast.showToast(
                               msg: 'No, existing orders for $tableNumber',

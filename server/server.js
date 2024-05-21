@@ -8,7 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const cors = require('cors');
-
+const ip = require('ip');
 // Load configuration file
 const config = require('./config.json');
 
@@ -59,33 +59,40 @@ app.get('/api/image/:itemcode', (req, res) => {
 
 // Function to get the IP address of the Wi-Fi adapter
 const getWiFiIPAddress = () => {
-  const networkInterfaces = os.networkInterfaces();
-  for (const interfaceName in networkInterfaces) {
-    const iface = networkInterfaces[interfaceName];
-    for (const alias of iface) {
-      if (alias.family === 'IPv4' && !alias.internal && interfaceName.includes('Wi-Fi')) {
-        return alias.address;
+  const interfaces = os.networkInterfaces();
+  let wifiIP = null;
+
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        if (name.startsWith('wlan') || name.startsWith('Wi-Fi')) {
+          wifiIP = iface.address;
+        }
       }
     }
   }
-  return null;
+
+  return wifiIP;
 };
 
 // Create a function to start the server
+
 const startServer = () => {
   const server = http.createServer(app);
 
-  const wifiIP = getWiFiIPAddress();
+  let ipAddr = getWiFiIPAddress();
   const port = 3009;
 
-  if (!wifiIP) {
-    console.error('Wi-Fi IP address not found.');
-    return;
+  if (!ipAddr) {
+    ipAddr = ip.address(); // Fallback to Ethernet IP address
+    if (!ipAddr) {
+      console.error('No Wi-Fi or Ethernet IP address found.');
+      return;
+    }
   }
 
-  server.listen(port, wifiIP, () => {
-    console.log(`Server is running at http://${wifiIP}`);
-    // :${port}
+  server.listen(port, ipAddr, () => {
+    console.log(`Server is running at http://${ipAddr}:${port}`);
   });
 
   // Handle server errors

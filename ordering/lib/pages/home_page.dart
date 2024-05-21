@@ -453,8 +453,8 @@ class _HomePageState extends State<HomePage>
                                   },
                                   child: Icon(Icons.more_horiz),
                                   backgroundColor: isDarkMode
-                                      ? Colors.grey.withOpacity(0.65)
-                                      : const Color.fromARGB(255, 248, 208, 147)
+                                      ? const Color.fromARGB(255, 243, 238, 238).withOpacity(0.65)
+                                      : const Color.fromARGB(255, 97, 2, 140)
                                           .withOpacity(0.85),
                                   foregroundColor: Colors.white,
                                   elevation: 4.0,
