@@ -74,25 +74,25 @@ class _SelectTablePageState extends State<_SelectTablePage>
   Future<void> _loadOperation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? current = prefs.getString('tablePageOperation');
-    String? previous = prefs.getString('previousOperation');
-    if (previous != null) {
-      if (current != null && current != previous) {
+    // String? previous = prefs.getString('previousOperation');
+    // if (previous != null) {
+    //   if (current != null && current != previous) {
          setState(() {
-        operation = current;
-      });
-        await prefs.remove('selectedTables');
-        await prefs.remove('selectedTables2');
-        selectedFromShared();
-        await prefs.setString('previousOperation', current);
-     
-      }
-    } else {
-       setState(() {
         operation = current!;
       });
-      await prefs.setString('previousOperation', current!);
+    //     await prefs.remove('selectedTables');
+    //     await prefs.remove('selectedTables2');
+    //     selectedFromShared();
+    //     await prefs.setString('previousOperation', current);
      
-    }
+    //   }
+    // } else {
+    //    setState(() {
+    //     operation = current!;
+    //   });
+    //   await prefs.setString('previousOperation', current!);
+     
+    // }
   }
 
   Future<void> removeTablesFromShared(String table) async {
@@ -251,6 +251,8 @@ class _SelectTablePageState extends State<_SelectTablePage>
     String? temp = prefs.getString('selectedTables');
     alreadySelectedTable = temp ?? '';
     _tempSelectedTables.add(alreadySelectedTable);
+
+
   }
 
   Future<void> removeFromShared(String table) async {
