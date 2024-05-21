@@ -128,10 +128,10 @@ router.post('/add-to-cart', async (req, res) => {
 
     for (const item of cartItems) {
       const { pa_id, machine_id, trans_date, itemcode,
-         itemname, category, qty, unitprice, markup, 
-         sellingprice, subtotal, total, department, 
-         uom, vatable, tran_time, division, section, 
-         brand, close_status } = JSON.parse(item);
+        itemname, category, qty, unitprice, markup,
+        sellingprice, subtotal, total, department,
+        uom, vatable, tran_time, division, section,
+        brand, close_status } = JSON.parse(item);
 
       subtotalAmount += parseFloat(subtotal);
       totalAmount += parseFloat(total);
@@ -256,29 +256,29 @@ router.get('/tableno', async (req, res) => {
 
 router.post('/occupy', async (req, res) => {
   try {
-    const { previousIndex, selectedIndex, action , changeSelected} = req.body;
+    const { previousIndex, selectedIndex, action, changeSelected } = req.body;
     const change = req.body.changeSelected;
-    console.log("change ",change);
-    console.log("previous ",previousIndex);
-    console.log("selected ",selectedIndex);
+    console.log("change ", change);
+    console.log("previous ", previousIndex);
+    console.log("selected ", selectedIndex);
     if (isNaN(selectedIndex)) {
       return res.status(400).json({ error: 'Invalid input. Please provide a valid integer.' });
     }
 
     const pool = await sql.connect(config);
-    if(change != 1){
+    if (change != 1) {
       const updateQuery = `
     UPDATE [dbo].[tableno]
     SET [occupied] = @action
     WHERE [trans_no] = @selectedIndex
   `;
-const request = pool.request();
-request.input('selectedIndex', sql.Int, selectedIndex);
-request.input('action', sql.Int, action);
+      const request = pool.request();
+      request.input('selectedIndex', sql.Int, selectedIndex);
+      request.input('action', sql.Int, action);
 
-const result = await request.query(updateQuery);
-res.status(200).json({ message: `Table ${selectedIndex} occupied successfully.` });
-    }else if(changeSelected ==1 ) {
+      const result = await request.query(updateQuery);
+      res.status(200).json({ message: `Table ${selectedIndex} occupied successfully.` });
+    } else if (changeSelected == 1) {
       const changeQuery = `
       UPDATE [dbo].[tableno]
 SET [occupied] = 
@@ -290,15 +290,15 @@ SET [occupied] =
 WHERE [trans_no] IN (@previousIndex, @selectedIndex);
 
     `;
-    
-const request = pool.request();
-request.input('selectedIndex', sql.Int, selectedIndex);
-request.input('previousIndex', sql.Int, previousIndex);
 
-const result = await request.query(changeQuery);
-res.status(200).json({ message: `Table ${selectedIndex} occupied successfully.` });
+      const request = pool.request();
+      request.input('selectedIndex', sql.Int, selectedIndex);
+      request.input('previousIndex', sql.Int, previousIndex);
+
+      const result = await request.query(changeQuery);
+      res.status(200).json({ message: `Table ${selectedIndex} occupied successfully.` });
     }
-    
+
   } catch (err) {
     console.error('Error updating occupied status:', err);
     res.status(500).json({ error: 'Failed to update occupied status.', message: err.message, stack: err.stack });

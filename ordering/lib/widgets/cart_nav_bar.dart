@@ -316,50 +316,6 @@ class _CartNavBarState extends State<CartNavBar> {
     );
   }
 
-  Future<void> sendSelectedIndexToServer() async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? selectedIndexesString = prefs.getString('selectedTables2');
-
-      if (selectedIndexesString != null) {
-        List<int> retrievedIndexes =
-            selectedIndexesString.split(',').map(int.parse).toList();
-        String? ipAddress = prefs.getString('ipAddress');
-        for (int i = 0; i < retrievedIndexes.length; i++) {
-          List<int> temp = [];
-          temp.add(retrievedIndexes[i]);
-          var apiUrl = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
-          var response = await http.post(
-            apiUrl,
-            headers: <String, String>{
-              'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: jsonEncode(temp),
-          );
-
-          if (response.statusCode == 200) {
-            await prefs.remove('selectedTables2');
-            await prefs.remove('selectedTables');
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(),
-              ),
-            );
-          } else {
-            print(
-                'Failed to occupy tables. Status code: ${response.statusCode}');
-            print('Response body: ${response.body}');
-          }
-        }
-      } else {
-        print('Selected indexes string is null.');
-      }
-    } catch (e) {
-      print('Error occupying tables: $e');
-    }
-  }
-
   Future<void> saveOrderToDatabase(List<Map<String, dynamic>> cartItems,
       BuildContext context, String custName) async {
     try {
@@ -414,7 +370,6 @@ class _CartNavBarState extends State<CartNavBar> {
         await prefs.remove('cartItems');
         await prefs.remove('selectedService');
 
-        sendSelectedIndexToServer();
 
         Navigator.pushReplacement(
           context,
@@ -425,6 +380,7 @@ class _CartNavBarState extends State<CartNavBar> {
       } else if (response.statusCode == 200 &&
           response.body.contains('no printer detected')) {
             operationCompleted = true;
+            
         Fluttertoast.showToast(
           msg: "Order saved, but no printer detected",
           toastLength: Toast.LENGTH_SHORT,
@@ -435,8 +391,9 @@ class _CartNavBarState extends State<CartNavBar> {
         await prefs.remove('cartItems');
         await prefs.remove('selectedService');
 
-        sendSelectedIndexToServer();
 
+            await prefs.remove('selectedTables2');
+            await prefs.remove('selectedTables');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

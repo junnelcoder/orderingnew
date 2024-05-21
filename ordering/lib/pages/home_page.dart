@@ -446,32 +446,16 @@ class _HomePageState extends State<HomePage>
                           child: _isSwitchOn
                               ? FloatingActionButton(
                                   onPressed: () async {
-                                    SharedPreferences prefs =
-                                        await SharedPreferences.getInstance();
-                                    List<String>? cartItems =
-                                        prefs.getStringList('cartItems');
-                                    if (cartItems != null &&
-                                        cartItems.length >= 1) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'Please settle your transactions first'),
-                                          duration: Duration(seconds: 2),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    } else {
-                                      setState(() {
-                                        _subButtons = !_subButtons;
-                                        _isSwitchOn = !_isSwitchOn;
-                                      });
-                                    }
+                                    setState(() {
+                                      _subButtons = !_subButtons;
+                                      _isSwitchOn = !_isSwitchOn;
+                                    });
                                   },
                                   child: Icon(Icons.more_horiz),
                                   backgroundColor: isDarkMode
-                                      ? Colors.grey.withOpacity(0.85)
-                                      : Colors.orange.withOpacity(0.85),
+                                      ? Colors.grey.withOpacity(0.65)
+                                      : const Color.fromARGB(255, 248, 208, 147)
+                                          .withOpacity(0.85),
                                   foregroundColor: Colors.white,
                                   elevation: 4.0,
                                 )
@@ -499,9 +483,29 @@ class _HomePageState extends State<HomePage>
                                         curve: Curves.easeInOut,
                                       )),
                                       child: FloatingActionButton(
-                                        onPressed: () {
-                                          
-                  Navigator.pushNamed(context, "table");
+                                        onPressed: () async {
+                                          SharedPreferences prefs =
+                                              await SharedPreferences
+                                                  .getInstance();
+                                          await prefs.setString(
+                                              'tablePageOperation', "select");
+                                          List<String>? cartItems =
+                                              prefs.getStringList('cartItems');
+                                          if (cartItems != null &&
+                                              cartItems.length >= 1) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                    'Please settle your transactions first'),
+                                                duration: Duration(seconds: 2),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          } else {
+                                            Navigator.pushNamed(
+                                                context, "table");
+                                          }
                                         },
                                         child: Text('New Order'),
                                         backgroundColor: isDarkMode
@@ -520,30 +524,35 @@ class _HomePageState extends State<HomePage>
                                 width: 100,
                                 child: Opacity(
                                   opacity: _subButtons ? 1.0 : 0.0,
-                                    child: AnimatedOpacity(
-                                      opacity: _subButtons ? 1.0 : 0.0,
-                                      duration: Duration(milliseconds: 500),
-                                      child: SlideTransition(
-                                        position: Tween<Offset>(
+                                  child: AnimatedOpacity(
+                                    opacity: _subButtons ? 1.0 : 0.0,
+                                    duration: Duration(milliseconds: 500),
+                                    child: SlideTransition(
+                                      position: Tween<Offset>(
                                         begin: Offset(-0.1, -0.3),
                                         end: Offset(-0.1, -0.3),
-                                        ).animate(CurvedAnimation(
-                                          parent: _animationController,
-                                          curve: Curves.easeInOut,
-                                        )),
-                                        child: FloatingActionButton(
-                                          onPressed: () {
-                                            // Implement the functionality for the "New Order" button
-                                          },
-                                          child: Text('Add Order'),
-                                          backgroundColor: isDarkMode
-                                              ? Colors.grey.withOpacity(0.85)
-                                              : Colors.orange.withOpacity(0.85),
-                                          foregroundColor: Colors.white,
-                                          elevation: 4.0,
-                                        ),
+                                      ).animate(CurvedAnimation(
+                                        parent: _animationController,
+                                        curve: Curves.easeInOut,
+                                      )),
+                                      child: FloatingActionButton(
+                                        onPressed: () async {
+                                          SharedPreferences prefs =
+                                              await SharedPreferences
+                                                  .getInstance();
+                                          await prefs.setString(
+                                              'tablePageOperation', "add");
+                                          Navigator.pushNamed(context, "table");
+                                        },
+                                        child: Text('Add Order'),
+                                        backgroundColor: isDarkMode
+                                            ? Colors.grey.withOpacity(0.85)
+                                            : Colors.orange.withOpacity(0.85),
+                                        foregroundColor: Colors.white,
+                                        elevation: 4.0,
                                       ),
                                     ),
+                                  ),
                                 ),
                               ),
                               SizedBox(height: 8),
@@ -559,8 +568,8 @@ class _HomePageState extends State<HomePage>
                                       duration: Duration(milliseconds: 500),
                                       child: SlideTransition(
                                         position: Tween<Offset>(
-                                        begin: Offset(-0.1, -0.2),
-                                        end: Offset(-0.1, -0.2),
+                                          begin: Offset(-0.1, -0.2),
+                                          end: Offset(-0.1, -0.2),
                                         ).animate(CurvedAnimation(
                                           parent: _animationController,
                                           curve: Curves.easeInOut,
@@ -572,7 +581,9 @@ class _HomePageState extends State<HomePage>
                                           child: Text('Bill Out'),
                                           backgroundColor: isDarkMode
                                               ? Colors.grey.withOpacity(0.85)
-                                              : Color.fromARGB(255, 119, 204, 21).withOpacity(0.85),
+                                              : Color.fromARGB(
+                                                      255, 119, 204, 21)
+                                                  .withOpacity(0.85),
                                           foregroundColor: Colors.white,
                                           elevation: 4.0,
                                         ),
