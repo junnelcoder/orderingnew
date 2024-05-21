@@ -100,6 +100,111 @@ router.get('/items', async (req, res) => {
   }
 });
 
+router.get('/checkForBillout', async (req, res) => {
+  const { tableno } = req.query;
+
+  try {
+      const pool = await sql.connect(config);
+
+      // Check if there are sales for the specified table number
+      const isValidForBilloutResult = await pool.request()
+          .input('tableno', sql.VarChar, tableno)
+          .query(`
+              SELECT COUNT(1) AS counter
+              FROM sales
+              WHERE sales_date = (
+                  SELECT MAX(sales_date) 
+                  FROM business_date_res 
+                  WHERE zread_status = 0
+              )
+              AND machine_id = (
+                  SELECT terminal_number 
+                  FROM sys_setup
+              )
+              AND table_no = @tableno
+          `);
+              // console.log(isValidForBilloutResult);
+      const isValidForBillout = isValidForBilloutResult.recordset[0].counter > 0;
+
+      if (isValidForBillout) {
+          // Fetch summary data
+          const summaryResult = await pool.request()
+              .input('tableno', sql.VarChar, tableno)
+              .query(`
+                  SELECT 
+                      DISTINCT sales_date,
+                      ISNULL(RTRIM(LTRIM(table_no)), 'NULL') AS table_no,
+                      ISNULL(RTRIM(LTRIM(cashierid)), 'NULL') AS cashierid,
+                      ISNULL(no_of_pax, 0) AS no_of_pax,
+                      (
+                          SELECT SUM(subtotal) 
+                          FROM sales 
+                          WHERE sales_date = S.sales_date 
+                          AND machine_id = S.machine_id 
+                          AND table_no = S.table_no 
+                          AND official_receipt IS NULL
+                      ) AS subtotal,
+                      (
+                          SELECT billout 
+                          FROM tableno 
+                          WHERE table_no = S.table_no
+                      ) AS billout_tag
+                  FROM sales S
+                  WHERE sales_date = (
+                      SELECT MAX(sales_date) 
+                      FROM business_date_res 
+                      WHERE zread_status = 0
+                  )
+                  AND machine_id = (
+                      SELECT terminal_number 
+                      FROM sys_setup
+                  )
+                  AND table_no = @tableno 
+                  AND status = 'O' 
+                  AND official_receipt IS NULL
+              `);
+
+          const summary = summaryResult.recordset[0];
+
+          // Fetch details data
+          const detailsResult = await pool.request()
+              .input('tableno', sql.VarChar, tableno)
+              .query(`
+                  SELECT 
+                      ctr,
+                      ISNULL(RTRIM(LTRIM(itemcode)), 'NULL') AS itemcode,
+                      ISNULL(qty, 0) AS qty,
+                      ISNULL(RTRIM(LTRIM(itemname)), 'NULL') AS itemname, 
+                      ISNULL(selling_price, 0) AS selling_price,
+                      ISNULL(subtotal, 0) AS subtotal
+                  FROM sales
+                  WHERE sales_date = (
+                      SELECT MAX(sales_date) 
+                      FROM business_date_res 
+                      WHERE zread_status = 0
+                  )
+                  AND machine_id = (
+                      SELECT terminal_number 
+                      FROM sys_setup
+                  ) 
+                  AND table_no = @tableno 
+                  AND status = 'O' 
+                  AND official_receipt IS NULL
+              `);
+
+          const detail = detailsResult.recordset;
+          console.log(detail);
+          console.log(summary);
+          return res.status(200).json({ summary, detail });
+      } else {
+          return res.status(200).json({});
+      }
+  } catch (error) {
+      console.error('Error executing SQL query:', error);
+      return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 
 

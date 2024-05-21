@@ -5,6 +5,7 @@ import 'package:ordering/pages/cart_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'billlout_order.dart';
 import 'config.dart';
 
 enum TableStatus { AVAILABLE, OCCUPIED, RESERVED }
@@ -36,7 +37,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
   String alreadySelectedTable = "";
   String operation = "";
   bool isDarkMode = false;
-
+  bool _isLoading = false;
   @override
   void initState() {
     super.initState();
@@ -74,25 +75,51 @@ class _SelectTablePageState extends State<_SelectTablePage>
   Future<void> _loadOperation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? current = prefs.getString('tablePageOperation');
-    // String? previous = prefs.getString('previousOperation');
-    // if (previous != null) {
-    //   if (current != null && current != previous) {
-         setState(() {
-        operation = current!;
-      });
-    //     await prefs.remove('selectedTables');
-    //     await prefs.remove('selectedTables2');
-    //     selectedFromShared();
-    //     await prefs.setString('previousOperation', current);
-     
-    //   }
-    // } else {
-    //    setState(() {
-    //     operation = current!;
-    //   });
-    //   await prefs.setString('previousOperation', current!);
-     
-    // }
+    setState(() {
+      operation = current!;
+    });
+  }
+
+  Future<void> checkForBillOut(String tableNumber) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? ipAddress = prefs.getString('ipAddress');
+      final Uri apiUrl = Uri.parse(
+          'http://$ipAddress:${AppConfig.serverPort}/api/checkForBillout?tableno=$tableNumber');
+
+      final http.Response response = await http.get(apiUrl);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = json.decode(response.body);
+        final bool isValid = responseBody.isNotEmpty;
+        if (isValid) {
+          
+      await prefs.setString('forBillOut', tableNumber);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BilllOutOrder(),
+            ),
+          );
+        } else {
+    await prefs.remove('selectedTables');
+    await prefs.remove('selectedTables2');
+          Fluttertoast.showToast(
+            msg: 'No exing orders for $tableNumber',
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.greenAccent,
+            textColor: Colors.white,
+          );
+          return;
+        }
+      } else {
+        print(
+            'Failed to check for billout. Status code: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error checking for billout: $error');
+    }
   }
 
   Future<void> removeTablesFromShared(String table) async {
@@ -203,20 +230,6 @@ class _SelectTablePageState extends State<_SelectTablePage>
         }
       }
     }
-
-    String? currentPage = prefs.getString('currentPage');
-
-    if (currentPage == "cartPage") {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => CartPage()),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
-    }
   }
 
   Future<void> isOccupied(String tableNum) async {
@@ -251,8 +264,6 @@ class _SelectTablePageState extends State<_SelectTablePage>
     String? temp = prefs.getString('selectedTables');
     alreadySelectedTable = temp ?? '';
     _tempSelectedTables.add(alreadySelectedTable);
-
-
   }
 
   Future<void> removeFromShared(String table) async {
@@ -487,6 +498,12 @@ class _SelectTablePageState extends State<_SelectTablePage>
                               backgroundColor: Colors.greenAccent,
                               textColor: Colors.white,
                             );
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => HomePage()));
+                          } else if (operation == "bill") {
+                            checkForBillOut(tableNumber);
                           } else {
                             Fluttertoast.showToast(
                               msg: '$tableNumber is already occupied',
@@ -499,7 +516,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
                             return;
                           }
                         } else {
-                          if (operation == "add") {
+                          if (operation == "add" || operation == "bill") {
                             Fluttertoast.showToast(
                               msg: 'No, existing orders for $tableNumber',
                               toastLength: Toast.LENGTH_SHORT,
@@ -509,6 +526,9 @@ class _SelectTablePageState extends State<_SelectTablePage>
                               textColor: Colors.white,
                             );
                             return;
+                          } else {
+                            saveSelectedTables(tableNumber);
+                            Navigator.pushReplacementNamed(context, '/');
                           }
                         }
                         if (_tempSelectedTables.contains(tableNumber)) {
