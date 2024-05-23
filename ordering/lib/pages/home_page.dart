@@ -87,6 +87,29 @@ class _HomePageState extends State<HomePage>
     });
   }
 
+  Future<void> selectTablePage(String operation) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('tablePageOperation', operation);
+    String? current = prefs.getString('tablePageOperation');
+    String? previous = prefs.getString('previousOperation');
+      if (previous != null) {
+        if (current != null && current != previous) {
+          await prefs.remove('selectedTables');
+          await prefs.remove('selectedTables2');
+          await prefs.setString('previousOperation', current);
+          Navigator.pushNamed(context, "table");
+        } 
+        else if(operation=="bill"){
+          Navigator.pushNamed(context, "table");
+        }else {
+          Navigator.pushNamed(context, "table");
+        }
+      } else {
+        await prefs.setString('previousOperation', current!);
+        Navigator.pushNamed(context, "table");
+      }
+  }
+
   Future<void> removeTablesFromShared(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('selectedTables');
@@ -446,15 +469,33 @@ class _HomePageState extends State<HomePage>
                           child: _isSwitchOn
                               ? FloatingActionButton(
                                   onPressed: () async {
-                                    setState(() {
-                                      _subButtons = !_subButtons;
-                                      _isSwitchOn = !_isSwitchOn;
-                                    });
+                                    SharedPreferences prefs =
+                                        await SharedPreferences.getInstance();
+                                    List<String>? cartItems =
+                                        prefs.getStringList('cartItems');
+                                    if (cartItems != null &&
+                                        cartItems.length >= 1) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              'Please settle your transactions first'),
+                                          duration: Duration(seconds: 2),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    } else {
+                                      setState(() {
+                                        _subButtons = !_subButtons;
+                                        _isSwitchOn = !_isSwitchOn;
+                                      });
+                                    }
                                   },
                                   child: Icon(Icons.more_horiz),
                                   backgroundColor: isDarkMode
-                                      ? Colors.grey.withOpacity(0.65)
-                                      : const Color.fromARGB(255, 248, 208, 147)
+                                      ? const Color.fromARGB(255, 243, 238, 238)
+                                          .withOpacity(0.65)
+                                      : const Color.fromARGB(255, 97, 2, 140)
                                           .withOpacity(0.85),
                                   foregroundColor: Colors.white,
                                   elevation: 4.0,
@@ -487,8 +528,6 @@ class _HomePageState extends State<HomePage>
                                           SharedPreferences prefs =
                                               await SharedPreferences
                                                   .getInstance();
-                                          await prefs.setString(
-                                              'tablePageOperation', "select");
                                           List<String>? cartItems =
                                               prefs.getStringList('cartItems');
                                           if (cartItems != null &&
@@ -503,8 +542,8 @@ class _HomePageState extends State<HomePage>
                                               ),
                                             );
                                           } else {
-                                            Navigator.pushNamed(
-                                                context, "table");
+                                            const operation = "select";
+                                            selectTablePage(operation);
                                           }
                                         },
                                         child: Text('New Order'),
@@ -542,7 +581,8 @@ class _HomePageState extends State<HomePage>
                                                   .getInstance();
                                           await prefs.setString(
                                               'tablePageOperation', "add");
-                                          Navigator.pushNamed(context, "table");
+                                          const operation = "add";
+                                          selectTablePage(operation);
                                         },
                                         child: Text('Add Order'),
                                         backgroundColor: isDarkMode
@@ -575,8 +615,14 @@ class _HomePageState extends State<HomePage>
                                           curve: Curves.easeInOut,
                                         )),
                                         child: FloatingActionButton(
-                                          onPressed: () {
-                                            // Implement the functionality for the "New Order" button
+                                          onPressed: () async{ 
+                                            SharedPreferences prefs =
+                                              await SharedPreferences
+                                                  .getInstance();
+                                          await prefs.setString(
+                                              'tablePageOperation', "bill");
+                                          const operation = "bill";
+                                          selectTablePage(operation);
                                           },
                                           child: Text('Bill Out'),
                                           backgroundColor: isDarkMode
