@@ -2,20 +2,10 @@ const express = require('express');
 const router = express.Router();
 const sql = require('mssql');
 const config = require('../server.js');
-const escpos = require('escpos');
 const net = require('net');
 const { ThermalPrinter, PrinterTypes, CharacterSet, BreakLine } = require('node-thermal-printer');
-
+const { printOrderSlip } = require('../Routes/printer.js');
 const config2 = require('../config.json');
-const printer = new ThermalPrinter({
-  type: PrinterTypes[config2.printer.type],
-  interface: config2.printer.interface,
-  characterSet: CharacterSet[config2.printer.characterSet],
-  removeSpecialCharacters: config2.printer.removeSpecialCharacters,
-  lineCharacter: config2.printer.lineCharacter,
-  breakLine: BreakLine[config2.printer.breakLine],
-  options: config2.printer.options,
-});
 
 
 router.get('/categories', async (req, res) => {
@@ -51,6 +41,7 @@ router.get('/allItems', async (req, res) => {
   }
 });
 
+
 router.get('/get-notes', async (req, res) => {
   try {
     const pool = await sql.connect(config);
@@ -69,149 +60,135 @@ router.get('/get-notes', async (req, res) => {
 
 // Create a new network connection to the printer
 
-const printOrderSlip = async (printer, newSoNumber, selectedTablesString, paid) => {
+// const printOrderSlip = async (printer, newSoNumber, selectedTablesString, paid) => {
+//   try {
+//     if (!printer) {
+//       console.log('Printer is not available. Order slip could not be printed.');
+//       return { error: 'Printer is not available. Order slip could not be printed.' };
+//     }
+//     printer.alignCenter();
+//     printer.println('SPARKY ORDERING');
+//     printer.println('ORDER SLIP');
+//     printer.println(`Date: ${new Date().toLocaleDateString('en-US')}, ${new Date().toLocaleTimeString('en-US', { hour12: true })}`);
+//     printer.println(`SO NUMBER: ${newSoNumber}`);
+//     printer.println('------------------------------------');
+//     printer.println(`- - - ORDER FOR: ${selectedTablesString} - - -`);
+//     printer.println('------------------------------------');
+//     printer.println(`Order Taker: ${paid}`);
+//     printer.cut({ verticalTabAmount: 1 });
+//     await printer.execute();
+//     printer.clear();
+//     console.log('Order slip printed successfully');
+//     return { success: 'Order slip printed successfully' };
+//   } catch (error) {
+//     console.error('Error printing order slip, No printer detected/connected');
+//     return { error: 'Error printing order slip' };
+//   }
+// };
+
+
+router.post('/saveOrder', async (req, res) => {
+  const { content, summary, add_order } = req.body;
+  let so_number = "";
+
   try {
-    if (!printer) {
-      console.log('Printer is not available. Order slip could not be printed.');
-      return { error: 'Printer is not available. Order slip could not be printed.' };
-    }
-    printer.alignCenter();
-    printer.println('SPARKY ORDERING');
-    printer.println('ORDER SLIP');
-    printer.println(`Date: ${new Date().toLocaleDateString('en-US')}, ${new Date().toLocaleTimeString('en-US', { hour12: true })}`);
-    printer.println(`SO NUMBER: ${newSoNumber}`);
-    printer.println('------------------------------------');
-    printer.println(`- - - ORDER FOR: ${selectedTablesString} - - -`);
-    printer.println('------------------------------------');
-    printer.println(`Order Taker: ${paid}`);
-    printer.cut({ verticalTabAmount: 1 });
-    await printer.execute();
-    printer.clear();
-    console.log('Order slip printed successfully');
-    return { success: 'Order slip printed successfully' };
-  } catch (error) {
-    console.error('Error printing order slip, No printer detected/connected');
-    return { error: 'Error printing order slip' };
-  }
-};
-
-
-// Define the route to add items to the cart
-router.post('/add-to-cart', async (req, res) => {
-  try {
-
-
-    // Set the flag to indicate that order processing has started
-
-    const { cartItems, selectedTablesString, switchValue } = req.body;
-
-    let subtotalAmount = 0;
-    let totalAmount = 0;
-    let paid = 0;
-    let machineid = 0;
-
     const pool = await sql.connect(config);
-    const updateResult = await pool.request().query(`
-                DECLARE @last_or VARCHAR(20);
-                DECLARE @last_inv VARCHAR(20);
-                DECLARE @new_or VARCHAR(20);
-                DECLARE @new_inv VARCHAR(20);
-                SELECT @last_or = last_or, @last_inv = last_inv FROM [dbo].[business_date_res];
-                SET @new_or = RIGHT('00000000' + CAST(CAST(RIGHT(@last_or, 8) AS INT) + 1 AS VARCHAR), 8);
-                SET @new_inv = RIGHT('00000000' + CAST(CAST(RIGHT(@last_inv, 8) AS INT) + 1 AS VARCHAR), 8);
-                UPDATE [dbo].[business_date_res] SET last_or = @new_or, last_inv = @new_inv;
-                SET @new_or = RIGHT('00000' + CAST(CAST(RIGHT(@last_or, 5) AS INT) + 1 AS VARCHAR), 5);
-                SELECT @new_or AS new_or;
-            `);
 
-    const newSoNumber = updateResult.recordset[0].new_or;
+    if (add_order === 0) {
+      await pool.request().execute('sp_so_number_handler');
 
-    for (const item of cartItems) {
-      const { pa_id, machine_id, trans_date, itemcode,
-        itemname, category, qty, unitprice, markup,
-        sellingprice, subtotal, total, department,
-        uom, vatable, tran_time, division, section,
-        brand, close_status } = JSON.parse(item);
-
-      subtotalAmount += parseFloat(subtotal);
-      totalAmount += parseFloat(total);
-      paid = pa_id;
-      machineid = machine_id;
-
-      const currentDate = new Date().toISOString().split('T')[0];
-      const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-      const formattedTime = currentTime.split(' ')[0];
-      const transDateTime = currentDate + ' ' + formattedTime;
-      const closeStatusInt = parseInt(close_status);
-
-      const request = pool.request()
-        .input('pa_id', sql.Char, pa_id)
-        .input('so_number', sql.VarChar, newSoNumber)
-        .input('machine_id', sql.VarChar, machine_id)
-        .input('trans_date', sql.DateTime, new Date(trans_date))
-        .input('itemcode', sql.VarChar, itemcode)
-        .input('itemname', sql.Char, itemname)
-        .input('category', sql.VarChar, category)
-        .input('qty', sql.Decimal(18, 2), qty)
-        .input('unitprice', sql.Decimal(18, 2), parseFloat(unitprice))
-        .input('markup', sql.Decimal(18, 2), markup)
-        .input('sellingprice', sql.Decimal(18, 2), sellingprice)
-        .input('subtotal', sql.Decimal(18, 2), subtotal)
-        .input('total', sql.Decimal(18, 2), total)
-        .input('department', sql.VarChar, department)
-        .input('uom', sql.Char, uom)
-        .input('vatable', sql.TinyInt, vatable)
-        .input('tran_time', sql.DateTime, new Date(transDateTime))
-        .input('division', sql.VarChar, division)
-        .input('section', sql.VarChar, section)
-        .input('brand', sql.VarChar, brand)
-        .input('close_status', sql.TinyInt, closeStatusInt)
-        .input('table_no', sql.VarChar, selectedTablesString)
-        .input('order_service', sql.VarChar, switchValue);
-
-      await request.query(`
-                    INSERT INTO [dbo].[so_detail] (pa_id, so_number, machine_id, trans_date, itemcode, 
-                      itemname, category, qty, unitprice, markup, sellingprice, subtotal, total, department, uom, vatable,
-                      tran_time, division, section, brand, close_status,table_no, order_service)
-                    VALUES (@pa_id, @so_number, @machine_id, @trans_date, @itemcode, @itemname, @category, 
-                      @qty, @unitprice, @markup, @sellingprice, @subtotal, @total, @department, @uom, @vatable, 
-                      @tran_time, @division, @section, @brand, @close_status,@table_no, @order_service) 
-                `);
+      const generate_so_number = await pool.request()
+        .query("SELECT last_or FROM business_date_res");
+      so_number = generate_so_number.recordset[0].last_or;
+    } else if (add_order === 1) {
+      const getExistingSo = await pool.request()
+        .input('table_no', sql.VarChar, summary.table_no)
+        .query("SELECT MAX(so_number) AS so_number FROM so_header WHERE table_no = @table_no");
+      so_number = getExistingSo.recordset[0].so_number;
     }
+    console.log(`haha: ${so_number}`);
 
-    const requestHeader = pool.request()
-      .input('so_number', sql.VarChar, newSoNumber)
-      .input('machine_id', sql.VarChar, machineid)
-      .input('trans_date', sql.DateTime, new Date().toISOString().split('T')[0])
-      .input('pa_id', sql.Char, paid)
-      .input('subtotal_amount', sql.Decimal(18, 2), subtotalAmount)
-      .input('total_amount', sql.Decimal(18, 2), totalAmount)
-      .input('tran_time', sql.DateTime, new Date())
-      .input('close_status', sql.TinyInt, 1)
-      .input('table_no', sql.VarChar, selectedTablesString)
-      .input('order_service', sql.VarChar, switchValue)
-      .query(`
-                    INSERT INTO [dbo].[so_header] (so_number, machine_id, trans_date, pa_id, subtotal_amount, total_amount, tran_time, close_status, table_no, order_service) 
-                    VALUES (@so_number, @machine_id, @trans_date, @pa_id, @subtotal_amount, @total_amount, @tran_time, @close_status, @table_no, @order_service) 
-                `);
-
-    await pool.request().query(`
-                UPDATE [dbo].[so_detail] 
-                SET close_status = 1
-            `);
-
-    // Print order slip
-    const printResult = await printOrderSlip(printer, newSoNumber, selectedTablesString, paid);
-    if (printResult.error) {
-      return res.status(200).json({ message: 'Order saved successfully, but no printer detected' });
+    for (let item of content) {
+      await pool.request()
+        .input('pa_id', sql.VarChar, item.pa_id)
+        .input('machine_id', sql.VarChar, item.machine_id)
+        .input('itemcode', sql.VarChar, item.itemcode)
+        .input('itemname', sql.VarChar, item.itemname)
+        .input('category', sql.VarChar, item.category)
+        .input('qty', sql.Int, item.qty)
+        .input('unitprice', sql.Decimal, item.unitprice)
+        .input('markup', sql.Decimal, item.markup)
+        .input('sellingprice', sql.Decimal, item.sellingprice)
+        .input('subtotal', sql.Decimal, item.subtotal)
+        .input('total', sql.Decimal, item.total)
+        .input('department', sql.VarChar, item.department)
+        .input('uom', sql.VarChar, item.uom)
+        .input('vatable', sql.Bit, item.vatable)
+        .input('division', sql.VarChar, item.division)
+        .input('section', sql.VarChar, item.section)
+        .input('brand', sql.VarChar, item.brand)
+        .input('table_no', sql.VarChar, summary.table_no)
+        .input('order_service', sql.VarChar, summary.order_service)
+        .query(`EXEC sp_add_to_so_detail @pa_id,
+                                      '${so_number}',
+                                      @machine_id,
+                                      @itemcode,
+                                      @itemname,
+                                      @category,
+                                      @qty,
+                                      @unitprice,
+                                      @markup,
+                                      @sellingprice,
+                                      @subtotal,
+                                      @total,
+                                      @department,
+                                      @uom,
+                                      @vatable,
+                                      @division,
+                                      @section,
+                                      @brand,
+                                      @table_no,
+                                      @order_service,
+                                      ${add_order}`);
     }
-    res.status(300).json({ message: 'Items added to cart successfully' });
+    console.log(summary);
+
+    await pool.request()
+      .input('so_number', sql.VarChar, so_number)
+      .input('machine_id', sql.VarChar, summary.machine_id)
+      .input('pa_id', sql.VarChar, summary.pa_id)
+      .input('total', sql.Decimal, summary.total)
+      .input('table_no', sql.VarChar, summary.table_no)
+      .input('order_service', sql.VarChar, summary.order_service)
+      .query(`EXEC sp_add_to_so_header @so_number,
+                                        @machine_id,
+                                        @pa_id,
+                                        @total,
+                                        @table_no,
+                                        @order_service`);
+
+    await pool.request()
+      .input('table_no', sql.VarChar, summary.table_no)
+      .query("UPDATE tableno SET occupied = 0, status = 'O' WHERE table_no = @table_no");
+
+    await pool.request().query("UPDATE notification SET notif = 1");
+
+    const summary2 = {
+      user: req.session.user,
+      soNo: so_number,
+      tableNo: summary.table_no,
+      orderType: summary.order_service,
+    };
+
+    // Call the printOrderSlip function with the summary and content
+    await printOrderSlip(summary2, content);
+
+    res.sendStatus(200);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
   }
 });
-
 
 
 
@@ -243,11 +220,20 @@ router.get('/get-open-cart-items-count', async (req, res) => {
 router.get('/tableno', async (req, res) => {
   try {
     await sql.connect(config);
-    const query1 = `SELECT trans_no, table_no, occupied FROM tableno WHERE occupied = 0 ORDER BY trans_no ASC`;
-    const result1 = await sql.query(query1);
-    const query2 = `SELECT trans_no, table_no, occupied FROM tableno WHERE occupied = 1 ORDER BY trans_no`;
-    const result2 = await sql.query(query2);
-    res.json({ occupied_0: result1.recordset, occupied_1: result2.recordset });
+    const query = `
+    SELECT trans_no, 
+    ISNULL(RTRIM(LTRIM(table_no)), 'NULL') as table_no, 
+    
+	CASE
+		WHEN billout = 0 and (occupied = 1 and status = 'C' or (occupied = 0 and status = 'O') or (occupied = 1 and status = 'O')) THEN 'inuse'
+		WHEN billout = 1 and status = 'O' THEN 'billout'
+		ELSE 'vacant'
+	END as table_mark
+FROM tableno TN
+ORDER BY trans_no ASC
+    `;
+    const result = await sql.query(query);
+    res.json({ result: result.recordset});
   } catch (err) {
     console.error(err);
     res.status(500).send('Internal Server Error');
@@ -446,9 +432,7 @@ router.get('/get-last_inv', async (req, res) => {
     const result = await pool
       .request()
       .query(`
-        SELECT TOP (1000)
-        RIGHT([last_inv], 3) AS last_inv_digits
-        FROM [restopos45].[dbo].[business_date_res]
+       exec sp_unique_num
       `);
     const lastInvDigits = result.recordset;
     res.json(lastInvDigits);

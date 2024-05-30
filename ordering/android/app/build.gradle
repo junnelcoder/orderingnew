@@ -21,6 +21,13 @@ def flutterVersionName = localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
+import groovy.json.JsonSlurper
+
+// Define the path to your JSON file
+def configFile = file('../../authorized_device_ids.json')
+
+// Parse the JSON file
+def config = new JsonSlurper().parse(configFile)
 
 
 
@@ -63,8 +70,16 @@ android {
     }
 
     applicationVariants.all { variant ->
-        variant.outputs.all {
-            outputFileName = "zank.apk"
+        variant.outputs.all { output ->
+            // Set the output file name to "zank.apk"
+            outputFileName = config.app_name
+        }
+        // Execute the copy task after the build
+        variant.assemble.doLast {
+            copy {
+                from variant.outputs.find { it.outputFileName.endsWith('.apk') }.outputFile
+                into "../../" // Path to the output folder outside the app and android folders
+            }
         }
     }
 }

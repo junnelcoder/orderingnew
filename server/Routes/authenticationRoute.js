@@ -26,8 +26,8 @@ router.get('/getUsers', async (req, res) => {
 router.get('/getTerminalId', (req, res) => {
   
   // SQL query to fetch terminal_id based on user_id
-  const query = `SELECT terminal_number FROM sys_setup`;
-
+  const query = (`select machine_id as terminal_number from machine_setup where mac_address = convert(varchar(255), (select serverproperty('MachineName')))`);
+  // machine_id = (select machine_id from machine_setup where mac_address = convert(varchar(255), (select serverproperty('MachineName'))))
   // Execute the query
   sql.query(query)
     .then(result => {
@@ -80,7 +80,25 @@ router.post('/auth/login', async (req, res) => {
   }
 });
 
+router.post('/updatePrinterIP', async (req, res) => {
+  const { ip_address_printer } = req.body;
 
+  if (!ip_address_printer) {
+    return res.status(400).send('Printer IP cannot be empty');
+  }
+
+  try {
+    const pool = await sql.connect(config);
+    await pool.request()
+      .input('ip_address_printer', sql.VarChar, ip_address_printer)
+      .query("UPDATE sys_setup SET ip_address_printer = @ip_address_printer WHERE trans_no = 1");
+
+    res.status(200).send('Printer IP updated successfully');
+  } catch (err) {
+    console.error('SQL error', err);
+    res.status(500).send('Server error');
+  }
+});
 
 router.get('/ipConn', async (req,res) => {
     res.send('Hello from server!');

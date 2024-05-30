@@ -39,3 +39,70 @@ and machine_id = (SELECT terminal_number FROM sys_setup) and table_no = @tableno
     }
 });
 module.exports = { getTable, checkForBillout };
+
+
+
+const { content, summary, add_order } = req.body;
+  let so_number = "";
+
+  if (add_order === 0) {
+    await executeQuery("EXEC sp_so_number_handler");
+
+    const generate_so_number = await executeQuery(
+      "SELECT last_or FROM business_date_res"
+    );
+    so_number = generate_so_number[0].last_or;
+  } else if (add_order === 1) {
+    const getExistingSo = await executeQuery(
+      `select so_number from so_header where table_no = '${summary.table_no}' and posted = 0`
+    );
+    so_number = getExistingSo[0].so_number;
+  }
+
+  await executeQueryWithParams(
+    `EXEC sp_add_to_so_detail '${req.session.user}',
+                              '${so_number}',
+                              '${req.session.machine_id}',
+                              @itemcode,
+                              @itemname,
+                              @category,
+                              @qty,
+                              @unitprice,
+                              @markup,
+                              @sellingprice,
+                              @subtotal,
+                              @total,
+                              @department,
+                              @uom,
+                              @vatable,
+                              @division,
+                              @section,
+                              @brand,
+                              @table_no,
+                              @order_service,
+                              ${add_order}`,
+    content
+  );
+
+  await executeQueryWithParams(
+    `EXEC sp_add_to_so_header '${so_number}',
+                              '${req.session.machine_id}',
+                              '${req.session.user}',
+                              @total,
+                              @table_no,
+                              @order_service
+  `,
+    summary
+  );
+
+  await executeQuery(
+    `UPDATE tableno
+         SET occupied = 0, status = 'O' WHERE table_no = '${summary.table_no}'`
+  );
+
+  await executeQuery("update notification set notif = 1");
+
+res.sendStatus(200);
+
+
+

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ordering/pages/home_page.dart';
-import 'package:ordering/pages/cart_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'billlout_order.dart';
 import 'config.dart';
 
-enum TableStatus { AVAILABLE, OCCUPIED, RESERVED }
+enum TableStatus { AVAILABLE, OCCUPIED, RESERVED, BILLOUT }
 
 class SelectTablePage extends StatelessWidget {
   @override
@@ -36,8 +35,8 @@ class _SelectTablePageState extends State<_SelectTablePage>
   List<String> tableNotOccupiedArr = [];
   String alreadySelectedTable = "";
   String operation = "";
+  String operationLabel = "";
   bool isDarkMode = false;
-  bool _isLoading = false;
   @override
   void initState() {
     super.initState();
@@ -54,14 +53,6 @@ class _SelectTablePageState extends State<_SelectTablePage>
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused) {
-      _clearSharedPreferences();
-    }
-  }
-
   Future<void> _fetchThemeMode() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? themeMode = prefs.getString('isDarkMode');
@@ -75,8 +66,17 @@ class _SelectTablePageState extends State<_SelectTablePage>
   Future<void> _loadOperation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? current = prefs.getString('tablePageOperation');
+    String label = "";
+    if (current == "select") {
+      label = "New Order";
+    } else if (current == "add") {
+      label = "Add Order";
+    } else {
+      label = "Bill Out";
+    }
     setState(() {
       operation = current!;
+      operationLabel = label;
     });
   }
 
@@ -92,8 +92,7 @@ class _SelectTablePageState extends State<_SelectTablePage>
         final Map<String, dynamic> responseBody = json.decode(response.body);
         final bool isValid = responseBody.isNotEmpty;
         if (isValid) {
-          
-      await prefs.setString('forBillOut', tableNumber);
+          await prefs.setString('forBillOut', tableNumber);
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -101,8 +100,8 @@ class _SelectTablePageState extends State<_SelectTablePage>
             ),
           );
         } else {
-    await prefs.remove('selectedTables');
-    await prefs.remove('selectedTables2');
+          await prefs.remove('selectedTables');
+          await prefs.remove('selectedTables2');
           Fluttertoast.showToast(
             msg: 'No exing orders for $tableNumber',
             toastLength: Toast.LENGTH_SHORT,
@@ -151,21 +150,6 @@ class _SelectTablePageState extends State<_SelectTablePage>
     } else {
       print('Failed to occupy tables. Status code: ${response.statusCode}');
       print('Response body: ${response.body}');
-    }
-  }
-
-  void _clearSharedPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? ipAddress = prefs.getString('ipAddress');
-    String? uname = prefs.getString('username');
-    String? temp = prefs.getString('selectedTables2');
-    String? switchValue = prefs.getString('switchValue');
-    removeTablesFromShared(temp!);
-    await prefs.clear();
-    if (ipAddress != null && uname != null) {
-      await prefs.setString('ipAddress', ipAddress);
-      await prefs.setString('username', uname);
-      await prefs.setString('switchValue', switchValue!);
     }
   }
 
@@ -312,58 +296,34 @@ class _SelectTablePageState extends State<_SelectTablePage>
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final List<dynamic> occupied_0 = data['occupied_0'];
-        final List<dynamic> occupied_1 = data['occupied_1'];
-        List<Map<String, String>> tableNumbersJson = [];
-
-        occupied_0.forEach((tableData) {
-          final tableNum = tableData['table_no'].trim();
-          final transNum = tableData['trans_no'];
-          final occ = tableData['occupied'];
-          tableNumbersJson
-              .add({'tbl_no': tableNum, 'trans_no': transNum, 'occupied': occ});
-          _tableStatus[int.parse(transNum)] = TableStatus.AVAILABLE;
-        });
-
-        occupied_1.forEach((tableData) {
-          final tableNum = tableData['table_no'].trim();
-          final transNum = tableData['trans_no'];
-          final occ = tableData['occupied'];
-          tableNumbersJson
-              .add({'tbl_no': tableNum, 'trans_no': transNum, 'occupied': occ});
-          _tableStatus[int.parse(transNum)] = TableStatus.RESERVED;
-        });
-        tableNumbersJson.sort((a, b) {
-          final String? tblNoA = a['trans_no'];
-          final String? tblNoB = b['trans_no'];
-          if (tblNoA == null && tblNoB == null) {
-            return 0;
-          } else if (tblNoA == null) {
-            return -1;
-          } else if (tblNoB == null) {
-            return 1;
+        final List<dynamic> result = data['result'];
+        for (int i = 0; i < result.length; i++) {
+          String tableMark = result[i]['table_mark'] ?? '';
+          String tableNumber = result[i]['table_no'] ?? '';
+          // Set the tableStatus based on the table_mark value
+          TableStatus tableStatus;
+          switch (tableMark) {
+            case 'inuse':
+              tableStatus = TableStatus.RESERVED;
+              tableOccupiedArr.add("1");
+              break;
+            case 'billout':
+              tableOccupiedArr.add("2");
+              tableStatus = TableStatus.BILLOUT;
+              break;
+            case 'vacant':
+              tableOccupiedArr.add("0");
+              tableStatus = TableStatus.AVAILABLE;
+              break;
+            default:
+              tableOccupiedArr.add("0");
+              tableStatus = TableStatus.AVAILABLE;
+              break;
           }
 
-          final int? numA =
-              int.tryParse(tblNoA.replaceAll(RegExp(r'[^0-9]'), ''));
-          final int? numB =
-              int.tryParse(tblNoB.replaceAll(RegExp(r'[^0-9]'), ''));
-
-          if (numA == null && numB == null) {
-            return 0;
-          } else if (numA == null) {
-            return -1;
-          } else if (numB == null) {
-            return 1;
-          }
-
-          return numA.compareTo(numB);
-        });
-
-        for (int i = 0; i < tableNumbersJson.length; i++) {
-          tableNumbersArr.add(tableNumbersJson[i]['tbl_no']!);
-          tableTransNumbArr.add(tableNumbersJson[i]['trans_no']!);
-          tableOccupiedArr.add(tableNumbersJson[i]['occupied']!);
+          tableNumbersArr.add(tableNumber);
+          tableTransNumbArr.add(result[i]['trans_no'] ?? '');
+          _tableStatus[i] = tableStatus;
         }
         setState(() {});
       } else {
@@ -388,9 +348,23 @@ class _SelectTablePageState extends State<_SelectTablePage>
               color: isDarkMode ? Colors.white : Colors.black,
             ),
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pushNamed(context, "/");
             },
           ),
+        ),
+        title: Row(
+          mainAxisAlignment:
+              MainAxisAlignment.end, // Align items to the end (right)
+          children: [
+            Text(
+              operationLabel,
+              style: TextStyle(
+                fontSize: 24.0,
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
+            ),
+            Spacer(), // This pushes the text to the right
+          ],
         ),
       ),
       body: Padding(
@@ -448,13 +422,12 @@ class _SelectTablePageState extends State<_SelectTablePage>
                 Row(
                   children: [
                     Container(
-                      width: 10.0,
-                      height: 10.0,
-                      color: Colors.black,
-                    ),
+                        width: 10.0,
+                        height: 10.0,
+                        color: Color.fromARGB(255, 119, 204, 21)),
                     SizedBox(width: 5.0),
                     Text(
-                      'SELECTED',
+                      'BILL OUT',
                       style: TextStyle(
                         fontSize: 16.0,
                         color: isDarkMode ? Colors.white : Colors.black,
@@ -476,10 +449,18 @@ class _SelectTablePageState extends State<_SelectTablePage>
                 itemBuilder: (context, index) {
                   final tableNumber = tableNumbersArr[index];
                   final transNumber = tableTransNumbArr[index];
-                  final ifOccupied = int.parse(tableOccupiedArr[index]);
+                  final ifOccupied = tableOccupiedArr[index] == '1'
+                      ? 1
+                      : tableOccupiedArr[index] == '2'
+                          ? 2
+                          : 0;
+
                   final tableStatus = ifOccupied == 1
                       ? TableStatus.RESERVED
-                      : TableStatus.AVAILABLE;
+                      : ifOccupied == 2
+                          ? TableStatus.BILLOUT
+                          : TableStatus.AVAILABLE;
+
                   final isSelected = _tempSelectedTables.contains(tableNumber);
                   final isSelectedFromPrefs =
                       _selectedTables.contains(alreadySelectedTable);
@@ -531,14 +512,16 @@ class _SelectTablePageState extends State<_SelectTablePage>
                             Navigator.pushReplacementNamed(context, '/');
                           }
                         }
-                        if (_tempSelectedTables.contains(tableNumber)) {
-                          removeFromShared(transNumber);
-                          _tempSelectedTables.remove(tableNumber);
-                        } else {
-                          _tempSelectedTables.clear();
-                          saveSelectedTables(tableNumber);
-                          saveSelectedTables2(transNumber);
-                          _tempSelectedTables.add(tableNumber);
+                        if (operation == "select") {
+                          if (_tempSelectedTables.contains(tableNumber)) {
+                            removeFromShared(transNumber);
+                            _tempSelectedTables.remove(tableNumber);
+                          } else {
+                            _tempSelectedTables.clear();
+                            saveSelectedTables(tableNumber);
+                            saveSelectedTables2(transNumber);
+                            _tempSelectedTables.add(tableNumber);
+                          }
                         }
                       });
                     },
@@ -546,7 +529,10 @@ class _SelectTablePageState extends State<_SelectTablePage>
                       decoration: BoxDecoration(
                         color: tableStatus == TableStatus.AVAILABLE
                             ? (isSelected ? Colors.black : Colors.grey)
-                            : Colors.red,
+                            : tableStatus == TableStatus.BILLOUT
+                                ? Colors
+                                    .green // Set color to green when tableStatus is BILLOUT
+                                : Colors.red,
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                       child: Stack(
@@ -618,3 +604,5 @@ void main() {
     home: SelectTablePage(),
   ));
 }
+
+

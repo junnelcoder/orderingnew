@@ -43,7 +43,6 @@ class _LoginPageState extends State<LoginScreen> {
     fetchUsers();
     currentBackPressTime = null;
     _fetchTerminalId();
-    _fetchIP();
   }
 
   void navigateToIpScreen() {
@@ -92,6 +91,7 @@ class _LoginPageState extends State<LoginScreen> {
     } catch (e) {
       print('Error fetching terminal ID: $e');
     }
+    _fetchIP();
   }
 
   Future<void> navigateBack() async {

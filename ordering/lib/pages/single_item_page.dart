@@ -150,56 +150,12 @@ class _SingleItemPageState extends State<SingleItemPage>
   }
 
   Future<void> addToCart() async {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text(
-            "Confirm",
-            style: TextStyle(
-              fontSize: 30,
-              color: Colors.black,
-            ),
-          ),
-          content: Text(
-            'Are you sure you want to add this order?',
-            style: TextStyle(
-              fontSize: 23,
-              color: Colors.black,
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black,
-                ),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Confirm',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: Colors.black,
-                ),
-              ),
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _addItemToCart(selectedNotes);
-              },
-            ),
-          ],
-        );
-      },
-    );
+  try {
+    await _addItemToCart(selectedNotes);
+  } catch (e) {
+    print('Error adding item to cart: $e');
   }
+}
 
   Future<void> _addItemToCart(List<String> selectedNotes) async {
     try {
@@ -266,9 +222,9 @@ class _SingleItemPageState extends State<SingleItemPage>
             'trans_date': DateFormat('yyyy-MM-dd').format(DateTime.now()),
             'itemcode': noteItem['itemcode'],
             'itemname': noteItem['itemname'],
-            'category': 'notes',
-            'qty': '0',
-            'unitprice': noteItem['unitPrice'].toString(),
+            'category': noteItem['category'].trim(),
+            'qty': quantity.toString(),
+            'unitprice': noteItem['unitprice'].toString(),
             'markup': noteItem['markup'].toString(),
             'sellingprice': noteItem['sellingprice'].toString(),
             'department': noteItem['department'],

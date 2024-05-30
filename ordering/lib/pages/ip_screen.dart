@@ -53,8 +53,8 @@ class _IpScreenState extends State<IpScreen> {
 
   void loadAuthorizedDeviceIds() async {
     try {
-      String data =
-          await rootBundle.loadString('lib/pages/authorized_device_ids.json');
+      String data = await rootBundle.loadString('authorized_device_ids.json');
+
       Map<String, dynamic> jsonData = jsonDecode(data);
       List<dynamic> encryptedDeviceIds = jsonData['authorizedDeviceIds'];
 
@@ -132,6 +132,7 @@ class _IpScreenState extends State<IpScreen> {
           );
         }
       } catch (e) {
+        await prefs.remove('ipAddress');
         print('Error connecting to server: $e');
         setState(() {
           isLoading = false;
@@ -161,8 +162,7 @@ class _IpScreenState extends State<IpScreen> {
           'Unknown iOS ID'; // Unique ID on iOS
     } else {
       var androidDeviceInfo = await deviceInfoPlugin.androidInfo;
-      deviceId =
-          androidDeviceInfo.id; // Unique ID on Android
+      deviceId = androidDeviceInfo.id; // Unique ID on Android
     }
 
     return deviceId;
@@ -288,17 +288,20 @@ class _IpScreenState extends State<IpScreen> {
                                     setState(() {
                                       isLoading = true;
                                     });
-                                    String ipAddress =
-                                        _ipAddressController.text;
-                                    AppConfig.serverIPAddress = ipAddress;
+                                    String ipAddress = _ipAddressController.text
+                                        .trim(); // Trim whitespace
+                                    if (ipAddress != "") {
+                                      // IP address is not empty
+                                      AppConfig.serverIPAddress = ipAddress;
 
-                                    SharedPreferences prefs =
-                                        await SharedPreferences.getInstance();
-                                    await prefs.setString(
-                                        'ipAddress', ipAddress);
-                                    if (ipAddress == '') {
+                                      SharedPreferences prefs =
+                                          await SharedPreferences.getInstance();
+                                      await prefs.setString(
+                                          'ipAddress', ipAddress);
+                                      fetchCategories();
+                                    } else {
                                       Fluttertoast.showToast(
-                                        msg: "Please Input Ip Address First",
+                                        msg: "Please Input IP Address First",
                                         toastLength: Toast.LENGTH_SHORT,
                                         gravity: ToastGravity.BOTTOM,
                                         timeInSecForIosWeb: 3,
@@ -311,15 +314,7 @@ class _IpScreenState extends State<IpScreen> {
                                       setState(() {
                                         isLoading = false;
                                       });
-                                    } else {
-                                      fetchCategories();
                                     }
-                                    // Navigator.pushReplacement(
-                                    //   context,
-                                    //   MaterialPageRoute(
-                                    //     builder: (context) => LoginScreen(),
-                                    //   ),
-                                    // );
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.black,

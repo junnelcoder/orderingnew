@@ -119,7 +119,6 @@ class _SubSingleItemPageState extends State<SubSingleItemPage>
 
   void navigateToHomePage() {
     print(widget.item.subitem_tag);
-    print("haha");
     Navigator.pop(context);
   }
 

@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import 'package:ordering/pages/select_table.dart';
+import 'package:ordering/pages/login_screen.dart';
 import 'package:shimmer/shimmer.dart'; // Import the shimmer package
 import '../widgets/home_nav_bar.dart';
 import '../widgets/item_widget.dart';
 import 'config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'itemListing.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -28,10 +29,14 @@ class _HomePageState extends State<HomePage>
   DateTime? currentBackPressTime;
   String loggedIn = "";
   bool showSubButtons = false;
-  bool _subButtons = false;
+  bool _subButtons = true;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  TextEditingController ipController = TextEditingController();
+  String storedIp = '';
 
   @override
   void initState() {
+     _loadPrinterIP();
     super.initState();
     _searchController = TextEditingController();
     _animationController = AnimationController(
@@ -65,7 +70,8 @@ class _HomePageState extends State<HomePage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.paused) {
-      _clearSharedPreferences();
+      bool boolean = true;
+      _clearSharedPreferences(boolean);
     }
   }
 
@@ -85,29 +91,6 @@ class _HomePageState extends State<HomePage>
     setState(() {
       loggedIn = username!;
     });
-  }
-
-  Future<void> selectTablePage(String operation) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tablePageOperation', operation);
-    String? current = prefs.getString('tablePageOperation');
-    String? previous = prefs.getString('previousOperation');
-      if (previous != null) {
-        if (current != null && current != previous) {
-          await prefs.remove('selectedTables');
-          await prefs.remove('selectedTables2');
-          await prefs.setString('previousOperation', current);
-          Navigator.pushNamed(context, "table");
-        } 
-        else if(operation=="bill"){
-          Navigator.pushNamed(context, "table");
-        }else {
-          Navigator.pushNamed(context, "table");
-        }
-      } else {
-        await prefs.setString('previousOperation', current!);
-        Navigator.pushNamed(context, "table");
-      }
   }
 
   Future<void> removeTablesFromShared(String table) async {
@@ -136,24 +119,59 @@ class _HomePageState extends State<HomePage>
       body: requestBody,
     );
     if (response.statusCode == 200) {
+      Navigator.pushNamed(context, "table");
     } else {
       print('Failed to occupy tables. Status code: ${response.statusCode}');
       print('Response body: ${response.body}');
     }
   }
 
-  void _clearSharedPreferences() async {
+  Future<void> selectTablePage() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? current = prefs.getString('tablePageOperation');
+    String? previous = prefs.getString('previousOperation');
+    print("debug previous: $previous current: $current");
+    if (previous != null) {
+      if (current != null && current != previous) {
+        String? selectedTables = prefs.getString('selectedTables2');
+        await prefs.remove('selectedTables');
+        await prefs.remove('selectedTables2');
+
+        if (previous == "select" && selectedTables != null) {
+          await prefs.setString('previousOperation', current);
+          removeTablesFromShared(selectedTables);
+        } else {
+          await prefs.setString('previousOperation', current);
+          Navigator.pushNamed(context, "table");
+        }
+      } else if (current == "bill") {
+        Navigator.pushNamed(context, "table");
+      } else {
+        await prefs.setString('previousOperation', current!);
+        Navigator.pushNamed(context, "table");
+      }
+    } else {
+      await prefs.setString('previousOperation', current!);
+      Navigator.pushNamed(context, "table");
+    }
+  }
+
+  void _clearSharedPreferences(boolean) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
     String? uname = prefs.getString('username');
     String? temp = prefs.getString('selectedTables2');
     String? switchValue = prefs.getString('switchValue');
-    removeTablesFromShared(temp!);
+    String? themeMode = prefs.getString('isDarkMode');
+    if (boolean) {
+      removeTablesFromShared(temp!);
+    }
     await prefs.clear();
     if (ipAddress != null && uname != null) {
       await prefs.setString('ipAddress', ipAddress);
       await prefs.setString('username', uname);
       await prefs.setString('switchValue', switchValue!);
+      await prefs.setString('isDarkMode', themeMode!);
     }
   }
 
@@ -185,6 +203,38 @@ class _HomePageState extends State<HomePage>
     final prefs = await SharedPreferences.getInstance();
     String? temp = prefs.getString('selectedTables');
     alreadySelectedTable = temp ?? '';
+  }
+Future<void> updatePrinterIP(String ip) async {
+  final prefs = await SharedPreferences.getInstance();
+    String? ipAddress = prefs.getString('ipAddress');
+    final response = await http.post(
+      Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/updatePrinterIP'), // Replace with your actual endpoint URL
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'ip_address_printer': ip,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      // If the server returns a 200 OK response, parse the JSON
+      print('Printer IP updated successfully.');
+    } else {
+      // If the server did not return a 200 OK response, throw an exception
+      throw Exception('Failed to update Printer IP');
+    }
+  }
+  Future<void> _savePrinterIP(String ip) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('printerIp', ip);
+  }
+  Future<void> _loadPrinterIP() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      storedIp = prefs.getString('printerIp') ?? '';
+      ipController.text = storedIp;
+    });
   }
 
   Future<void> fetchCategories() async {
@@ -248,7 +298,11 @@ class _HomePageState extends State<HomePage>
       });
     }
   }
-
+ bool _validateIPAddress(String ip) {
+    final regex = RegExp(
+        r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$');
+    return regex.hasMatch(ip);
+  }
   Future<void> saveSelectedService(String service) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedService', service);
@@ -268,10 +322,6 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     selectedFromShared();
     List<String> filteredCategories = categories.toList();
-
-    String labelText = alreadySelectedTable.isNotEmpty
-        ? '$alreadySelectedTable'
-        : 'Select Table';
 
     // Check if categories are empty to show shimmer effect
     bool showShimmer = categories.isEmpty;
@@ -304,6 +354,7 @@ class _HomePageState extends State<HomePage>
         child: DefaultTabController(
             length: filteredCategories.length,
             child: Scaffold(
+              key: _scaffoldKey,
               backgroundColor:
                   isDarkMode ? Colors.grey.withOpacity(0.2) : Colors.white,
               body: SafeArea(
@@ -313,17 +364,19 @@ class _HomePageState extends State<HomePage>
                     Padding(
                       padding: EdgeInsets.symmetric(
                         vertical: 10,
-                        horizontal: 15,
+                        horizontal: 0,
                       ),
                       child: Row(
                         children: [
-                          Padding(
-                            padding: EdgeInsets.only(right: 10),
-                            child: Text(
-                              loggedIn,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                          GestureDetector(
+                            onTap: () {
+                              _scaffoldKey.currentState?.openDrawer();
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 15),
+                              child: Icon(
+                                Icons.menu,
+                                size: 30,
                                 color: isDarkMode ? Colors.white : Colors.black,
                               ),
                             ),
@@ -429,6 +482,204 @@ class _HomePageState extends State<HomePage>
                   ],
                 ),
               ),
+              drawer: Drawer(
+                child: Container(
+                  color: isDarkMode
+                      ? Color.fromARGB(255, 70, 70, 70)
+                      : Colors.white,
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: <Widget>[
+                     Container(
+  height: 80.0, 
+  width: 200.0,
+  child: DrawerHeader(
+  decoration: BoxDecoration(
+    color: isDarkMode ? Color(0xFF222222) : Colors.white,
+  ),
+  child: Row(
+    children: [
+      Icon(
+        Icons.person,
+        color: isDarkMode ? Colors.white : Colors.black,
+      ),
+      SizedBox(width: 10), // Space between the icon and the text
+      Text(
+        loggedIn,
+        style: TextStyle(
+          color: isDarkMode ? Colors.white : Color(0xFF222222),
+          fontSize: 24,
+        ),
+      ),
+    ],
+  ),
+),
+
+),
+
+
+                      Container(
+  color: isDarkMode ? Color.fromARGB(255, 70, 70, 70) : Colors.white,
+  child: Column(
+    children: <Widget>[
+      ListTile(
+        leading: Icon(
+          Icons.print,
+          color: isDarkMode ? Colors.white : Colors.black,
+        ),
+        title: Text(
+          'Setup Printer IP',
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        subtitle: Text(
+          storedIp.isEmpty ? 'No Printer Ip yet' : storedIp,
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Setup Printer IP"),
+                content: TextField(
+                  controller: ipController,
+                  decoration: InputDecoration(
+                    labelText: "Enter Printer IP",
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text("Cancel"),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      String inputIp = ipController.text;
+                      if (inputIp.isEmpty || !_validateIPAddress(inputIp)) {
+                        Fluttertoast.showToast(
+                          msg: "Please input a valid IP address",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor: Colors.red,
+                          textColor: Colors.white,
+                          fontSize: 16.0,
+                        );
+                      } else {
+                        // Save the printer IP
+                        await updatePrinterIP(inputIp);
+                        await _savePrinterIP(inputIp);
+
+                        setState(() {
+                          storedIp = inputIp;
+                        });
+
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: Text("Save"),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+      ListTile(
+        leading: Icon(
+          Icons.format_list_bulleted,
+          color: isDarkMode ? Colors.white : Colors.black,
+        ),
+        title: Text(
+          'Item Listing',
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ItemListing(), // Replace with your actual screen
+            ),
+          );
+        },
+      ),
+      ListTile(
+        leading: Icon(
+          Icons.logout,
+          color: isDarkMode ? Colors.white : Colors.black,
+        ),
+        title: Text(
+          'Log Out',
+          style: TextStyle(
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Confirm Logout"),
+                content: Text("Are you sure you want to log out?"),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text("Cancel"),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      bool boolean = false;
+                      _clearSharedPreferences(boolean); // Replace with your actual function
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LoginScreen(), // Replace with your actual screen
+                        ),
+                      );
+                    },
+                    child: Text("Logout"),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    ],
+  ),
+),
+
+
+                      // Container(
+                      //   color: isDarkMode ? Color.fromARGB(255, 70, 70, 70) : Colors.white,
+                      //   child: ListTile(
+                      //     leading: Icon(Icons.logout,
+                      //         color: isDarkMode ? Colors.white : Colors.black,
+                      //         ),
+                      //     title: Text(
+                      //       'Log Out',
+                      //       style: TextStyle(
+                      //         color: isDarkMode ? Colors.white : Colors.black,
+                      //       ),
+                      //     ),
+                      //     onTap: () {
+                      //     },
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                ),
+              ),
               bottomNavigationBar: HomeNavBar(
                 isDarkMode: isDarkMode,
                 isSwitchOn: _isSwitchOn,
@@ -437,7 +688,7 @@ class _HomePageState extends State<HomePage>
               ),
               floatingActionButton: Stack(
                 children: [
-                  if (_subButtons) // Conditionally render the gesture detector
+                  if (_subButtons)
                     AnimatedOpacity(
                       opacity: _isSwitchOn ? 1.0 : 0.0,
                       duration: Duration(milliseconds: 200),
@@ -467,38 +718,45 @@ class _HomePageState extends State<HomePage>
                           opacity: _isSwitchOn ? 1.0 : 0.0,
                           duration: Duration(milliseconds: 200),
                           child: _isSwitchOn
-                              ? FloatingActionButton(
-                                  onPressed: () async {
-                                    SharedPreferences prefs =
-                                        await SharedPreferences.getInstance();
-                                    List<String>? cartItems =
-                                        prefs.getStringList('cartItems');
-                                    if (cartItems != null &&
-                                        cartItems.length >= 1) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                              'Please settle your transactions first'),
-                                          duration: Duration(seconds: 2),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    } else {
-                                      setState(() {
-                                        _subButtons = !_subButtons;
-                                        _isSwitchOn = !_isSwitchOn;
-                                      });
-                                    }
-                                  },
-                                  child: Icon(Icons.more_horiz),
-                                  backgroundColor: isDarkMode
-                                      ? const Color.fromARGB(255, 243, 238, 238)
-                                          .withOpacity(0.65)
-                                      : const Color.fromARGB(255, 97, 2, 140)
-                                          .withOpacity(0.85),
-                                  foregroundColor: Colors.white,
-                                  elevation: 4.0,
+                              ? SizedBox(
+                                  width: 65,
+                                  height: 65,
+                                  child: FloatingActionButton(
+                                    onPressed: () async {
+                                      SharedPreferences prefs =
+                                          await SharedPreferences.getInstance();
+                                      List<String>? cartItems =
+                                          prefs.getStringList('cartItems');
+                                      if (cartItems != null &&
+                                          cartItems.length >= 1) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                'Please settle your transactions first'),
+                                            duration: Duration(seconds: 2),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      } else {
+                                        setState(() {
+                                          _subButtons = !_subButtons;
+                                          _isSwitchOn = !_isSwitchOn;
+                                        });
+                                      }
+                                    },
+                                    child: Icon(Icons.more_horiz),
+                                    backgroundColor: isDarkMode
+                                        ? const Color.fromARGB(
+                                                255, 243, 238, 238)
+                                            .withOpacity(0.65)
+                                        : const Color.fromARGB(255, 97, 2, 140)
+                                            .withOpacity(0.85),
+                                    foregroundColor: Colors.white,
+                                    elevation: 4.0,
+                                    shape:
+                                        CircleBorder(), // Set the shape to CircleBorder
+                                  ),
                                 )
                               : SizedBox(),
                         ),
@@ -509,7 +767,8 @@ class _HomePageState extends State<HomePage>
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               SizedBox(
-                                width: 100,
+                                width: 110,
+                                height: 55,
                                 child: Opacity(
                                   opacity: _subButtons ? 1.0 : 0.0,
                                   child: AnimatedOpacity(
@@ -543,7 +802,13 @@ class _HomePageState extends State<HomePage>
                                             );
                                           } else {
                                             const operation = "select";
-                                            selectTablePage(operation);
+                                            final prefs =
+                                                await SharedPreferences
+                                                    .getInstance();
+                                            await prefs.setString(
+                                                'tablePageOperation',
+                                                operation);
+                                            selectTablePage();
                                           }
                                         },
                                         child: Text('New Order'),
@@ -560,7 +825,8 @@ class _HomePageState extends State<HomePage>
                               ),
                               SizedBox(height: 8),
                               SizedBox(
-                                width: 100,
+                                width: 110,
+                                height: 55,
                                 child: Opacity(
                                   opacity: _subButtons ? 1.0 : 0.0,
                                   child: AnimatedOpacity(
@@ -581,8 +847,7 @@ class _HomePageState extends State<HomePage>
                                                   .getInstance();
                                           await prefs.setString(
                                               'tablePageOperation', "add");
-                                          const operation = "add";
-                                          selectTablePage(operation);
+                                          selectTablePage();
                                         },
                                         child: Text('Add Order'),
                                         backgroundColor: isDarkMode
@@ -597,7 +862,8 @@ class _HomePageState extends State<HomePage>
                               ),
                               SizedBox(height: 8),
                               SizedBox(
-                                width: 100,
+                                width: 110,
+                                height: 55,
                                 child: Opacity(
                                   opacity: _subButtons ? 1.0 : 0.0,
                                   child: AnimatedOpacity(
@@ -615,14 +881,13 @@ class _HomePageState extends State<HomePage>
                                           curve: Curves.easeInOut,
                                         )),
                                         child: FloatingActionButton(
-                                          onPressed: () async{ 
+                                          onPressed: () async {
                                             SharedPreferences prefs =
-                                              await SharedPreferences
-                                                  .getInstance();
-                                          await prefs.setString(
-                                              'tablePageOperation', "bill");
-                                          const operation = "bill";
-                                          selectTablePage(operation);
+                                                await SharedPreferences
+                                                    .getInstance();
+                                            await prefs.setString(
+                                                'tablePageOperation', "bill");
+                                            selectTablePage();
                                           },
                                           child: Text('Bill Out'),
                                           backgroundColor: isDarkMode

@@ -56,14 +56,6 @@ class _SubPageState extends State<SubPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused) {
-      _clearSharedPreferences();
-    }
-  }
-
   Future<void> _fetchThemeMode() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? themeMode = prefs.getString('isDarkMode');
@@ -103,21 +95,6 @@ class _SubPageState extends State<SubPage> with WidgetsBindingObserver {
     } else {
       print('Failed to occupy tables. Status code: ${response.statusCode}');
       print('Response body: ${response.body}');
-    }
-  }
-
-  void _clearSharedPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? ipAddress = prefs.getString('ipAddress');
-    String? uname = prefs.getString('username');
-    String? temp = prefs.getString('selectedTables2');
-    String? switchValue = prefs.getString('switchValue');
-    removeTablesFromShared(temp!);
-    await prefs.clear();
-    if (ipAddress != null && uname != null) {
-      await prefs.setString('ipAddress', ipAddress);
-      await prefs.setString('username', uname);
-      await prefs.setString('switchValue', switchValue!);
     }
   }
 
@@ -163,82 +140,89 @@ class _SubPageState extends State<SubPage> with WidgetsBindingObserver {
     }
   }
 
-@override
-Widget build(BuildContext context) {
-  selectedFromShared();
-  String itemName = widget.item.itemname; // Extract the single item name
-   // Define back button color based on isDarkMode
+  @override
+  Widget build(BuildContext context) {
+    selectedFromShared();
+    String itemName = widget.item.itemname; // Extract the single item name
+    // Define back button color based on isDarkMode
 
-  return Scaffold(
-    body: Container(
-      color: isDarkMode ? Color(0xFF222222) : Colors.white,  // Set the background color here
-      child: CustomScrollView(
-        slivers: <Widget>[
-          SliverAppBar(
-            pinned: true,
-            floating: true,
-            expandedHeight: 160.0,
-            backgroundColor:  isDarkMode ? Color(0xFF222222) : Colors.white,  // Set background color of the SliverAppBar
-            leading: IconButton( // Customize back button
-              icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Color(0xFF222222)),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                children: <Widget>[
-                  // Background image
-                  Image.network(
-                    _getImagePathForItem(widget.item),
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    height: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Icon(
-                          Icons.fastfood,
-                          size: 100,
-                          color: isDarkMode ? Colors.white : Colors.black, // Use error color from the theme
+    return Scaffold(
+      body: Container(
+        color: isDarkMode
+            ? Color(0xFF222222)
+            : Colors.white, // Set the background color here
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              expandedHeight: 160.0,
+              backgroundColor: isDarkMode
+                  ? Color(0xFF222222)
+                  : Colors.white, // Set background color of the SliverAppBar
+              leading: IconButton(
+                // Customize back button
+                icon: Icon(Icons.arrow_back,
+                    color: isDarkMode ? Colors.white : Color(0xFF222222)),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                background: Stack(
+                  children: <Widget>[
+                    // Background image
+                    Image.network(
+                      _getImagePathForItem(widget.item),
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      height: double.infinity,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Icon(
+                            Icons.fastfood,
+                            size: 100,
+                            color: isDarkMode
+                                ? Colors.white
+                                : Colors
+                                    .black, // Use error color from the theme
+                          ),
+                        );
+                      },
+                    ),
+                    // Positioned title
+                    Positioned(
+                      bottom: 16.0,
+                      left: 16.0,
+                      right: 16.0,
+                      child: Text(
+                        itemName,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: isDarkMode ? Colors.white : Colors.black,
                         ),
-                      );
-                    },
-                  ),
-                  // Positioned title
-                  Positioned(
-                    bottom: 16.0,
-                    left: 16.0,
-                    right: 16.0,
-                    child: Text(
-                      itemName,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: isDarkMode ? Colors.white : Colors.black,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: SubItemWidget(
-              itemcode: widget.item.itemcode,
-              isDarkMode: isDarkMode,
-              toggleDarkMode: _toggleDarkMode,
-              onItemAdded: _updateCartItemCount,
+            SliverToBoxAdapter(
+              child: SubItemWidget(
+                itemcode: widget.item.itemcode,
+                isDarkMode: isDarkMode,
+                toggleDarkMode: _toggleDarkMode,
+                onItemAdded: _updateCartItemCount,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-
-
-Widget buildShimmerItemCard() {
+  Widget buildShimmerItemCard() {
     return Card(
       color: Colors.white,
       margin: EdgeInsets.all(8.0),
@@ -307,6 +291,7 @@ Widget buildShimmerItemCard() {
       ),
     );
   }
+
   void _updateCartItemCount() {
     setState(() {
       // Refresh the state to update the item count in the HomeNavBar

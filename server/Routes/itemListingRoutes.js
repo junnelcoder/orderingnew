@@ -57,18 +57,18 @@ router.get('/categories', async (req, res) => {
 
 router.get('/items', async (req, res) => {
   try {
-      let category = req.query.category;
-      let query = `
-          SELECT *, 
-          CASE WHEN (SELECT COUNT(1) FROM items_costing WHERE itemcode = I.itemcode) != 0 THEN 1 ELSE 0 END AS subitem_tag 
-          FROM [restopos45].[dbo].[items] I 
-      `;
-
-      // If a specific category is selected, filter by that category
-      if (category && category !== 'ALL') {
-          category = decodeURIComponent(category); // Decode the category parameter
-          query += ' WHERE category = @category';
-      }
+    let category = req.query.category;
+          let query = `
+              SELECT *, 
+              CASE WHEN (SELECT COUNT(1) FROM items_costing WHERE itemcode = I.itemcode) != 0 THEN 1 ELSE 0 END AS subitem_tag 
+              FROM [restopos45].[dbo].[items] I WHERE itemname IS NOT NULL and (select count(1) from items_packages where sub_itemcode = I.itemcode) = 0 and (select count(1) from items_costing where sub_itemcode = I.itemcode) = 0
+          `;
+    
+          // If a specific category is selected, filter by that category
+          if (category && category !== 'ALL') {
+              category = decodeURIComponent(category); // Decode the category parameter
+              query += ' AND category = @category';
+          }
 
       // Add ORDER BY clause to sort items alphabetically by itemname
       query += ' ORDER BY itemname';
@@ -118,9 +118,7 @@ router.get('/checkForBillout', async (req, res) => {
                   WHERE zread_status = 0
               )
               AND machine_id = (
-                  SELECT terminal_number 
-                  FROM sys_setup
-              )
+                select machine_id from machine_setup where mac_address = convert(varchar(255), (select serverproperty('MachineName')))    )
               AND table_no = @tableno
           `);
               // console.log(isValidForBilloutResult);
@@ -155,9 +153,7 @@ router.get('/checkForBillout', async (req, res) => {
                       FROM business_date_res 
                       WHERE zread_status = 0
                   )
-                  AND machine_id = (
-                      SELECT terminal_number 
-                      FROM sys_setup
+                  AND machine_id = (select machine_id from machine_setup where mac_address = convert(varchar(255), (select serverproperty('MachineName')))
                   )
                   AND table_no = @tableno 
                   AND status = 'O' 
@@ -184,8 +180,9 @@ router.get('/checkForBillout', async (req, res) => {
                       WHERE zread_status = 0
                   )
                   AND machine_id = (
-                      SELECT terminal_number 
-                      FROM sys_setup
+
+                    select machine_id from machine_setup where mac_address = convert(varchar(255), (select serverproperty('MachineName')))
+
                   ) 
                   AND table_no = @tableno 
                   AND status = 'O' 
@@ -193,8 +190,8 @@ router.get('/checkForBillout', async (req, res) => {
               `);
 
           const detail = detailsResult.recordset;
-          console.log(detail);
-          console.log(summary);
+          console.log("detail" ,detail);
+          console.log("summary" ,summary);
           return res.status(200).json({ summary, detail });
       } else {
           return res.status(200).json({});
@@ -206,7 +203,27 @@ router.get('/checkForBillout', async (req, res) => {
 });
 
 
+router.get('/billout', async (req, res) => {
+  const { tableno } = req.query;
 
+  try {
+      const pool = await sql.connect(config);
+
+      // Update the billout column for the specified table_no
+      await pool.request()
+          .input('tableno', sql.VarChar, tableno)
+          .query(`
+              UPDATE tableno 
+              SET billout = 1 
+              WHERE table_no = @tableno
+          `);
+
+      res.sendStatus(200);
+  } catch (error) {
+      console.error('Error updating billout:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 
 module.exports = router;

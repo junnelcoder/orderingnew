@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +11,7 @@ import 'package:ordering/pages/select_table.dart';
 class CartNavBar extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
   final Function(List<Map<String, dynamic>>) updateCartItems;
+
   final bool isDarkMode;
   CartNavBar({
     Key? key,
@@ -25,16 +27,39 @@ class CartNavBar extends StatefulWidget {
 class _CartNavBarState extends State<CartNavBar> {
   bool _isDarkMode = false;
   bool operationCompleted = false;
+  int setUp = 0;
   @override
   void initState() {
     _loadDarkModePreference();
+    loadAuthorizedDeviceIdsJson();
+    _saveTotalAmount(); // Save the total amount to SharedPreferences
     super.initState();
+  }
+void loadAuthorizedDeviceIdsJson() async {
+    try {
+      String data = await rootBundle.loadString('setup.json');
+
+      Map<String, dynamic> jsonData = jsonDecode(data);
+      setUp = jsonData['pos'];
+    } catch (e) {
+      print('Error loading authorized device IDs: $e');
+    }
   }
 
   Future<void> _loadDarkModePreference() async {
     setState(() {
       _isDarkMode = widget.isDarkMode;
     });
+  }
+
+  Future<void> _saveTotalAmount() async {
+    double totalAmount = widget.cartItems.isNotEmpty
+        ? widget.cartItems
+            .map((item) => double.parse(item['total'].toString()))
+            .reduce((value, element) => value + element)
+        : 0.0;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('totalAmount', totalAmount);
   }
 
   @override
@@ -185,30 +210,34 @@ class _CartNavBarState extends State<CartNavBar> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String switchValue = prefs.getString('switchValue') ?? '';
     String? ipAddress = prefs.getString('ipAddress');
-    String lastInvDigitsString = "";
-    var url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/get-last_inv');
-    try {
-      var response = await http.get(url);
-      if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
-        if (data.isNotEmpty) {
-          var lastInvDigits = data[0]['last_inv_digits'];
-          lastInvDigitsString = lastInvDigits.toString();
-          print(lastInvDigitsString);
-          setState(() {});
-        } 
-      } else {
+    String? lastInvDigitsString = prefs.getString('lastInv');
+    if (lastInvDigitsString == null) {
+      var url = Uri.parse(
+          'http://$ipAddress:${AppConfig.serverPort}/api/get-last_inv');
+      try {
+        var response = await http.get(url);
+        if (response.statusCode == 200) {
+          List<dynamic> data = json.decode(response.body);
+          if (data.isNotEmpty) {
+            var lastInvDigits = data[0]['unique_number'];
+            lastInvDigitsString = lastInvDigits.toString();
+            setState(() {});
+          }
+        } else {
+          throw Exception('Failed to fetch note items');
+        }
+      } catch (e) {
+        print('Error fetching note items: $e');
         throw Exception('Failed to fetch note items');
       }
-    } catch (e) {
-      print('Error fetching note items: $e');
-      throw Exception('Failed to fetch note items');
     }
 
     bool displayTextField = switchValue == 'QS'; // Check if switchValue is 'QS'
     if (displayTextField) {
-      _customerNameController.text = lastInvDigitsString;
-    } else {
+      if(setUp != 0){
+      _customerNameController.text = lastInvDigitsString!;
+    }
+      } else {
       _customerNameController.text = "";
     }
     Widget textFieldWidget = displayTextField
@@ -270,13 +299,17 @@ class _CartNavBarState extends State<CartNavBar> {
           ),
           actions: <Widget>[
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+
+                await prefs.setString('lastInv', lastInvDigitsString!);
                 Navigator.of(context).pop();
               },
               child: Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
+                await prefs.remove('lastInv');
                 showDialog(
                   context: context,
                   barrierDismissible: false,
@@ -303,6 +336,7 @@ class _CartNavBarState extends State<CartNavBar> {
                     Navigator.of(context).pop();
                   }
                 });
+
                 await saveOrderToDatabase(
                     widget.cartItems, context, _customerNameController.text);
 
@@ -324,6 +358,7 @@ class _CartNavBarState extends State<CartNavBar> {
       String? selectedTablesString = prefs.getString('selectedTables');
       String? selectedService = prefs.getString('selectedService');
       String serviceValue = '';
+      if(selectedService !=""){
       switch (selectedService) {
         case 'Dine In':
           serviceValue = 'DI';
@@ -340,21 +375,47 @@ class _CartNavBarState extends State<CartNavBar> {
         default:
           serviceValue = 'DI';
       }
+      }else{
+        serviceValue='';
+      }
+      int add_order = prefs.getString('tablePageOperation') == 'add' ? 1 : 0;
+      String? pa_id = prefs.getString('username');
+      String? machine_id = prefs.getString('terminalId');
+      double totalAmount = prefs.getDouble('totalAmount') ??
+          0.0; // Retrieve total amount from SharedPreferences
+
       if (custName != "") {
-        selectedTablesString = "QS-" + custName;
+        selectedTablesString = "QS-$custName";
         selectedTablesString = selectedTablesString.toUpperCase();
       }
-      var apiUrl = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/add-to-cart');
-
+      var apiUrl =
+          Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/saveOrder');
+      var c = jsonEncode({
+        'content': cartItems,
+        'summary': {
+          'pa_id': pa_id,
+          'machine_id': machine_id,
+          'selectedTablesString': selectedTablesString,
+          'switchValue': serviceValue,
+        },
+        'add_order': add_order,
+      });
+      print(c);
       var response = await http.post(
         apiUrl,
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: jsonEncode({
-          'cartItems': cartItems.map((item) => jsonEncode(item)).toList(),
-          'selectedTablesString': selectedTablesString,
-          'switchValue': serviceValue,
+          'content': cartItems,
+          'summary': {
+            'pa_id': pa_id,
+            'machine_id': machine_id,
+            'total': totalAmount, // Use total amount from SharedPreferences
+            'table_no': selectedTablesString,
+            'order_service': serviceValue,
+          },
+          'add_order': add_order,
         }),
       );
 
@@ -370,17 +431,16 @@ class _CartNavBarState extends State<CartNavBar> {
         await prefs.remove('cartItems');
         await prefs.remove('selectedService');
 
-
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => HomePage(),
           ),
         );
-      } else if (response.statusCode == 200 &&
-          response.body.contains('no printer detected')) {
-            operationCompleted = true;
-            
+      } else if (response.statusCode == 200) {
+        //  &&response.body.contains('no printer detected')
+        operationCompleted = true;
+
         Fluttertoast.showToast(
           msg: "Order saved, but no printer detected",
           toastLength: Toast.LENGTH_SHORT,
@@ -390,10 +450,10 @@ class _CartNavBarState extends State<CartNavBar> {
         );
         await prefs.remove('cartItems');
         await prefs.remove('selectedService');
+        await prefs.remove('selectedTables2');
+        await prefs.remove('selectedTables');
+        await prefs.remove('add_order');
 
-
-            await prefs.remove('selectedTables2');
-            await prefs.remove('selectedTables');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -402,6 +462,7 @@ class _CartNavBarState extends State<CartNavBar> {
         );
       } else {
         print('Failed to save order. Status code: ${response.statusCode}');
+        print('Response body: ${response.body}');
       }
     } catch (e) {
       print('Error saving order: $e');
@@ -455,7 +516,6 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(

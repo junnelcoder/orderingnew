@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ordering/pages/config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -24,12 +25,20 @@ class HomeNavBar extends StatefulWidget {
 }
 
 class _HomeNavBarState extends State<HomeNavBar> {
-  late bool _someFunctionalitySwitchValue;
+  late bool _someFunctionalitySwitchValue = false;
+
   late bool _canInteractWithSwitch;
-  int?
-      _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
+  int? _openCartItemsCount; // Define _openCartItemsCount as a class-level variable
   List<String>? _cachedCartItems;
   String selectedService = 'Dine In';
+  late Timer _timer;
+  int setUp = 0;
+
+  @override
+  void dispose() {
+    _timer.cancel(); // Cancel the timer in dispose
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -37,11 +46,25 @@ class _HomeNavBarState extends State<HomeNavBar> {
     _canInteractWithSwitch = true;
     _loadSwitchValueFromStorage();
     _refreshOnLoad();
-    _startPollingForChanges(Duration(milliseconds: 1));
+    _startPollingForChanges(Duration(milliseconds: 500));
     loadSelectedService();
-    setState(() {
-      selectedService = 'Dine In';
-    });
+    loadAuthorizedDeviceIdsJson();
+  }
+
+  void loadAuthorizedDeviceIdsJson() async {
+    try {
+      String data = await rootBundle.loadString('setup.json');
+
+      Map<String, dynamic> jsonData = jsonDecode(data);
+      setUp = jsonData['pos'];
+      if (setUp == 0) {
+        selectedService = "";
+      } else {
+        selectedService = "Dine In";
+      }
+    } catch (e) {
+      print('Error loading authorized device IDs: $e');
+    }
   }
 
   void _refreshOnLoad() async {
@@ -51,10 +74,15 @@ class _HomeNavBarState extends State<HomeNavBar> {
   }
 
   void _startPollingForChanges(Duration interval) {
-    Timer.periodic(interval, (timer) async {
+    _timer = Timer.periodic(interval, (timer) async {
+      if (!mounted) {
+        // Check if the widget is still mounted before calling setState
+        timer.cancel(); // Cancel the timer if the widget is disposed
+        return;
+      }
       bool hasChanges = await _checkForChanges();
       if (hasChanges) {
-        _refreshOnLoad(); // Refresh the count if changes detected
+        _refreshOnLoad();
       }
     });
   }
@@ -181,7 +209,7 @@ class _HomeNavBarState extends State<HomeNavBar> {
       int openCartItemsCount = 0;
       for (String cartItem in cartItems) {
         Map<String, dynamic> item = json.decode(cartItem);
-        if (item['category'] != 'notes') {
+        if (item['category'] != 'NOTES') {
           openCartItemsCount++;
         }
       }
@@ -194,25 +222,28 @@ class _HomeNavBarState extends State<HomeNavBar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: EdgeInsets.symmetric(horizontal: 15),
-        height: 90,
-        decoration: BoxDecoration(
-          color: widget.isDarkMode ? Color(0xFF222222) : Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: widget.isDarkMode
-                  ? Colors.grey.withOpacity(0.4)
-                  : Colors.black.withOpacity(0.4),
-              spreadRadius: 1,
-              blurRadius: widget.isDarkMode ? 10 : 25,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            SizedBox(
-              width: 110, // Set your desired width here
+      padding: EdgeInsets.symmetric(horizontal: 15),
+      height: 90,
+      decoration: BoxDecoration(
+        color: widget.isDarkMode ? Color(0xFF222222) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: widget.isDarkMode
+                ? Colors.grey.withOpacity(0.4)
+                : Colors.black.withOpacity(0.4),
+            spreadRadius: 1,
+            blurRadius: widget.isDarkMode ? 10 : 25,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Visibility(
+            visible: setUp != 0,
+            child: SizedBox(
+              width: 110,
+              height: 55,
               child: FloatingActionButton.extended(
                 onPressed: () {
                   showDialog(
@@ -290,63 +321,66 @@ class _HomeNavBarState extends State<HomeNavBar> {
                 elevation: 10.0,
               ),
             ),
+          ),
 
-            // Padding added here to move the cartPage button to the left
-            Padding(
-              padding: EdgeInsets.only(right: 50.0),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, "cartPage");
-                },
-                child: Stack(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: widget.isDarkMode ? Colors.grey : Colors.black,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: widget.isDarkMode
-                                ? Colors.grey.withOpacity(0)
-                                : Colors.black.withOpacity(0.4),
-                            spreadRadius: 1,
-                            blurRadius: 6,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.assignment_add,
-                        color: Colors.white,
-                        size: 40,
-                      ),
+          // Padding added here to move the cartPage button to the left
+          Padding(
+            padding: EdgeInsets.only(right: setUp != 0 ? 50.0 : 0.0),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, "cartPage");
+              },
+              child: Stack(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: widget.isDarkMode ? Colors.grey : Colors.black,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: widget.isDarkMode
+                              ? Colors.grey.withOpacity(0)
+                              : Colors.black.withOpacity(0.4),
+                          spreadRadius: 1,
+                          blurRadius: 6,
+                        ),
+                      ],
                     ),
-                    if (_openCartItemsCount != null && _openCartItemsCount! > 0)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          padding: EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.red,
-                          ),
-                          child: Text(
-                            _openCartItemsCount.toString(),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                            ),
+                    child: Icon(
+                      Icons.assignment_add,
+                      color: Colors.white,
+                      size: 40,
+                    ),
+                  ),
+                  if (_openCartItemsCount != null && _openCartItemsCount! > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red,
+                        ),
+                        child: Text(
+                          _openCartItemsCount.toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
                           ),
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
             ),
+          ),
 
-            // Existing code for switch button and label
-            Container(
+          // Existing code for switch button and label
+          Visibility(
+            visible: setUp != 0,
+            child: Container(
               margin: EdgeInsets.only(top: 15),
               child: Column(
                 children: [
@@ -375,8 +409,10 @@ class _HomeNavBarState extends State<HomeNavBar> {
                   ),
                 ],
               ),
-            )
-          ],
-        ));
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

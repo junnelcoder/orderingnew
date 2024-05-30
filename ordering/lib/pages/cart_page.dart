@@ -71,7 +71,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
 
       for (int i = 0; i < cartItems.length; i++) {
         final item = cartItems[i];
-        print("Index $i: itemname: ${item['itemname']}, id: ${item['pa_id']}");
+        print("index $i: itemname: ${item['itemname']}, id: ${item['pa_id']}");
       }
     }
   }
@@ -86,7 +86,8 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
   Future<List<Map<String, dynamic>>> _fetchNotes() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    var url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/get-notes');
+    var url =
+        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/get-notes');
     try {
       var response = await http.get(url);
       if (response.statusCode == 200) {
@@ -114,14 +115,34 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
   }
 
   Future<void> _removeCartItem(int index) async {
-    // ignore: unused_local_variable
-    String itemId = cartItems[index]['id'];
-    cartItems.removeAt(index);
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-        'cartItems', cartItems.map((item) => json.encode(item)).toList());
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String>? storedCartItems = prefs.getStringList('cartItems');
+      if (storedCartItems == null) {
+        return; // No items to remove
+      }
 
-    setState(() {});
+      List<Map<String, dynamic>> cartItems = storedCartItems
+          .map((item) => json.decode(item) as Map<String, dynamic>)
+          .toList();
+
+      String itemId = cartItems[index]['id'];
+      print('Removing items with id: $itemId');
+
+      // Remove all items with the same id
+      cartItems.removeWhere((item) => item['id'] == itemId);
+
+      // Save the updated list back to SharedPreferences
+      List<String> updatedCartItems =
+          cartItems.map((item) => json.encode(item)).toList();
+      await prefs.setStringList('cartItems', updatedCartItems);
+
+      // Refresh cart items
+      _fetchCartItems();
+    } catch (e) {
+      print('Error removing item from local storage: $e');
+      throw Exception('Failed to remove item from local storage');
+    }
   }
 
   void _removeAllCartItems() async {
@@ -203,7 +224,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
           Map<String, dynamic> duplicatedItem = Map.from(lastCartItem);
           duplicatedItem['itemname'] = note;
           duplicatedItem['id'] = itemId;
-          duplicatedItem['category'] = "notes";
+          duplicatedItem['category'] = 'NOTES';
           duplicatedItem['total'] = 0;
           cartItemsString.add(json.encode(duplicatedItem));
           prefs.setStringList('cartItems', cartItemsString);
@@ -227,7 +248,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
       List<Map<String, dynamic>> updatedCartItems = [];
       for (int i = 0; i < cartItems.length; i++) {
         if (cartItems[i]['id'] == cartItemId) {
-          if (cartItems[i]['category'] == 'notes' &&
+          if (cartItems[i]['category'] == "NOTES" &&
               cartItems[i]['itemname'] == note) {
             continue;
           }
@@ -313,17 +334,17 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
                       List<String> notesList = [];
 
                       for (int i = 0; i < cartItems.length; i++) {
-                        if (cartItems[i]['category'] == 'notes' &&
+                        if (cartItems[i]['category'] == "NOTES" &&
                             cartItems[i]['id'] == item['id']) {
                           notesList.add(cartItems[i]['itemname']);
                         }
                       }
 
-                      if (item['category'] != 'notes') {
+                      if (item['category'] != "NOTES") {
                         List<String> availableNotes =
                             List<String>.from(notesList);
                         for (int i = 0; i < cartItems.length; i++) {
-                          if (cartItems[i]['category'] == 'notes' &&
+                          if (cartItems[i]['category'] == "NOTES" &&
                               cartItems[i]['itemname'] != null) {
                             availableNotes.remove(cartItems[i]['itemname']);
                           }
@@ -355,13 +376,6 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
                           onDismissed: (direction) {
                             _removeCartItem(index);
                             // Slide animation
-                            setState(() {
-                              cartItems.removeAt(index);
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: Text("${item['itemname']} removed"),
-                              duration: Duration(seconds: 2),
-                            ));
                           },
                           background: Container(
                             alignment: Alignment.centerRight,
@@ -414,8 +428,7 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
                                               size: 100,
                                               color: isDarkMode
                                                   ? Colors.white
-                                                  : Colors
-                                                      .black, // Use error color from the theme
+                                                  : Colors.black,
                                             );
                                           },
                                         ),
@@ -431,20 +444,22 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
                                             Text(
                                               item['itemname'],
                                               style: TextStyle(
-                                                  fontSize: screenWidth * 0.06,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: isDarkMode
-                                                      ? Colors.black
-                                                          .withOpacity(0.7)
-                                                      : Colors.black),
+                                                fontSize: screenWidth * 0.06,
+                                                fontWeight: FontWeight.bold,
+                                                color: isDarkMode
+                                                    ? Colors.black
+                                                        .withOpacity(0.7)
+                                                    : Colors.black,
+                                              ),
                                             ),
                                             Text(
                                               item['category'],
                                               style: TextStyle(
-                                                  fontSize: screenWidth * 0.04,
-                                                  color: isDarkMode
-                                                      ? Colors.white
-                                                      : Colors.black),
+                                                fontSize: screenWidth * 0.04,
+                                                color: isDarkMode
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                              ),
                                             ),
                                             Text(
                                               "₱${double.parse(item['total']).toStringAsFixed(2)}",
@@ -460,47 +475,52 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
                                         ),
                                       ),
                                       SizedBox(width: 10),
-                                      Container(
-                                        padding:
-                                            EdgeInsets.all(screenWidth * 0.004),
-                                        decoration: BoxDecoration(
-                                          color: isDarkMode
-                                              ? Colors.black.withOpacity(0.4)
-                                              : Colors.black,
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            IconButton(
-                                              icon: Icon(
-                                                CupertinoIcons.plus,
-                                                color: Colors.white,
-                                                size: screenWidth * 0.08,
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                            right: screenWidth *
+                                                0.04), // Adjust the padding as needed
+                                        child: Container(
+                                          padding: EdgeInsets.all(
+                                              screenWidth * 0.004),
+                                          decoration: BoxDecoration(
+                                            color: isDarkMode
+                                                ? Colors.black.withOpacity(0.4)
+                                                : Colors.black,
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              IconButton(
+                                                icon: Icon(
+                                                  CupertinoIcons.plus,
+                                                  color: Colors.white,
+                                                  size: screenWidth * 0.08,
+                                                ),
+                                                onPressed: () =>
+                                                    _incrementQuantity(index),
                                               ),
-                                              onPressed: () =>
-                                                  _incrementQuantity(index),
-                                            ),
-                                            Text(
-                                              item['qty'],
-                                              style: TextStyle(
-                                                fontSize: screenWidth * 0.06,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
+                                              Text(
+                                                item['qty'],
+                                                style: TextStyle(
+                                                  fontSize: screenWidth * 0.06,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
                                               ),
-                                            ),
-                                            IconButton(
-                                              icon: Icon(
-                                                CupertinoIcons.minus,
-                                                color: Colors.white,
-                                                size: screenWidth * 0.08,
+                                              IconButton(
+                                                icon: Icon(
+                                                  CupertinoIcons.minus,
+                                                  color: Colors.white,
+                                                  size: screenWidth * 0.08,
+                                                ),
+                                                onPressed: () =>
+                                                    _decrementQuantity(index),
                                               ),
-                                              onPressed: () =>
-                                                  _decrementQuantity(index),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -623,7 +643,8 @@ class _CartPageState extends State<_CartPage> with WidgetsBindingObserver {
               onPressed: _removeAllCartItems,
               label: Text(
                 'All',
-                style: TextStyle(color: Colors.white), // Set text color to white
+                style:
+                    TextStyle(color: Colors.white), // Set text color to white
               ),
               icon: Icon(
                 Icons.delete,

@@ -39,14 +39,6 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.paused) {
-      _clearSharedPreferences();
-    }
-  }
-
   Future<void> _fetchThemeMode() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? themeMode = prefs.getString('isDarkMode');
@@ -57,7 +49,7 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
     }
   }
 
- Future<void> removeTablesFromShared(String table) async {
+  Future<void> removeTablesFromShared(String table) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('selectedTables');
     await prefs.remove('selectedTables2');
@@ -71,9 +63,9 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
         Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/occupy');
     var requestBody = jsonEncode({
       'selectedIndex': temp,
-      'action': action, 
+      'action': action,
       'previousIndex': table,
-        'changeSelected': change,
+      'changeSelected': change,
     });
     var response = await http.post(
       apiUrl,
@@ -88,25 +80,12 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
       print('Response body: ${response.body}');
     }
   }
-  void _clearSharedPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? ipAddress = prefs.getString('ipAddress');
-    String? uname = prefs.getString('username');
-    String? temp = prefs.getString('selectedTables2');
-    String? switchValue = prefs.getString('switchValue');
-    removeTablesFromShared(temp!);
-    await prefs.clear();
-    if (ipAddress != null && uname != null) {
-      await prefs.setString('ipAddress', ipAddress);
-      await prefs.setString('username', uname);
-      await prefs.setString('switchValue', switchValue!);
-    }
-  }
 
   void deleteOn(String trans_no, int count) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    final url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/delete-items');
+    final url =
+        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/delete-items');
     String? temp = prefs.getString('count');
     count = int.parse(temp!);
     print(count);
@@ -144,7 +123,8 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
   void showModal(String id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    final url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/soDetailData');
+    final url =
+        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/soDetailData');
 
     try {
       final response = await http.get(url);
@@ -171,7 +151,8 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
   void showCustomContainer(String id) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    final url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/soDetailData');
+    final url =
+        Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/soDetailData');
 
     try {
       final response = await http.get(url);
@@ -366,7 +347,8 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
   Future<void> retrievePunched() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? ipAddress = prefs.getString('ipAddress');
-    final url = Uri.parse('http://$ipAddress:${AppConfig.serverPort}/api/todaysTransactions');
+    final url = Uri.parse(
+        'http://$ipAddress:${AppConfig.serverPort}/api/todaysTransactions');
 
     try {
       final response = await http.get(url);
@@ -525,47 +507,57 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
                                 Row(
                                   children: [
                                     Expanded(
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisAlignment: MainAxisAlignment.spaceAround,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(left: 20.0), 
-        child: Text(
-          "SO_Number: ",
-          style: TextStyle(
-            fontSize: screenWidth * 0.05,
-            fontWeight: FontWeight.bold,
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.only(left: 20.0), 
-        child: Text(
-          "Customer Info: ",
-          style: TextStyle(
-            fontSize: screenWidth * 0.05,
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.only(left: 20.0),
-        child: Text(
-          "Total: ",
-          style: TextStyle(
-            fontSize: screenWidth * 0.05,
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
-        ),
-      ),
-    ],
-  ),
-),
-
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 20.0),
+                                            child: Text(
+                                              "SO_Number: ",
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.05,
+                                                fontWeight: FontWeight.bold,
+                                                color: isDarkMode
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 20.0),
+                                            child: Text(
+                                              "Customer Info: ",
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.05,
+                                                color: isDarkMode
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                left: 20.0),
+                                            child: Text(
+                                              "Total: ",
+                                              style: TextStyle(
+                                                fontSize: screenWidth * 0.05,
+                                                color: isDarkMode
+                                                    ? Colors.white
+                                                    : Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     SizedBox(width: 10),
-                                    VerticalDivider(), 
+                                    VerticalDivider(),
                                     SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
@@ -585,9 +577,7 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
                                             ),
                                           ),
                                           Text(
-                                            "${item['table_no']}"
-                                                    .toString()
-                                                ,
+                                            "${item['table_no']}".toString(),
                                             style: TextStyle(
                                               fontSize: screenWidth * 0.05,
                                               color: isDarkMode
@@ -623,6 +613,7 @@ class _DeleteCartPageState extends State<_DeleteCartPage>
     );
   }
 }
+
 class BackButtonPage extends StatelessWidget {
   final Widget child;
 
